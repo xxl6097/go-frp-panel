@@ -142,10 +142,10 @@
       <div class="el-upload__text">拖拽到这里 <em>点击上传</em></div>
       <template #tip>
         <el-progress
-            v-if="dialogClientsVisible"
-            :percentage="uploadPercent"
-            :stroke-width="14"
-            style="margin-top: 12px"
+          v-if="dialogClientsVisible"
+          :percentage="uploadPercent"
+          :stroke-width="14"
+          style="margin-top: 12px"
         />
         <div class="el-upload__tip">
           请上传全平台架构的客户端程序放到dist文件夹并压缩，仅支持zip！
@@ -164,7 +164,8 @@ import {
   showSucessTips,
   showTips,
   showWarmDialog,
-  showWarmTips, xhrPromise,
+  showWarmTips,
+  xhrPromise,
 } from './utils/utils.ts'
 //https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
 const isDark = useDark()
@@ -322,26 +323,29 @@ const upgrade = () => {
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
-  // try {
-  //   // 调用上传函数
-  //   await uploadFile(file)
-  // } catch (error) {
-  //   console.error('Upload failed:', error)
-  // }
-
-  // 创建一个 FormData 对象
   const formData = new FormData()
   formData.append('file', file)
+  dialogFormVisible.value = false
   const loading = showLoading('客户端上传中...')
   xhrPromise({
     url: '../api/client/upload',
     method: 'POST',
     data: formData,
-    onUploadProgress: (progress:string)=>{
-      console.log(`上传进度：${progress}`);
+    onUploadProgress: (progress: string) => {
+      console.log(`上传进度：${progress}`)
       loading.setText(`上传进度：${progress}%`)
     },
   })
+    .then((response) => {
+      console.log('请求成功', response)
+    })
+    .catch((error) => {
+      console.error('请求失败', error)
+    })
+    .finally(() => {
+      loading.close()
+      dialogClientsVisible.value = false
+    })
 }
 
 // const uploadFile = (file: any) => {
