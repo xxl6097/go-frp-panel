@@ -1,0 +1,387 @@
+<template>
+  <div id="app">
+    <header class="grid-content header-color">
+      <div class="header-content">
+        <div class="brand">
+          <a href="#">Frps服务器</a>
+        </div>
+        <div class="dark-switch">
+          <div class="dark-reboot">
+            <el-dropdown placement="bottom" split-button plain @click="restart">
+              重启
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="shutdown">关闭服务</el-dropdown-item>
+                  <el-dropdown-item @click="dialogFormVisible = true">升级服务</el-dropdown-item>
+                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
+                  <el-dropdown-item @click="dialogClientsVisible = true">上传客户端</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+          <el-switch
+            v-model="darkmodeSwitch"
+            active-text="深色"
+            inactive-text="浅色"
+            inline-prompt
+            style="
+              --el-switch-on-color: #444452;
+              --el-switch-off-color: #589ef8;
+            "
+            @change="toggleDark"
+          />
+        </div>
+      </div>
+    </header>
+    <section>
+      <el-row>
+        <el-col id="side-nav" :md="4" :xs="24">
+          <el-menu
+            :default-active="menuIndex"
+            mode="vertical"
+            router="false"
+            theme="light"
+            @select="handleSelect"
+          >
+            <el-menu-item index="/">服务器信息</el-menu-item>
+
+            <el-menu-item index="/config">服务器配置</el-menu-item>
+            <el-menu-item index="/user">用户配置</el-menu-item>
+
+            <el-sub-menu index="/proxies">
+              <template #title>
+                <span>代理列表</span>
+              </template>
+              <el-menu-item index="/proxies/tcp">TCP</el-menu-item>
+              <el-menu-item index="/proxies/udp">UDP</el-menu-item>
+              <el-menu-item index="/proxies/http">HTTP</el-menu-item>
+              <el-menu-item index="/proxies/https">HTTPS</el-menu-item>
+              <el-menu-item index="/proxies/tcpmux">TCPMUX</el-menu-item>
+              <el-menu-item index="/proxies/stcp">STCP</el-menu-item>
+              <el-menu-item index="/proxies/sudp">SUDP</el-menu-item>
+            </el-sub-menu>
+            <el-menu-item index="">帮助</el-menu-item>
+          </el-menu>
+        </el-col>
+
+        <el-col :md="20" :xs="24">
+          <div id="content">
+            <router-view></router-view>
+          </div>
+        </el-col>
+      </el-row>
+    </section>
+    <footer></footer>
+  </div>
+
+  <el-dialog
+    v-model="dialogFormVisible"
+    align-center
+    title="程序升级"
+    width="500"
+  >
+    <el-input
+      v-model="form.binUrl"
+      autocomplete="off"
+      placeholder="请输入程序Url地址～"
+    />
+
+    <template #footer>
+      <div class="dialog-footer">
+        <el-upload
+          class="upload-demo"
+          :http-request="customUpload"
+          :on-success="handleSuccess"
+          :on-error="handleError"
+          :limit="1"
+        >
+          <template #trigger>
+            <el-button type="primary" :disabled="form.binUrl.length > 0">上传文件升级</el-button>
+          </template>
+          <!-- 添加额外按钮 -->
+          <el-button style="margin-left: 10px" type="danger" @click="upgrade">
+            文件url升级
+          </el-button>
+        </el-upload>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!--  上传客户端-->
+  <el-dialog
+      v-model="dialogClientsVisible"
+      align-center
+      title="客户端上传"
+      width="500"
+  >
+    <template #title>
+      <!-- 空标题或自定义隐藏内容 -->
+    </template>
+    <el-upload
+        class="upload-demo"
+        :http-request="doClientsUpload"
+        drag
+        :accept="'.zip'"
+    >
+      <i class="el-icon el-icon--upload"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="currentColor" d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.808 239.808 0 0 1 512 192a239.872 239.872 0 0 1 235.456 194.752c119.488 13.76 212.48 114.112 212.48 237.248a240 240 0 0 1-240 240c-5.376 0-10.56-1.28-16-1.6v1.6z"></path></svg></i>
+      <div class="el-upload__text">
+        拖拽到这里 <em>点击上传</em>
+      </div>
+      <template #tip>
+        <div class="el-upload__tip">
+          请上传全平台架构的客户端程序放到dist文件夹并压缩，仅支持zip！
+        </div>
+      </template>
+    </el-upload>
+  </el-dialog>
+</template>
+
+<script lang="ts" setup>
+import {onMounted, ref} from 'vue'
+import { useDark, useToggle } from '@vueuse/core'
+import {
+  showErrorTips,
+  showLoading,
+  showSucessTips,
+  showTips, showWarmDialog,
+  showWarmTips,
+} from './utils/utils.ts'
+//https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
+const isDark = useDark()
+const darkmodeSwitch = ref(isDark)
+const toggleDark = useToggle(isDark)
+const dialogFormVisible = ref(false)
+const dialogClientsVisible = ref(false)
+
+const form = ref({
+  binUrl: '',
+})
+const menuIndex = ref('/')
+// 上传成功回调
+const handleSuccess = (response: any) => {
+  console.log('上传成功:', response)
+  // showSucessTips('文件上传成功')
+  if (response.code === 0) {
+    showSucessTips(response.msg)
+  } else {
+    showErrorTips(response.msg)
+  }
+}
+
+// 上传失败回调
+const handleError = (error: Error) => {
+  console.error('上传失败:', error)
+  //showErrorTips('上传失败:' + JSON.stringify(error))
+  // setTimeout(function () {
+  //   window.location.reload()
+  // }, 1000)
+}
+
+// 自定义上传函数
+const customUpload = (options: any) => {
+  const { file } = options
+  const formData = new FormData()
+  formData.append('file', file)
+  const loading = showLoading('程序更新中...')
+  dialogFormVisible.value = false
+  // 使用 fetch 发送请求
+  fetch('../api/upgrade', {
+    method: 'POST',
+    body: formData,
+  })
+    .then((response) => {
+        return response.json()
+    })
+    .then((data) => {
+      // 上传成功的回调
+      options.onSuccess(data)
+    })
+    .catch((error) => {
+      // 上传失败的回调
+      options.onError(error)
+    })
+    .finally(() => {
+      loading.close()
+      dialogFormVisible.value = false
+      setTimeout(function () {
+        window.location.reload()
+      }, 1000)
+    })
+}
+
+const handleSelect = (key: string) => {
+  if (key == '') {
+    window.open('https://github.com/fatedier/frp')
+  }
+  console.log('menu.key',key)
+  menuIndex.value = key
+}
+const restart = () => {
+  showWarmDialog(`确定重启吗？`,()=>{
+    const loading = showLoading('重启中...')
+    fetch('../api/restart', { credentials: 'include' })
+        .then((res) => {
+          return res.json()
+        })
+        .then((json) => {
+          showTips(json.code, json.msg)
+          location.reload()
+        })
+        .catch(() => {
+          showErrorTips('重启失败')
+        })
+        .finally(() => {
+          setTimeout(function () {
+            loading.close()
+            window.location.reload()
+          }, 2000)
+        })
+  },()=>{
+  })
+}
+
+const shutdown = () => {
+  showWarmDialog(`确定关机吗？`,()=>{
+    fetch('../api/shutdown', { credentials: 'include' })
+        .then((res) => {
+          return res.json()
+        })
+        .then((json) => {
+          showTips(json.code, json.msg)
+        })
+        .catch(() => {
+          showErrorTips('关机失败')
+        })
+  },()=>{
+  })
+}
+const showlog = () => {
+  const host = window.origin
+  window.open(`${host}/log/`)
+}
+const upgrade = () => {
+  if (form.value.binUrl.length > 0) {
+    const loading = showLoading('程序升级中...')
+    dialogFormVisible.value = false
+    fetch('../api/upgrade', {
+      credentials: 'include',
+      method: 'PUT',
+      body: form.value.binUrl,
+    })
+      .then((res) => {
+        return res.json()
+      })
+      .then((json) => {
+        showTips(json.code, json.msg)
+      })
+      .catch(() => {
+        showWarmTips('更新失败')
+      })
+      .finally(() => {
+        loading.close()
+        setTimeout(function () {
+          window.location.reload()
+        }, 1000)
+      })
+  } else {
+    showWarmTips('请正确输入url地址')
+  }
+}
+
+const doClientsUpload = (options: any) => {
+  const { file } = options
+  const formData = new FormData()
+  formData.append('file', file)
+  const loading = showLoading('客户端上传中...')
+  dialogFormVisible.value = false
+  // 使用 fetch 发送请求
+  fetch('../api/client/upload', {
+    method: 'POST',
+    body: formData,
+  })
+      .then((response) => {
+        return response.json()
+      })
+      .then((data) => {
+        // 上传成功的回调
+        showSucessTips(JSON.stringify(data))
+      })
+      .catch((error) => {
+        // 上传失败的回调
+        showSucessTips(JSON.stringify(error))
+      })
+      .finally(() => {
+        loading.close()
+        dialogClientsVisible.value = false
+      })
+}
+
+onMounted(()=>{
+  const mIndex = window.location.hash
+  const result = mIndex.replace(/^#+/, "");
+  console.log('index.menu.index',result)
+  menuIndex.value = result
+})
+
+</script>
+
+<style>
+body {
+  margin: 0px;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    Helvetica Neue,
+    sans-serif;
+}
+
+header {
+  width: 100%;
+  height: 60px;
+}
+
+.header-color {
+  background: #58b7ff;
+}
+
+html.dark .header-color {
+  background: #395c74;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+}
+
+#content {
+  margin-top: 20px;
+  padding-right: 40px;
+}
+
+.brand {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.brand a {
+  color: #fff;
+  background-color: transparent;
+  margin-left: 20px;
+  line-height: 25px;
+  font-size: 25px;
+  padding: 15px 15px;
+  height: 30px;
+  text-decoration: none;
+}
+
+.dark-switch {
+  display: flex;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding-right: 40px;
+}
+
+.dark-reboot {
+  padding-right: 10px;
+}
+</style>
