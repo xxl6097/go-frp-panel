@@ -211,7 +211,7 @@ const customUpload = (options: any) => {
 
 const handleSelect = (key: string) => {
   if (key == '') {
-    window.open('https://github.com/fatedier/frp')
+    window.open('https://github.com/xxl6097/go-frp-panel')
   }
   console.log('menu.key',key)
   menuIndex.value = key
