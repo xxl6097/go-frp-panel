@@ -401,7 +401,7 @@ const customUpload = (options: any) => {
       loading.close()
       dialogFormVisible.value = false
       setTimeout(function () {
-        window.location.reload()
+        //window.location.reload()
       }, 1000)
     })
 }
