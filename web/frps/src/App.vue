@@ -128,7 +128,6 @@
     <el-upload
       class="upload-demo"
       :http-request="doClientsUpload"
-      :on-progress="handleProgress"
       drag
       :accept="'.zip'"
     >
@@ -141,12 +140,6 @@
       ></i>
       <div class="el-upload__text">拖拽到这里 <em>点击上传</em></div>
       <template #tip>
-        <el-progress
-          v-if="dialogClientsVisible"
-          :percentage="uploadPercent"
-          :stroke-width="14"
-          style="margin-top: 12px"
-        />
         <div class="el-upload__tip">
           请上传全平台架构的客户端程序放到dist文件夹并压缩，仅支持zip！
         </div>
@@ -174,7 +167,6 @@ const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
 
-const uploadPercent = ref<string>('')
 
 const form = ref({
   binUrl: '',
@@ -189,10 +181,6 @@ const handleSuccess = (response: any) => {
   } else {
     showErrorTips(response.msg)
   }
-}
-const handleProgress = (event: any) => {
-  //uploadPercent.value = Math.round(event.percent)
-  console.log(event)
 }
 
 // 上传失败回调
