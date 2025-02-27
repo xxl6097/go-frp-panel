@@ -173,7 +173,7 @@ const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
 
-const uploadPercent = ref(0)
+const uploadPercent = ref<string>('')
 
 const form = ref({
   binUrl: '',
@@ -190,7 +190,8 @@ const handleSuccess = (response: any) => {
   }
 }
 const handleProgress = (event: any) => {
-  uploadPercent.value = Math.round(event.percent)
+  //uploadPercent.value = Math.round(event.percent)
+  console.log(event)
 }
 
 // 上传失败回调
@@ -342,7 +343,7 @@ const uploadFile = (file: any) => {
       if (event.lengthComputable) {
         const percentComplete = (event.loaded / event.total) * 100
         console.log('--->', percentComplete + '%')
-        uploadPercent.value = percentComplete
+        uploadPercent.value = percentComplete.toFixed(2)
       }
     })
 
