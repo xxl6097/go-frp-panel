@@ -19,15 +19,12 @@
 
 
 - [✅ 特点](#特点)
-- [🔗 最新结果](#最新结果)
 - [⚙️ 配置参数](#配置)
 - [🚀 快速上手](#快速上手)
-    - [工作流](#工作流)
-    - [命令行](#命令行)
-    - [GUI软件](#GUI-软件)
-    - [Docker](#Docker)
-- [📖 详细教程](./docs/tutorial.md)
-- [🗓️ 更新日志](./CHANGELOG.md)
+    - [Frps安装](#Frps服务端程序安装)
+    - [Frpc客户端程序安装](#Frpc客户端程序安装)
+    - [服务端界面](#frps主界面)
+    - [客户端界面](#frpc主界面)
 - [❤️ 赞赏](#赞赏)
 - [👀 关注(更新订阅+答疑交流)](#关注)
 - [📣 免责声明](#免责声明)
@@ -65,7 +62,7 @@ root@clife-fnos:~/files# ./acfrps_0.5.44_linux_amd64 install
 请输入管理后台密码：xxxxx
 ```
 
-主界面：
+#### frps主界面：
 
 <div align="center">
   <img src="./static/images/panel.png" alt="panel"/>
@@ -114,7 +111,7 @@ Description:    一款基于GO语言的网络代理服务程序
 请输入管理后台密码：xxxxxxx
 ```
 
-frpc主界面：
+##### frpc主界面：
 
 <div align="center">
   <img src="./static/images/frpc-panel.png" alt="frpc-panel"/>
