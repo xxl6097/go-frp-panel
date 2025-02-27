@@ -164,7 +164,7 @@ import {
   showSucessTips,
   showTips,
   showWarmDialog,
-  showWarmTips,
+  showWarmTips, xhrPromise,
 } from './utils/utils.ts'
 //https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
 const isDark = useDark()
@@ -322,55 +322,71 @@ const upgrade = () => {
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
-  try {
-    // 调用上传函数
-    await uploadFile(file)
-    alert('File uploaded successfully!')
-  } catch (error) {
-    console.error('Upload failed:', error)
-  }
-}
+  // try {
+  //   // 调用上传函数
+  //   await uploadFile(file)
+  // } catch (error) {
+  //   console.error('Upload failed:', error)
+  // }
 
-const uploadFile = (file: any) => {
+  // 创建一个 FormData 对象
+  const formData = new FormData()
+  formData.append('file', file)
   const loading = showLoading('客户端上传中...')
-  return new Promise((resolve, reject) => {
-    // 创建一个新的 XMLHttpRequest 对象
-    const xhr = new XMLHttpRequest()
-    // 打开一个 POST 请求，这里的 URL 可以根据实际情况修改
-    xhr.open('POST', '../api/client/upload', true)
-
-    // 监听上传进度事件
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100
-        console.log('--->', percentComplete + '%')
-        uploadPercent.value = percentComplete.toFixed(2)
-        loading.setText(`客户端上传中...${uploadPercent.value}`)
-      }
-    })
-
-    // 监听请求完成事件
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(xhr.response)
-      } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`))
-      }
-    })
-
-    // 监听请求出错事件
-    xhr.addEventListener('error', () => {
-      reject(new Error('Network error occurred during upload'))
-    })
-
-    // 创建一个 FormData 对象
-    const formData = new FormData()
-    formData.append('file', file)
-
-    // 发送请求
-    xhr.send(formData)
+  xhrPromise({
+    url: '../api/client/upload',
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    onUploadProgress: (progress:any)=>{
+      console.log(`上传进度：${(progress * 100).toFixed(2)}%`);
+      loading.setText(`上传进度：${(progress * 100).toFixed(2)}%`)
+    },
   })
 }
+
+// const uploadFile = (file: any) => {
+//   const loading = showLoading('客户端上传中...')
+//   return new Promise((resolve, reject) => {
+//     // 创建一个新的 XMLHttpRequest 对象
+//     const xhr = new XMLHttpRequest()
+//     // 打开一个 POST 请求，这里的 URL 可以根据实际情况修改
+//     xhr.open('POST', '../api/client/upload', true)
+//
+//     // 监听上传进度事件
+//     xhr.upload.addEventListener('progress', (event) => {
+//       if (event.lengthComputable) {
+//         const percentComplete = (event.loaded / event.total) * 100
+//         console.log('--->', percentComplete + '%')
+//         uploadPercent.value = percentComplete.toFixed(2)
+//         loading.setText(`客户端上传中 ${uploadPercent.value}%`)
+//       }
+//     })
+//
+//     // 监听请求完成事件
+//     xhr.addEventListener('load', () => {
+//       if (xhr.status >= 200 && xhr.status < 300) {
+//         resolve(xhr.response)
+//       } else {
+//         reject(new Error(`Upload failed with status ${xhr.status}`))
+//       }
+//     })
+//
+//     // 监听请求出错事件
+//     xhr.addEventListener('error', () => {
+//       reject(new Error('Network error occurred during upload'))
+//     })
+//
+//     // 创建一个 FormData 对象
+//     const formData = new FormData()
+//     formData.append('file', file)
+//
+//     // 发送请求
+//     xhr.send(formData)
+//   })
+// }
 
 // const doClientsUpload1 = (options: any) => {
 //   const { file } = options
