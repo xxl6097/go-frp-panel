@@ -97,140 +97,44 @@ root@clife-fnos:~/files# ./acfrps_0.5.44_linux_amd64 install
 如上如，生成客户端后，上传到电脑端运行，命令如下：
 
 ```shell
+root@clife-fnos:~/files# chmod +x acfrpc_0.5.48_linux_amd64 
+root@clife-fnos:~/files# ./acfrpc_0.5.48_linux_amd64 install
+App Name:       acfrpc
+App Version:    0.5.48
+Build version:  v0.5.48
+Build time:     2025-02-27 Thursday 17:21:35
+Git revision:   059ac51
+Git branch:     tags/v0.5.47^0
+Golang Version: go version go1.23.2 darwin/arm64
+DisplayName:    AcFrpc网络代理程序_v0.5.48
+Description:    一款基于GO语言的网络代理服务程序
 
+请输入管理后台端口：6400
+请输入管理后台用户名：admin
+请输入管理后台密码：xxxxxxx
 ```
 
-### 命令行
+frpc主界面：
 
-```shell
-root@clife-fnos:~/files# chmod +x acfrps_0.5.44_linux_amd64 
-root@clife-fnos:~/files# ./acfrps_0.5.44_linux_amd64 install
+<div align="center">
+  <img src="./static/images/frpc-panel.png" alt="frpc-panel"/>
+</div>
 
-请输入Frps服务器绑定端口：6000
-请输入管理后台端口：7200
-请输入管理后台地址(默认0.0.0.0)：
-请输入管理后台用户名(admin)：admin
-请输入管理后台密码：xxxxx
-```
+frpc创建多客户端：
 
-
-### GUI 软件
-
-1. 下载[go-frp-panel 更新软件](https://github.com/xxl6097/go-frp-panel/releases)，打开软件，点击更新，即可完成更新
-
-2. 或者在项目目录下运行以下命令，即可打开 GUI 软件：
-
-```shell
-pipenv run ui
-```
-
-<img src="./docs/images/ui.png" alt="go-frp-panel更新软件" title="go-frp-panel更新软件" style="height:600px" />
-
-### Docker
-
-- go-frp-panel（完整版本）：性能要求较高，更新速度较慢，稳定性、成功率高；修改配置 open_driver = False 可切换到 Lite
-  版本运行模式（推荐酒店源、组播源、关键字搜索使用此版本）
-- go-frp-panel:lite（精简版本）：轻量级，性能要求低，更新速度快，稳定性不确定（推荐订阅源使用此版本）
-
-#### 1. 拉取镜像
-
-- go-frp-panel
-
-```bash
-docker pull guovern/go-frp-panel:latest
-```
-
-🚀 代理加速（推荐国内用户使用）：
-
-```bash
-docker pull docker.1ms.run/guovern/go-frp-panel:latest
-```
-
-- go-frp-panel:lite
-
-```bash
-docker pull guovern/go-frp-panel:lite
-```
-
-🚀 代理加速（推荐国内用户使用）：
-
-```bash
-docker pull docker.1ms.run/guovern/go-frp-panel:lite
-```
-
-#### 2. 运行容器
-
-- go-frp-panel
-
-```bash
-docker run -d -p 8000:8000 guovern/go-frp-panel
-```
-
-- go-frp-panel:lite
-
-```bash
-docker run -d -p 8000:8000 guovern/go-frp-panel:lite
-```
-
-##### 挂载（推荐）：
-
-实现宿主机文件与容器文件同步，修改模板、配置、获取更新结果文件可直接在宿主机文件夹下操作
-
-以宿主机路径/etc/docker 为例：
-
-- go-frp-panel
-
-```bash
--v /etc/docker/config:/go-frp-panel/config
--v /etc/docker/output:/go-frp-panel/output
-```
-
-- go-frp-panel:lite
-
-```bash
--v /etc/docker/config:/go-frp-panel-lite/config
--v /etc/docker/output:/go-frp-panel-lite/output
-```
-
-##### 环境变量：
-
-- 端口
-
-```bash
--e APP_PORT=8000
-```
-
-- 定时执行时间
-
-```bash
--e UPDATE_CRON="0 22,10 * * *"
-```
-
-#### 3. 更新结果
-
-- 接口地址：`ip:8000`
-- m3u 接口：`ip:8000/m3u`
-- txt 接口：`ip:8000/txt`
-- 接口内容：`ip:8000/content`
-- 测速日志：`ip:8000/log`
-
-## 更新日志
-
-[更新日志](./CHANGELOG.md)
+<div align="center">
+  <img src="./static/images/create-frpc.png" alt="create-panel"/>
+</div>
 
 ## 赞赏
 
 <div>开发维护不易，请我喝杯咖啡☕️吧~</div>
 
-| 支付宝                                  | 微信                                      |
-|--------------------------------------|-----------------------------------------|
-| ![支付宝扫码](./static/images/alipay.jpg) | ![微信扫码](./static/images/appreciate.jpg) |
+| 支付宝                                  | 微信                                     |
+|--------------------------------------|----------------------------------------|
+| ![支付宝扫码](./static/images/alipay.png) | ![微信扫码](./static/images/wepay.png) |
 
 ## 关注
-
-微信公众号搜索 Govin，或扫码，接收更新推送、学习更多使用技巧：
-
-![微信公众号](./static/images/qrcode.jpg)
 
 ## 免责声明
 
@@ -238,4 +142,4 @@ docker run -d -p 8000:8000 guovern/go-frp-panel:lite
 
 ## 许可证
 
-[MIT](./LICENSE) License &copy; 2024-PRESENT [Govin](https://github.com/xxl6097)
+[MIT](./LICENSE) License &copy; 2024-PRESENT [xxl6097](https://github.com/xxl6097)
