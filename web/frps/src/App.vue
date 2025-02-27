@@ -332,6 +332,7 @@ const doClientsUpload = async (options: any) => {
 }
 
 const uploadFile = (file: any) => {
+  const loading = showLoading('客户端上传中...')
   return new Promise((resolve, reject) => {
     // 创建一个新的 XMLHttpRequest 对象
     const xhr = new XMLHttpRequest()
@@ -344,6 +345,7 @@ const uploadFile = (file: any) => {
         const percentComplete = (event.loaded / event.total) * 100
         console.log('--->', percentComplete + '%')
         uploadPercent.value = percentComplete.toFixed(2)
+        loading.setText(`客户端上传中...${uploadPercent.value}`)
       }
     })
 
