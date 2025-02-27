@@ -11,6 +11,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -426,12 +427,12 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
-	err := r.ParseMultipartForm(32 << 20)
-	if err != nil {
-		res.Error("body can't be empty")
-		glog.Error(res.Msg)
-		return
-	}
+	//err := r.ParseMultipartForm(32 << 20)
+	//if err != nil {
+	//	res.Error("body can't be empty")
+	//	glog.Error(res.Msg)
+	//	return
+	//}
 	// 获取上传的文件
 	file, handler, err := r.FormFile("file")
 	if err != nil {
@@ -456,7 +457,16 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 
 	dstFilePath := filepath.Join(clientsDir, handler.Filename)
 	//dstFilePath 名称为上传文件的原始名称
-	err = utils.SaveFile(file, handler.Size, dstFilePath)
+	dst, err := os.Create(dstFilePath)
+	if err != nil {
+		res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+		return
+	}
+	buf := this.upgrade.BufPool.Get().([]byte)
+	defer this.upgrade.BufPool.Put(buf)
+	_, err = io.CopyBuffer(dst, file, buf)
+	dst.Close()
+	//err = utils.SaveFile(file, handler.Size, dstFilePath)
 	if err != nil {
 		res.Error(err.Error())
 		glog.Error(res.Msg)

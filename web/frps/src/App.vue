@@ -11,10 +11,16 @@
               重启
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="shutdown">关闭服务</el-dropdown-item>
-                  <el-dropdown-item @click="dialogFormVisible = true">升级服务</el-dropdown-item>
+                  <el-dropdown-item @click="shutdown"
+                    >关闭服务</el-dropdown-item
+                  >
+                  <el-dropdown-item @click="dialogFormVisible = true"
+                    >升级服务</el-dropdown-item
+                  >
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
-                  <el-dropdown-item @click="dialogClientsVisible = true">上传客户端</el-dropdown-item>
+                  <el-dropdown-item @click="dialogClientsVisible = true"
+                    >上传客户端</el-dropdown-item
+                  >
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -96,7 +102,9 @@
           :limit="1"
         >
           <template #trigger>
-            <el-button type="primary" :disabled="form.binUrl.length > 0">上传文件升级</el-button>
+            <el-button type="primary" :disabled="form.binUrl.length > 0"
+              >上传文件升级</el-button
+            >
           </template>
           <!-- 添加额外按钮 -->
           <el-button style="margin-left: 10px" type="danger" @click="upgrade">
@@ -109,25 +117,36 @@
 
   <!--  上传客户端-->
   <el-dialog
-      v-model="dialogClientsVisible"
-      align-center
-      title="客户端上传"
-      width="500"
+    v-model="dialogClientsVisible"
+    align-center
+    title="客户端上传"
+    width="500"
   >
     <template #title>
       <!-- 空标题或自定义隐藏内容 -->
     </template>
     <el-upload
-        class="upload-demo"
-        :http-request="doClientsUpload"
-        drag
-        :accept="'.zip'"
+      class="upload-demo"
+      :http-request="doClientsUpload"
+      :on-progress="handleProgress"
+      drag
+      :accept="'.zip'"
     >
-      <i class="el-icon el-icon--upload"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="currentColor" d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.808 239.808 0 0 1 512 192a239.872 239.872 0 0 1 235.456 194.752c119.488 13.76 212.48 114.112 212.48 237.248a240 240 0 0 1-240 240c-5.376 0-10.56-1.28-16-1.6v1.6z"></path></svg></i>
-      <div class="el-upload__text">
-        拖拽到这里 <em>点击上传</em>
-      </div>
+      <i class="el-icon el-icon--upload"
+        ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+          <path
+            fill="currentColor"
+            d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.808 239.808 0 0 1 512 192a239.872 239.872 0 0 1 235.456 194.752c119.488 13.76 212.48 114.112 212.48 237.248a240 240 0 0 1-240 240c-5.376 0-10.56-1.28-16-1.6v1.6z"
+          ></path></svg
+      ></i>
+      <div class="el-upload__text">拖拽到这里 <em>点击上传</em></div>
       <template #tip>
+        <el-progress
+            v-if="dialogClientsVisible"
+            :percentage="uploadPercent"
+            :stroke-width="14"
+            style="margin-top: 12px"
+        />
         <div class="el-upload__tip">
           请上传全平台架构的客户端程序放到dist文件夹并压缩，仅支持zip！
         </div>
@@ -137,13 +156,14 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, ref} from 'vue'
+import { onMounted, ref } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
   showErrorTips,
   showLoading,
   showSucessTips,
-  showTips, showWarmDialog,
+  showTips,
+  showWarmDialog,
   showWarmTips,
 } from './utils/utils.ts'
 //https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
@@ -152,6 +172,8 @@ const darkmodeSwitch = ref(isDark)
 const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
+
+const uploadPercent = ref(0)
 
 const form = ref({
   binUrl: '',
@@ -166,6 +188,9 @@ const handleSuccess = (response: any) => {
   } else {
     showErrorTips(response.msg)
   }
+}
+const handleProgress = (event: any) => {
+  uploadPercent.value = Math.round(event.percent)
 }
 
 // 上传失败回调
@@ -190,7 +215,7 @@ const customUpload = (options: any) => {
     body: formData,
   })
     .then((response) => {
-        return response.json()
+      return response.json()
     })
     .then((data) => {
       // 上传成功的回调
@@ -213,13 +238,15 @@ const handleSelect = (key: string) => {
   if (key == '') {
     window.open('https://github.com/xxl6097/go-frp-panel')
   }
-  console.log('menu.key',key)
+  console.log('menu.key', key)
   menuIndex.value = key
 }
 const restart = () => {
-  showWarmDialog(`确定重启吗？`,()=>{
-    const loading = showLoading('重启中...')
-    fetch('../api/restart', { credentials: 'include' })
+  showWarmDialog(
+    `确定重启吗？`,
+    () => {
+      const loading = showLoading('重启中...')
+      fetch('../api/restart', { credentials: 'include' })
         .then((res) => {
           return res.json()
         })
@@ -236,13 +263,16 @@ const restart = () => {
             window.location.reload()
           }, 2000)
         })
-  },()=>{
-  })
+    },
+    () => {},
+  )
 }
 
 const shutdown = () => {
-  showWarmDialog(`确定关机吗？`,()=>{
-    fetch('../api/shutdown', { credentials: 'include' })
+  showWarmDialog(
+    `确定关机吗？`,
+    () => {
+      fetch('../api/shutdown', { credentials: 'include' })
         .then((res) => {
           return res.json()
         })
@@ -252,8 +282,9 @@ const shutdown = () => {
         .catch(() => {
           showErrorTips('关机失败')
         })
-  },()=>{
-  })
+    },
+    () => {},
+  )
 }
 const showlog = () => {
   const host = window.origin
@@ -288,41 +319,91 @@ const upgrade = () => {
   }
 }
 
-const doClientsUpload = (options: any) => {
+const doClientsUpload = async (options: any) => {
   const { file } = options
-  const formData = new FormData()
-  formData.append('file', file)
-  const loading = showLoading('客户端上传中...')
-  dialogFormVisible.value = false
-  // 使用 fetch 发送请求
-  fetch('../api/client/upload', {
-    method: 'POST',
-    body: formData,
-  })
-      .then((response) => {
-        return response.json()
-      })
-      .then((data) => {
-        // 上传成功的回调
-        showSucessTips(JSON.stringify(data))
-      })
-      .catch((error) => {
-        // 上传失败的回调
-        showSucessTips(JSON.stringify(error))
-      })
-      .finally(() => {
-        loading.close()
-        dialogClientsVisible.value = false
-      })
+  try {
+    // 调用上传函数
+    await uploadFile(file)
+    alert('File uploaded successfully!')
+  } catch (error) {
+    console.error('Upload failed:', error)
+  }
 }
 
-onMounted(()=>{
+const uploadFile = (file: any) => {
+  return new Promise((resolve, reject) => {
+    // 创建一个新的 XMLHttpRequest 对象
+    const xhr = new XMLHttpRequest()
+    // 打开一个 POST 请求，这里的 URL 可以根据实际情况修改
+    xhr.open('POST', '../api/client/upload', true)
+
+    // 监听上传进度事件
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100
+        console.log('--->', percentComplete + '%')
+        uploadPercent.value = percentComplete
+      }
+    })
+
+    // 监听请求完成事件
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.response)
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`))
+      }
+    })
+
+    // 监听请求出错事件
+    xhr.addEventListener('error', () => {
+      reject(new Error('Network error occurred during upload'))
+    })
+
+    // 创建一个 FormData 对象
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // 发送请求
+    xhr.send(formData)
+  })
+}
+
+// const doClientsUpload1 = (options: any) => {
+//   const { file } = options
+//   const formData = new FormData()
+//   formData.append('file', file)
+//   const loading = showLoading('客户端上传中...')
+//   dialogFormVisible.value = false
+//   // 使用 fetch 发送请求
+//   fetch('../api/client/upload', {
+//     method: 'POST',
+//     body: formData,
+//   })
+//     .then((response) => {
+//       return response.json()
+//     })
+//     .then((data) => {
+//       // 上传成功的回调
+//       showSucessTips(JSON.stringify(data))
+//     })
+//     .catch((error) => {
+//       // 上传失败的回调
+//       console.log('errr', error)
+//       showSucessTips(JSON.stringify(error))
+//     })
+//     .finally(() => {
+//       loading.close()
+//       dialogClientsVisible.value = false
+//     })
+// }
+
+onMounted(() => {
   const mIndex = window.location.hash
-  const result = mIndex.replace(/^#+/, "");
-  console.log('index.menu.index',result)
+  const result = mIndex.replace(/^#+/, '')
+  console.log('index.menu.index', result)
   menuIndex.value = result
 })
-
 </script>
 
 <style>

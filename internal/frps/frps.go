@@ -52,10 +52,7 @@ func NewFrps(content []byte, install gore.Install) (iface.IFrps, error) {
 		webServer: webServer,
 		svr:       svr,
 		install:   install,
-		upgrade: &comm.CommApi{
-			Install: install,
-			Object:  GetCfgModel(),
-		},
+		upgrade:   comm.NewCommApi(install, GetCfgModel()),
 	}
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)

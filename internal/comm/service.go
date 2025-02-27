@@ -13,12 +13,24 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
 type CommApi struct {
 	Install gore.Install
 	Object  any
+	BufPool sync.Pool // use sync.Pool caching buf to reduce gc ratio
+}
+
+func NewCommApi(install gore.Install, obj any) *CommApi {
+	return &CommApi{
+		Install: install,
+		Object:  obj,
+		BufPool: sync.Pool{
+			New: func() interface{} { return make([]byte, 32*1024) },
+		},
+	}
 }
 
 func (this *CommApi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
@@ -41,12 +53,12 @@ func (this *CommApi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		newFilePath, err = utils.DownLoad(string(body))
 		break
 	case "POST", "post":
-		err := r.ParseMultipartForm(32 << 20)
-		if err != nil {
-			res.Error("body can't be empty")
-			glog.Error(res.Msg)
-			return
-		}
+		//err := r.ParseMultipartForm(32 << 20)
+		//if err != nil {
+		//	res.Error("body can't be empty")
+		//	glog.Error(res.Msg)
+		//	return
+		//}
 		// 获取上传的文件
 		file, handler, err := r.FormFile("file")
 		if err != nil {
@@ -56,7 +68,16 @@ func (this *CommApi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		dstFilePath := filepath.Join(os.TempDir(), handler.Filename)
 		//dstFilePath 名称为上传文件的原始名称
-		err = utils.SaveFile(file, handler.Size, dstFilePath)
+		dst, err := os.Create(dstFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			return
+		}
+		buf := this.BufPool.Get().([]byte)
+		defer this.BufPool.Put(buf)
+		_, err = io.CopyBuffer(dst, file, buf)
+		dst.Close()
+		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
 			return
