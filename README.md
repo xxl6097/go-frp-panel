@@ -3,7 +3,7 @@
   <h1 align="center">go-frp-panel</h1>
 </div>
 
-<div align="center">基于Frp开源代码打造的自定义配置管理📺，自定义配置路径，在线自动升级，免去了配置文件的复杂操作，可实现『✨秒妙极安装体验🚀』</div>
+<div align="center">基于Frp开源代码打造的自定义配置管理📺，无需配置文件，自定义配置，在线自动升级，免去了配置文件的复杂操作，可实现『✨秒妙极安装体验🚀』</div>
 <br>
 <p align="center">
   <a href="https://github.com/xxl6097/go-frp-panel/releases/latest">
