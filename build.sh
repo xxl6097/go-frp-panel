@@ -299,7 +299,7 @@ function main() {
       appdir="./cmd/frps"
       DisplayName="AcFrps网络代理程序"
       bootstrap $1
-    elif [ $index == 1 ]; then
+    elif [ $index == 2 ]; then
       appname="acfrpc"
       appdir="./cmd/frpc"
       DisplayName="AcFrpc网络代理程序"
