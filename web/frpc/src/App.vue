@@ -82,8 +82,6 @@
         <el-upload
           class="upload-demo"
           :http-request="customUpload"
-          :on-success="handleSuccess"
-          :on-error="handleError"
           :limit="1"
         >
           <template #trigger>
@@ -190,6 +188,7 @@ import {
   showSucessTips,
   showWarmTips,
   put,
+  xhrPromise,
 } from './utils/utils.ts'
 import { ComponentSize, FormInstance, FormRules } from 'element-plus'
 
@@ -294,26 +293,6 @@ const fetchData = () => {
     })
 }
 
-// 上传成功回调
-const handleSuccess = (response: any) => {
-  console.log('上传成功:', response)
-  // showSucessTips('文件上传成功')
-  if (response.code === 0) {
-    showSucessTips(response.msg)
-  } else {
-    showErrorTips(response.msg)
-  }
-}
-
-// 上传失败回调
-const handleError = (error: Error) => {
-  console.error('上传失败:', error)
-  //showErrorTips('上传失败:' + JSON.stringify(error))
-  // setTimeout(function () {
-  //   window.location.reload()
-  // }, 1000)
-}
-
 const upgrade = () => {
   if (form.value.binUrl.length > 0) {
     const loading = showLoading('程序升级中...')
@@ -388,22 +367,35 @@ const customUpload = (options: any) => {
   const formData = new FormData()
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
+
   dialogFormVisible.value = false
-  // 使用 fetch 发送请求
-  fetch('../api/upgrade', {
+  xhrPromise({
+    url: '../api/upgrade',
     method: 'POST',
-    body: formData,
+    data: formData,
+    onUploadProgress: (progress: string) => {
+      console.log(`上传进度：${progress}`)
+      loading.setText(`程序更新中...${progress}%`)
+    },
   })
-    .then((response) => {
-      return response.json()
-    })
-    .then((data) => {
+    .then((data: any) => {
+      console.log('请求成功', data)
       // 上传成功的回调
-      options.onSuccess(data)
+      const json = JSON.parse(data.data)
+      if (json.code !== 0) {
+        if (json.msg !== '') {
+          showErrorTips(json.msg)
+        }
+      } else {
+        if (json.msg !== '') {
+          showSucessTips(json.msg)
+        }
+      }
     })
     .catch((error) => {
+      console.error('请求失败', error)
       // 上传失败的回调
-      options.onError(error)
+      showErrorTips('上传失败的回调')
     })
     .finally(() => {
       loading.close()
@@ -413,6 +405,7 @@ const customUpload = (options: any) => {
       }, 1000)
     })
 }
+
 const restart = () => {
   showWarmDialog(
     `确定重启吗？`,

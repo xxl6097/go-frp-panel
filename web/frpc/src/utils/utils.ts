@@ -235,3 +235,90 @@ export function request(
       })
   })
 }
+
+
+
+/**
+ * 基于 Promise 封装的 XMLHttpRequest 请求
+ * @param {Object} config - 请求配置
+ * @param {string} config.url - 请求地址
+ * @param {string} [config.method='GET'] - 请求方法
+ * @param {Object} [config.headers] - 请求头
+ * @param {any} [config.data] - 请求数据
+ * @param {number} [config.timeout=0] - 超时时间（毫秒）
+ * @param {string} [config.responseType] - 响应类型
+ * @param {Function} [config.onUploadProgress] - 上传进度回调
+ * @param {Function} [config.onDownloadProgress] - 下载进度回调
+ * @returns {Promise} 返回 Promise 对象
+ */
+export function xhrPromise(config: any) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    // 初始化请求
+    xhr.open(config.method || 'GET', config.url)
+    // 设置请求头
+    if (config.headers) {
+      Object.entries(config.headers).forEach(([key, value]) => {
+        xhr.setRequestHeader(key, value as string)
+      })
+    }
+
+    // 设置响应类型
+    if (config.responseType) {
+      xhr.responseType = config.responseType
+    }
+
+    // 设置超时
+    if (config.timeout) {
+      xhr.timeout = config.timeout
+    }
+
+    // 上传进度处理
+    if (config.onUploadProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100
+          console.log('--->', percentComplete + '%')
+          config.onUploadProgress(percentComplete.toFixed(2))
+        }
+      }
+    }
+
+    // 下载进度处理
+    if (config.onDownloadProgress) {
+      xhr.onprogress = (e) => {
+        config.onDownloadProgress({
+          loaded: e.loaded,
+          total: e.total,
+          progress: e.loaded / e.total,
+        })
+      }
+    }
+
+    // 请求成功处理
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({
+          data: xhr.response,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: xhr.getAllResponseHeaders(),
+        })
+      } else {
+        reject(new Error(`请求失败：${xhr.status} ${xhr.statusText}`))
+      }
+    }
+
+    // 错误处理
+    xhr.onerror = () => reject(new Error('网络错误'))
+    xhr.ontimeout = () => reject(new Error(`请求超时（${config.timeout}ms）`))
+    xhr.onabort = () => reject(new Error('请求被中止'))
+
+    // 发送请求
+    try {
+      xhr.send(config.data)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
