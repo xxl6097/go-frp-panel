@@ -236,8 +236,6 @@ export function request(
   })
 }
 
-
-
 /**
  * 基于 Promise 封装的 XMLHttpRequest 请求
  * @param {Object} config - 请求配置
