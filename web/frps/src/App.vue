@@ -167,7 +167,6 @@ const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
 
-
 const form = ref({
   binUrl: '',
 })
@@ -192,6 +191,33 @@ const handleError = (error: Error) => {
   // }, 1000)
 }
 
+const doClientsUpload = async (options: any) => {
+  const { file } = options
+  const formData = new FormData()
+  formData.append('file', file)
+  dialogFormVisible.value = false
+  const loading = showLoading('客户端上传中...')
+  xhrPromise({
+    url: '../api/client/upload',
+    method: 'POST',
+    data: formData,
+    onUploadProgress: (progress: string) => {
+      console.log(`上传进度：${progress}`)
+      loading.setText(`上传进度：${progress}%`)
+    },
+  })
+    .then((response) => {
+      console.log('请求成功', response)
+    })
+    .catch((error) => {
+      console.error('请求失败', error)
+    })
+    .finally(() => {
+      loading.close()
+      dialogClientsVisible.value = false
+    })
+}
+
 // 自定义上传函数
 const customUpload = (options: any) => {
   const { file } = options
@@ -199,19 +225,22 @@ const customUpload = (options: any) => {
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
   dialogFormVisible.value = false
-  // 使用 fetch 发送请求
-  fetch('../api/upgrade', {
+  xhrPromise({
+    url: '../api/upgrade',
     method: 'POST',
-    body: formData,
+    data: formData,
+    onUploadProgress: (progress: string) => {
+      console.log(`上传进度：${progress}`)
+      loading.setText(`上传进度：${progress}%`)
+    },
   })
     .then((response) => {
-      return response.json()
-    })
-    .then((data) => {
+      console.log('请求成功', response)
       // 上传成功的回调
-      options.onSuccess(data)
+      options.onSuccess(response)
     })
     .catch((error) => {
+      console.error('请求失败', error)
       // 上传失败的回调
       options.onError(error)
     })
@@ -223,6 +252,38 @@ const customUpload = (options: any) => {
       }, 1000)
     })
 }
+
+// 自定义上传函数
+// const customUpload1 = (options: any) => {
+//   const { file } = options
+//   const formData = new FormData()
+//   formData.append('file', file)
+//   const loading = showLoading('程序更新中...')
+//   dialogFormVisible.value = false
+//   // 使用 fetch 发送请求
+//   fetch('../api/upgrade', {
+//     method: 'POST',
+//     body: formData,
+//   })
+//     .then((response) => {
+//       return response.json()
+//     })
+//     .then((data) => {
+//       // 上传成功的回调
+//       options.onSuccess(data)
+//     })
+//     .catch((error) => {
+//       // 上传失败的回调
+//       options.onError(error)
+//     })
+//     .finally(() => {
+//       loading.close()
+//       dialogFormVisible.value = false
+//       setTimeout(function () {
+//         window.location.reload()
+//       }, 1000)
+//     })
+// }
 
 const handleSelect = (key: string) => {
   if (key == '') {
@@ -307,33 +368,6 @@ const upgrade = () => {
   } else {
     showWarmTips('请正确输入url地址')
   }
-}
-
-const doClientsUpload = async (options: any) => {
-  const { file } = options
-  const formData = new FormData()
-  formData.append('file', file)
-  dialogFormVisible.value = false
-  const loading = showLoading('客户端上传中...')
-  xhrPromise({
-    url: '../api/client/upload',
-    method: 'POST',
-    data: formData,
-    onUploadProgress: (progress: string) => {
-      console.log(`上传进度：${progress}`)
-      loading.setText(`上传进度：${progress}%`)
-    },
-  })
-    .then((response) => {
-      console.log('请求成功', response)
-    })
-    .catch((error) => {
-      console.error('请求失败', error)
-    })
-    .finally(() => {
-      loading.close()
-      dialogClientsVisible.value = false
-    })
 }
 
 // const uploadFile = (file: any) => {
