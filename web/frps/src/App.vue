@@ -231,7 +231,7 @@ const customUpload = (options: any) => {
     data: formData,
     onUploadProgress: (progress: string) => {
       console.log(`上传进度：${progress}`)
-      loading.setText(`上传进度：${progress}%`)
+      loading.setText(`程序更新中：${progress}%`)
     },
   })
     .then((response) => {
