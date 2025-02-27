@@ -219,9 +219,10 @@ const customUpload = (options: any) => {
       loading.setText(`程序更新中...${progress}%`)
     },
   })
-    .then((json: any) => {
-      console.log('请求成功', json)
+    .then((data: any) => {
+      console.log('请求成功', data)
       // 上传成功的回调
+      const json = data.data
       if (json.code !== 0) {
         if (json.msg !== '') {
           showErrorTips(json.msg)
