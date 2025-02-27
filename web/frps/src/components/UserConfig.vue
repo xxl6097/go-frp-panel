@@ -4,50 +4,64 @@
     <el-header>
       <div class="header-row">
         <el-input
-            v-model="searchKeyword"
-            clearable
-            placeholder="搜索用户名、凭证或备注"
-            style="width: 300px; margin-right: 10px"
+          v-model="searchKeyword"
+          clearable
+          placeholder="搜索用户名、凭证或备注"
+          style="width: 300px; margin-right: 10px"
         />
         <el-upload
-            :http-request="handleImportUsers"
-            :limit="1"
-            accept=".zip,.json"
+          :http-request="handleImportUsers"
+          :limit="1"
+          accept=".zip,.json"
         >
-
           <template #trigger>
             <el-button type="warning" plain>导入用户</el-button>
           </template>
-          <el-button type="warning" plain @click="handleExportUsers()" style="margin-left: 10px">导出用户</el-button>
-          <el-button type="primary" plain @click="showDialog('add', createEmptyUser())">新增用户</el-button>
-          <el-button type="success" plain @click="handleRefresh">刷新</el-button>
-          <el-popconfirm title="确定删除吗？"  v-if="selectData.length !== 0" @confirm="handleDeleteUsers">
+          <el-button
+            type="warning"
+            plain
+            @click="handleExportUsers()"
+            style="margin-left: 10px"
+            >导出用户</el-button
+          >
+          <el-button
+            type="primary"
+            plain
+            @click="showDialog('add', createEmptyUser())"
+            >新增用户</el-button
+          >
+          <el-button type="success" plain @click="handleRefresh"
+            >刷新</el-button
+          >
+          <el-popconfirm
+            title="确定删除吗？"
+            v-if="selectData.length !== 0"
+            @confirm="handleDeleteUsers"
+          >
             <template #reference>
               <el-button type="danger" plain>删除用户</el-button>
             </template>
           </el-popconfirm>
         </el-upload>
-
-
       </div>
     </el-header>
 
     <!-- 表格 -->
     <el-main>
       <el-table
-          :data="paginatedTableData"
-          style="width: 100%"
-          @selection-change="handleSelectionChange"
-          class="custom-border-table"
-          :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
+        :data="paginatedTableData"
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        class="custom-border-table"
+        :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
-        <el-table-column type="selection" width="55"/>
-        <el-table-column prop="user" label="用户名"/>
-        <el-table-column prop="token" label="凭证"/>
-        <el-table-column prop="comment" label="备注"/>
-        <el-table-column prop="ports" label="允许端口"/>
-        <el-table-column prop="domains" label="允许域名"/>
-        <el-table-column prop="subdomains" label="允许子域名"/>
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="user" label="用户名" />
+        <el-table-column prop="token" label="凭证" />
+        <el-table-column prop="comment" label="备注" />
+        <el-table-column prop="ports" label="允许端口" />
+        <el-table-column prop="domains" label="允许域名" />
+        <el-table-column prop="subdomains" label="允许子域名" />
         <el-table-column prop="enable" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.enable ? 'success' : 'danger'">
@@ -58,24 +72,24 @@
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-dropdown
-                :type="row.enable ? 'danger' : 'success'"
-                size="small"
-                placement="bottom"
-                split-button
-                plain
-                @click="showDialog('ToggleStatus', row)"
+              :type="row.enable ? 'danger' : 'success'"
+              size="small"
+              placement="bottom"
+              split-button
+              plain
+              @click="showDialog('ToggleStatus', row)"
             >
               {{ row.enable ? '禁用' : '启用' }}
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="showDialog('update', row)"
-                  >编辑
+                    >编辑
                   </el-dropdown-item>
                   <el-dropdown-item @click="handleDelete(row)"
-                  >删除
+                    >删除
                   </el-dropdown-item>
                   <el-dropdown-item @click="handleClientDialog(row)"
-                  >生成客户端
+                    >生成客户端
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -86,24 +100,24 @@
 
       <!-- 分页 -->
       <el-pagination
-          style="margin-top: 20px"
-          background
-          layout="prev, pager, next"
-          :total="filteredTableData.length"
-          :page-size="pageSize"
-          :current-page="currentPage"
-          :pager-count="mobileLayout ? 3 : 7"
-          @current-change="handlePageChange"
+        style="margin-top: 20px"
+        background
+        layout="prev, pager, next"
+        :total="filteredTableData.length"
+        :page-size="pageSize"
+        :current-page="currentPage"
+        :pager-count="mobileLayout ? 3 : 7"
+        @current-change="handlePageChange"
       />
     </el-main>
 
     <!-- 新增用户弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增用户" width="500px">
       <el-form
-          ref="userRuleFormRef"
-          :rules="userRules"
-          :model="newUserForm"
-          label-width="100px"
+        ref="userRuleFormRef"
+        :rules="userRules"
+        :model="newUserForm"
+        label-width="100px"
       >
         <el-form-item label="用户名" prop="user">
           <el-input v-model="newUserForm.user" placeholder="请输入用户名(user)">
@@ -114,85 +128,90 @@
         </el-form-item>
         <el-form-item label="凭证" prop="token">
           <el-input
-              v-model="newUserForm.token"
-              placeholder="请输入Token凭证(meta_token)"
+            v-model="newUserForm.token"
+            placeholder="请输入Token凭证(meta_token)"
           />
         </el-form-item>
         <el-form-item label="备注">
           <el-input
-              :rows="2"
-              type="textarea"
-              v-model="newUserForm.comment"
-              placeholder="请输入备注"
+            :rows="2"
+            type="textarea"
+            v-model="newUserForm.comment"
+            placeholder="请输入备注"
           />
         </el-form-item>
         <el-form-item label="允许端口">
           <el-input
-              :rows="2"
-              type="textarea"
-              v-model="newUserForm.ports"
-              placeholder="请输入允许使用的端口，如：8081,9000-9100"
+            :rows="2"
+            type="textarea"
+            v-model="newUserForm.ports"
+            placeholder="请输入允许使用的端口，如：8081,9000-9100"
           />
         </el-form-item>
         <el-form-item label="允许域名">
           <el-input
-              :rows="2"
-              type="textarea"
-              v-model="newUserForm.domains"
-              placeholder="请输入允许使用的域名，如：web01.domain.com,web02.domain.com"
+            :rows="2"
+            type="textarea"
+            v-model="newUserForm.domains"
+            placeholder="请输入允许使用的域名，如：web01.domain.com,web02.domain.com"
           />
         </el-form-item>
         <el-form-item label="允许子域名">
           <el-input
-              :rows="2"
-              type="textarea"
-              v-model="newUserForm.subdomains"
-              placeholder="请输入允许使用的子域名，如：web01,web02"
+            :rows="2"
+            type="textarea"
+            v-model="newUserForm.subdomains"
+            placeholder="请输入允许使用的子域名，如：web01,web02"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="handleDialogCancel">取消</el-button>
-        <el-button type="primary" @click="submitForm(userRuleFormRef,()=>{
-          handleDialogConfirm()
-        })"
-        >确定
-        </el-button
-        >
+        <el-button
+          type="primary"
+          @click="
+            submitForm(userRuleFormRef, () => {
+              handleDialogConfirm()
+            })
+          "
+          >确定
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 生成客户端弹窗 -->
     <el-dialog
-        v-model="genClientDialogVisible"
-        title="生成客户端"
-        width="500px"
+      v-model="genClientDialogVisible"
+      title="生成客户端"
+      width="500px"
     >
       <el-form label-width="130px">
-        <el-form-item label="服务器地址" >
-          <el-input v-model="clientForm.addr" placeholder="请输入服务器地址"/>
+        <el-form-item label="服务器地址">
+          <el-input v-model="clientForm.addr" placeholder="请输入服务器地址" />
         </el-form-item>
 
         <el-form-item label="操作系统/架构" v-if="options.length > 0">
           <el-cascader
-              :options="options"
-              clearable
-              @change="handleOptionChange"
-              v-model="clientForm.ops"
-              placeholder="请选择"
+            :options="options"
+            clearable
+            @change="handleOptionChange"
+            v-model="clientForm.ops"
+            placeholder="请选择"
           />
         </el-form-item>
 
         <el-form-item label="客户端下载地址" v-if="options.length <= 0">
           <el-input
-              v-model="clientForm.url"
-              placeholder="请输入客户端下载地址"
+            v-model="clientForm.url"
+            placeholder="请输入客户端下载地址"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="fetchClientToml">下载客户端toml配置</el-button>
-        <el-button type="primary" @click="fetchClientGen()" :loading="isLoading">确定</el-button>
+        <el-button type="primary" @click="fetchClientGen()" :loading="isLoading"
+          >确定</el-button
+        >
       </template>
     </el-dialog>
 
@@ -201,7 +220,14 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted, onUnmounted, reactive} from 'vue'
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  reactive,
+  onUpdated,
+} from 'vue'
 import {
   post,
   get,
@@ -209,9 +235,10 @@ import {
   showWarmDialog,
   generateRandomKey,
   deepCopyJSON,
-  downloadByPost, showLoading,
+  downloadByPost,
+  showLoading,
 } from '../utils/utils.ts'
-import type {FormInstance, FormRules} from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 interface User {
   user: string
@@ -258,28 +285,34 @@ const newUserForm = ref({
 })
 
 const clientForm = ref({
-  addr:'',
-  url:'',
-  ops:{},
+  addr: '',
+  url: '',
+  ops: {},
 })
 
 const userRuleFormRef = ref<FormInstance>()
 
-
 const userRules = reactive<FormRules>({
-  user: [{
-    required: true,
-    message: '用户名不能为空',
-    trigger: 'blur',
-  }],
-  token: [{
-    required: true,
-    message: '凭证不能空',
-    trigger: 'blur',
-  }],
+  user: [
+    {
+      required: true,
+      message: '用户名不能为空',
+      trigger: 'blur',
+    },
+  ],
+  token: [
+    {
+      required: true,
+      message: '凭证不能空',
+      trigger: 'blur',
+    },
+  ],
 })
 
-const submitForm = async (formEl: FormInstance | undefined,func: ()=>void) => {
+const submitForm = async (
+  formEl: FormInstance | undefined,
+  func: () => void,
+) => {
   if (!formEl) {
     console.log('formEl err')
     return
@@ -306,11 +339,11 @@ const handleOptionChange = (value: any) => {
 // 过滤后的表格数据（根据搜索关键字）
 const filteredTableData = computed<User[]>(() => {
   return tableData.value.filter(
-      (data) =>
-          !searchKeyword.value ||
-          data.user?.includes(searchKeyword.value) ||
-          data.token?.includes(searchKeyword.value) ||
-          data.comment?.includes(searchKeyword.value),
+    (data) =>
+      !searchKeyword.value ||
+      data.user?.includes(searchKeyword.value) ||
+      data.token?.includes(searchKeyword.value) ||
+      data.comment?.includes(searchKeyword.value),
   )
 })
 
@@ -329,26 +362,28 @@ const handleDeleteUsers = () => {
 
   const body = JSON.stringify(selectData.value)
   post('删除中...', '../api/token/del', body)
-      .then((data) => {
-        console.log(data)
-        //tableData.value = tableData.value.filter((item) => item !== row)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-      .finally(() => {
-        clearVariables()
-        fetchData()
-      })
+    .then((data) => {
+      console.log(data)
+      //tableData.value = tableData.value.filter((item) => item !== row)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+    .finally(() => {
+      clearVariables()
+      fetchData()
+    })
 }
 
 const handleExportUsers = () => {
   console.log('配置导出中', selectData.value)
 
   const body = JSON.stringify(selectData.value)
-  downloadByPost('配置导出中','../api/client/user/export', body).finally(()=>{
-    genClientDialogVisible.value = false
-  })
+  downloadByPost('配置导出中', '../api/client/user/export', body).finally(
+    () => {
+      genClientDialogVisible.value = false
+    },
+  )
 }
 
 const handleImportUsers = (options: any) => {
@@ -361,15 +396,15 @@ const handleImportUsers = (options: any) => {
     method: 'POST',
     body: formData,
   })
-      .then((response) => {
-        return response.json()
-      })
-      .finally(() => {
-        loading.close()
-        setTimeout(function () {
-          window.location.reload()
-        }, 1000)
-      })
+    .then((response) => {
+      return response.json()
+    })
+    .finally(() => {
+      loading.close()
+      setTimeout(function () {
+        window.location.reload()
+      }, 1000)
+    })
 }
 // 选择变化事件
 const handleSelectionChange = (rows: User[]) => {
@@ -378,7 +413,7 @@ const handleSelectionChange = (rows: User[]) => {
 }
 
 // 调用接口创建客户端
-const fetchClientGen =  () => {
+const fetchClientGen = () => {
   isLoading.value = genClientDialogVisible.value
   console.log('download----0----')
   console.log('fetchClientGen', clientForm.value.ops)
@@ -399,9 +434,13 @@ const fetchClientGen =  () => {
       addr: clientForm.value.addr,
       user: body,
     }
-     downloadByPost('客户端生产中','../api/client/gen', JSON.stringify(data)).finally(()=>{
-       genClientDialogVisible.value = false
-     })
+    downloadByPost(
+      '客户端生产中',
+      '../api/client/gen',
+      JSON.stringify(data),
+    ).finally(() => {
+      genClientDialogVisible.value = false
+    })
     console.log('download----1----')
   } else {
     if (clientForm.value.url === '') {
@@ -414,14 +453,17 @@ const fetchClientGen =  () => {
         user: body,
       }
 
-      downloadByPost('客户端生产中','../api/client/gen', JSON.stringify(data)).finally(()=>{
+      downloadByPost(
+        '客户端生产中',
+        '../api/client/gen',
+        JSON.stringify(data),
+      ).finally(() => {
         genClientDialogVisible.value = false
         isLoading.value = genClientDialogVisible.value
       })
       console.log('download----2----')
     }
   }
-
 }
 
 // 调用接口创建客户端
@@ -441,7 +483,11 @@ const fetchClientToml = () => {
     addr: clientForm.value.addr,
     user: body,
   }
-  downloadByPost('配置生成中','../api/client/toml', JSON.stringify(data)).finally(()=>{
+  downloadByPost(
+    '配置生成中',
+    '../api/client/toml',
+    JSON.stringify(data),
+  ).finally(() => {
     genClientDialogVisible.value = false
   })
 }
@@ -523,31 +569,31 @@ const showDialog = (type: string, row: User) => {
 
 const handleDelete = (row: User) => {
   showWarmDialog(
-      `确定删除${row.user}吗？`,
-      () => {
-        const data = [
-          {
-            user: row.user,
-            id: row.id,
-          },
-        ]
-        const body = JSON.stringify(data)
-        post('删除中...', '../api/token/del', body)
-            .then((data) => {
-              console.log(data)
-              tableData.value = tableData.value.filter((item) => item !== row)
-            })
-            .catch((err) => {
-              console.log(err)
-            })
-            .finally(() => {
-              clearVariables()
-              fetchData()
-            })
-      },
-      () => {
-        clearVariables()
-      },
+    `确定删除${row.user}吗？`,
+    () => {
+      const data = [
+        {
+          user: row.user,
+          id: row.id,
+        },
+      ]
+      const body = JSON.stringify(data)
+      post('删除中...', '../api/token/del', body)
+        .then((data) => {
+          console.log(data)
+          tableData.value = tableData.value.filter((item) => item !== row)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+        .finally(() => {
+          clearVariables()
+          fetchData()
+        })
+    },
+    () => {
+      clearVariables()
+    },
   )
 }
 
@@ -569,34 +615,34 @@ const addUser = () => {
   }
   const body = JSON.stringify(data)
   post('添加用户中...', '../api/token/add', body)
-      .then((data) => {
-        console.log(data)
-        tableData.value.push({
-          ...newUserForm.value,
-          enable: true, // 默认状态为启用
-        })
+    .then((data) => {
+      console.log(data)
+      tableData.value.push({
+        ...newUserForm.value,
+        enable: true, // 默认状态为启用
       })
-      .catch((err) => {
-        console.log(err)
-      })
-      .finally(() => {
-        clearVariables()
-        fetchData()
-      })
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+    .finally(() => {
+      clearVariables()
+      fetchData()
+    })
 }
 
 const updateUser = () => {
   post('更新中...', '../api/token/chg', createUser(newUserForm.value))
-      .then((data) => {
-        console.log(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-      .finally(() => {
-        clearVariables()
-        fetchData()
-      })
+    .then((data) => {
+      console.log(data)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+    .finally(() => {
+      clearVariables()
+      fetchData()
+    })
 }
 
 const createUser = (row: User) => {
@@ -707,6 +753,10 @@ const fetchOptions = () => {
     }
   })
 }
+
+onUpdated(() => {
+  fetchOptions()
+})
 fetchData()
 fetchOptions()
 </script>
