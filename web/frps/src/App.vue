@@ -97,8 +97,6 @@
         <el-upload
           class="upload-demo"
           :http-request="customUpload"
-          :on-success="handleSuccess"
-          :on-error="handleError"
           :limit="1"
         >
           <template #trigger>
@@ -171,25 +169,6 @@ const form = ref({
   binUrl: '',
 })
 const menuIndex = ref('/')
-// 上传成功回调
-const handleSuccess = (response: any) => {
-  console.log('上传成功:', response)
-  // showSucessTips('文件上传成功')
-  if (response.code === 0) {
-    showSucessTips(response.msg)
-  } else {
-    showErrorTips(response.msg)
-  }
-}
-
-// 上传失败回调
-const handleError = (error: Error) => {
-  console.error('上传失败:', error)
-  //showErrorTips('上传失败:' + JSON.stringify(error))
-  // setTimeout(function () {
-  //   window.location.reload()
-  // }, 1000)
-}
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
@@ -203,11 +182,20 @@ const doClientsUpload = async (options: any) => {
     data: formData,
     onUploadProgress: (progress: string) => {
       console.log(`上传进度：${progress}`)
-      loading.setText(`上传进度：${progress}%`)
+      loading.setText(`客户端上传中：${progress}%`)
     },
   })
-    .then((response) => {
-      console.log('请求成功', response)
+    .then((json:any) => {
+      console.log('请求成功', json)
+      if (json.code !== 0) {
+        if (json.msg !== '') {
+          showErrorTips(json.msg)
+        }
+      } else {
+        if (json.msg !== '') {
+          showSucessTips(json.msg)
+        }
+      }
     })
     .catch((error) => {
       console.error('请求失败', error)
@@ -224,6 +212,7 @@ const customUpload = (options: any) => {
   const formData = new FormData()
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
+
   dialogFormVisible.value = false
   xhrPromise({
     url: '../api/upgrade',
@@ -231,18 +220,26 @@ const customUpload = (options: any) => {
     data: formData,
     onUploadProgress: (progress: string) => {
       console.log(`上传进度：${progress}`)
-      loading.setText(`程序更新中：${progress}%`)
+      loading.setText(`程序更新中...${progress}%`)
     },
   })
-    .then((response) => {
-      console.log('请求成功', response)
+    .then((json:any) => {
+      console.log('请求成功', json)
       // 上传成功的回调
-      options.onSuccess(response)
+      if (json.code !== 0) {
+        if (json.msg !== '') {
+          showErrorTips(json.msg)
+        }
+      } else {
+        if (json.msg !== '') {
+          showSucessTips(json.msg)
+        }
+      }
     })
     .catch((error) => {
       console.error('请求失败', error)
       // 上传失败的回调
-      options.onError(error)
+      showErrorTips('上传失败的回调')
     })
     .finally(() => {
       loading.close()
