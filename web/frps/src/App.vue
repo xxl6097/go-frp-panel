@@ -337,9 +337,9 @@ const doClientsUpload = async (options: any) => {
     url: '../api/client/upload',
     method: 'POST',
     data: formData,
-    onUploadProgress: (progress:any)=>{
-      console.log(`上传进度：${(progress * 100).toFixed(2)}%`);
-      loading.setText(`上传进度：${(progress * 100).toFixed(2)}%`)
+    onUploadProgress: (progress:string)=>{
+      console.log(`上传进度：${progress}`);
+      loading.setText(`上传进度：${progress}%`)
     },
   })
 }

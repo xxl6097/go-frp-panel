@@ -317,12 +317,12 @@ export function xhrPromise(config: any) {
 
     // 上传进度处理
     if (config.onUploadProgress) {
-      xhr.upload.onprogress = (e) => {
-        config.onUploadProgress({
-          loaded: e.loaded,
-          total: e.total,
-          progress: e.loaded / e.total,
-        })
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100
+          console.log('--->', percentComplete + '%')
+          config.onUploadProgress(percentComplete.toFixed(2))
+        }
       }
     }
 
