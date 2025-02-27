@@ -94,11 +94,7 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-upload
-          class="upload-demo"
-          :http-request="customUpload"
-          :limit="1"
-        >
+        <el-upload class="upload-demo" :http-request="customUpload" :limit="1">
           <template #trigger>
             <el-button type="primary" :disabled="form.binUrl.length > 0"
               >上传文件升级</el-button
@@ -185,7 +181,7 @@ const doClientsUpload = async (options: any) => {
       loading.setText(`客户端上传中：${progress}%`)
     },
   })
-    .then((json:any) => {
+    .then((json: any) => {
       console.log('请求成功', json)
       if (json.code !== 0) {
         if (json.msg !== '') {
@@ -223,7 +219,7 @@ const customUpload = (options: any) => {
       loading.setText(`程序更新中...${progress}%`)
     },
   })
-    .then((json:any) => {
+    .then((json: any) => {
       console.log('请求成功', json)
       // 上传成功的回调
       if (json.code !== 0) {
