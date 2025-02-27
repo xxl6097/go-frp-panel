@@ -222,7 +222,7 @@ const customUpload = (options: any) => {
     .then((data: any) => {
       console.log('请求成功', data)
       // 上传成功的回调
-      const json = data.data
+      const json = JSON.parse(data.data)
       if (json.code !== 0) {
         if (json.msg !== '') {
           showErrorTips(json.msg)
