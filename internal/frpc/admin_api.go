@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -98,7 +99,16 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//dstFilePath 名称为上传文件的原始名称
-		err = utils.SaveFile(file, handler.Size, dstFilePath)
+		dst, err := os.Create(dstFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			return
+		}
+		buf := this.upgrade.GetBuffer().Get().([]byte)
+		defer this.upgrade.GetBuffer().Put(buf)
+		_, err = io.CopyBuffer(dst, file, buf)
+		dst.Close()
+		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
 			return

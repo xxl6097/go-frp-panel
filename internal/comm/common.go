@@ -19,19 +19,23 @@ import (
 )
 
 type commapi struct {
-	Install gore.Install
-	Object  any
-	BufPool sync.Pool // use sync.Pool caching buf to reduce gc ratio
+	install gore.Install
+	obj     any
+	pool    *sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
 func NewCommApi(install gore.Install, obj any) iface.IComm {
 	return &commapi{
-		Install: install,
-		Object:  obj,
-		BufPool: sync.Pool{
+		install: install,
+		obj:     obj,
+		pool: &sync.Pool{
 			New: func() interface{} { return make([]byte, 32*1024) },
 		},
 	}
+}
+
+func (this *commapi) GetBuffer() *sync.Pool {
+	return this.pool
 }
 
 func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
@@ -74,8 +78,8 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
 			return
 		}
-		buf := this.BufPool.Get().([]byte)
-		defer this.BufPool.Put(buf)
+		buf := this.pool.Get().([]byte)
+		defer this.pool.Put(buf)
 		_, err = io.CopyBuffer(dst, file, buf)
 		dst.Close()
 		//err = utils.SaveFile(file, handler.Size, dstFilePath)
@@ -90,7 +94,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer utils.Delete(newFilePath, "更新文件")
 	//下载和接收的最新文件 名称为上传文件的原始名称
-	newBufferBytes, err := ukey.GenConfig(this.Object, false)
+	newBufferBytes, err := ukey.GenConfig(this.obj, false)
 	if err != nil {
 		res.Error(fmt.Sprintf("gen config err: %v", err))
 		glog.Error(res.Msg)
@@ -103,7 +107,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 	} else {
 		defer utils.Delete(signFilePath, "签名文件")
-		err = this.Install.Upgrade(signFilePath)
+		err = this.install.Upgrade(signFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
 			return
@@ -116,10 +120,10 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	res.Msg = "restart sucess"
-	if res.Code == 0 && this.Install != nil {
+	if res.Code == 0 && this.install != nil {
 		go func() {
 			time.Sleep(time.Second)
-			err := this.Install.Restart()
+			err := this.install.Restart()
 			if err != nil {
 				glog.Error("重启失败")
 			}

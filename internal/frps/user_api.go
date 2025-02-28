@@ -357,7 +357,17 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 	switch ext {
 	case ".zip":
 		dstFilePath := filepath.Join(os.TempDir(), handler.Filename)
-		err = utils.SaveFile(file, handler.Size, dstFilePath)
+		dst, err := os.Create(dstFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			return
+		}
+		buf := this.upgrade.GetBuffer().Get().([]byte)
+		defer this.upgrade.GetBuffer().Put(buf)
+		_, err = io.CopyBuffer(dst, file, buf)
+		dst.Close()
+
+		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
 			return
@@ -371,7 +381,16 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 		break
 	case ".json":
 		dstFilePath := filepath.Join(filepath.Dir(binpath), "user", handler.Filename)
-		err = utils.SaveFile(file, handler.Size, dstFilePath)
+		dst, err := os.Create(dstFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			return
+		}
+		buf := this.upgrade.GetBuffer().Get().([]byte)
+		defer this.upgrade.GetBuffer().Put(buf)
+		_, err = io.CopyBuffer(dst, file, buf)
+		dst.Close()
+		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
 			return
@@ -462,11 +481,10 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 		res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
 		return
 	}
-	buf := this.upgrade.BufPool.Get().([]byte)
-	defer this.upgrade.BufPool.Put(buf)
+	buf := this.upgrade.GetBuffer().Get().([]byte)
+	defer this.upgrade.GetBuffer().Put(buf)
 	_, err = io.CopyBuffer(dst, file, buf)
 	dst.Close()
-	//err = utils.SaveFile(file, handler.Size, dstFilePath)
 	if err != nil {
 		res.Error(err.Error())
 		glog.Error(res.Msg)
