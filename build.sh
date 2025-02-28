@@ -84,8 +84,8 @@ for arch in "${os_archs[@]}"; do
     env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
 done
 
-  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
-#  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+#  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
+  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
 }
 
 function getversion() {
