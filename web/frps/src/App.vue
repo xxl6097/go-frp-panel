@@ -304,41 +304,70 @@ const showlog = () => {
   const host = window.origin
   window.open(`${host}/log/`)
 }
+// const upgrade = () => {
+//   if (form.value.binUrl.length > 0) {
+//     const loading = showLoading('程序升级中...')
+//     dialogFormVisible.value = false
+//     xhrPromise({
+//       url: '../api/upgrade',
+//       method: 'PUT',
+//       data: form.value.binUrl,
+//       onUploadProgress: (progress: string) => {
+//         console.log(`上传进度：${progress}`)
+//         loading.setText(`程序更新中...${progress}%`)
+//       },
+//     })
+//       .then((data: any) => {
+//         console.log('请求成功', data)
+//         // 上传成功的回调
+//         const json = JSON.parse(data.data)
+//         if (json.code !== 0) {
+//           if (json.msg !== '') {
+//             showErrorTips(json.msg)
+//           }
+//         } else {
+//           if (json.msg !== '') {
+//             showSucessTips(json.msg)
+//           }
+//         }
+//       })
+//       .catch((error) => {
+//         console.error('请求失败', error)
+//         // 上传失败的回调
+//         showErrorTips('上传失败的回调')
+//       })
+//       .finally(() => {
+//         loading.close()
+//         dialogFormVisible.value = false
+//         setTimeout(function () {
+//           window.location.reload()
+//         }, 1000)
+//       })
+//   } else {
+//     showWarmTips('请正确输入url地址')
+//   }
+// }
+
 const upgrade = () => {
   if (form.value.binUrl.length > 0) {
     const loading = showLoading('程序升级中...')
     dialogFormVisible.value = false
-    xhrPromise({
-      url: '../api/upgrade',
+    fetch('../api/upgrade', {
+      credentials: 'include',
       method: 'PUT',
-      data: form.value.binUrl,
-      onUploadProgress: (progress: string) => {
-        console.log(`上传进度：${progress}`)
-        loading.setText(`程序更新中...${progress}%`)
-      },
+      body: form.value.binUrl,
     })
-      .then((data: any) => {
-        console.log('请求成功', data)
-        // 上传成功的回调
-        const json = JSON.parse(data.data)
-        if (json.code !== 0) {
-          if (json.msg !== '') {
-            showErrorTips(json.msg)
-          }
-        } else {
-          if (json.msg !== '') {
-            showSucessTips(json.msg)
-          }
-        }
+      .then((res) => {
+        return res.json()
       })
-      .catch((error) => {
-        console.error('请求失败', error)
-        // 上传失败的回调
-        showErrorTips('上传失败的回调')
+      .then((json) => {
+        showTips(json.code, json.msg)
+      })
+      .catch(() => {
+        showWarmTips('更新失败')
       })
       .finally(() => {
         loading.close()
-        dialogFormVisible.value = false
         setTimeout(function () {
           window.location.reload()
         }, 1000)
@@ -348,34 +377,6 @@ const upgrade = () => {
   }
 }
 
-// const upgrade = () => {
-//   if (form.value.binUrl.length > 0) {
-//     const loading = showLoading('程序升级中...')
-//     dialogFormVisible.value = false
-//     fetch('../api/upgrade', {
-//       credentials: 'include',
-//       method: 'PUT',
-//       body: form.value.binUrl,
-//     })
-//         .then((res) => {
-//           return res.json()
-//         })
-//         .then((json) => {
-//           showTips(json.code, json.msg)
-//         })
-//         .catch(() => {
-//           showWarmTips('更新失败')
-//         })
-//         .finally(() => {
-//           loading.close()
-//           setTimeout(function () {
-//             window.location.reload()
-//           }, 1000)
-//         })
-//   } else {
-//     showWarmTips('请正确输入url地址')
-//   }
-// }
 // const uploadFile = (file: any) => {
 //   const loading = showLoading('客户端上传中...')
 //   return new Promise((resolve, reject) => {
