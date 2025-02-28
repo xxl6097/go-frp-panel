@@ -352,6 +352,14 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 		glog.Error(binpath, err)
 		return
 	}
+
+	userDir := filepath.Join(filepath.Dir(binpath), "user")
+
+	if err = utils.DirCheck(userDir); err != nil {
+		res.Err(fmt.Errorf("check config dir err: %v", err))
+		glog.Error(res.Msg)
+		return
+	}
 	glog.Info(handler.Filename)
 	ext := strings.ToLower(filepath.Ext(handler.Filename)) // 统一转为小写
 	switch ext {
@@ -372,15 +380,14 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 			res.Error(err.Error())
 			return
 		}
-		userDir := filepath.Join(filepath.Dir(binpath), "user")
-		err = utils.Unzip(dstFilePath, userDir)
+		err = utils.UnzipToRoot(dstFilePath, userDir)
 		if err == nil {
 			utils.Delete(dstFilePath, "用户文件")
 			glog.Info("解压成功", userDir)
 		}
 		break
 	case ".json":
-		dstFilePath := filepath.Join(filepath.Dir(binpath), "user", handler.Filename)
+		dstFilePath := filepath.Join(userDir, handler.Filename)
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
@@ -492,7 +499,7 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	glog.Println("客户端路径", clientsDir)
 	glog.Println("文件上传成功", dstFilePath)
-	err = utils.Unzip(dstFilePath, clientsDir)
+	err = utils.UnzipToRoot(dstFilePath, clientsDir)
 	if err != nil {
 		res.Error(err.Error())
 		glog.Error(res.Msg)

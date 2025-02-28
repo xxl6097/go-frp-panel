@@ -3,10 +3,12 @@ package utils
 import (
 	"archive/zip"
 	"github.com/xxl6097/glog/glog"
+	"golang.org/x/text/encoding/simplifiedchinese"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 func Write(filePath string, content []byte) error {
@@ -195,6 +197,77 @@ func Zip(dir, dst string) error {
 		}
 		return nil
 	})
+}
+func UnzipToRoot(zipFile, destDir string) error {
+	r, err := zip.OpenReader(zipFile)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	var wg sync.WaitGroup
+	for _, f := range r.File {
+		wg.Add(1)
+		go func(f *zip.File) {
+			defer wg.Done()
+			// 处理文件名编码（如GBK）
+			name, _ := decodeName(f.Name)
+			// 扁平化路径：仅保留文件名
+			baseName := filepath.Base(name)
+			filePath := filepath.Join(destDir, baseName)
+
+			// 跳过目录条目（扁平化后无需创建子目录）
+			if f.FileInfo().IsDir() {
+				return
+			}
+
+			// 创建文件并写入内容
+			if err := writeFile(f, filePath); err != nil {
+				return
+			}
+		}(f)
+	}
+	wg.Wait()
+	return nil
+}
+
+// 处理文件名编码（如中文）
+func decodeName(name string) (string, error) {
+	// 检测是否为GBK编码（常见于Windows生成的ZIP）
+	if isGBK(name) {
+		return simplifiedchinese.GBK.NewDecoder().String(name)
+	}
+	return name, nil
+}
+
+// 判断是否为GBK编码（简化逻辑）
+func isGBK(s string) bool {
+	for _, r := range s {
+		if r > 0x7F {
+			return true
+		}
+	}
+	return false
+}
+
+// 写入单个文件
+func writeFile(f *zip.File, destPath string) error {
+	rc, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	// 创建目标文件
+	outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	// 复制内容
+	_, err = io.Copy(outFile, rc)
+	return err
 }
 
 // 根据后缀判断文件类型（仅后缀匹配）
