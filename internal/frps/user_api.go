@@ -353,6 +353,13 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Info(handler.Filename)
+	userDir := filepath.Join(filepath.Dir(binpath), "user")
+	err = utils.DirCheck(userDir)
+	if err != nil {
+		res.Err(err)
+		glog.Error(res.Msg)
+		return
+	}
 	ext := strings.ToLower(filepath.Ext(handler.Filename)) // 统一转为小写
 	switch ext {
 	case ".zip":
@@ -372,7 +379,6 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 			res.Error(err.Error())
 			return
 		}
-		userDir := filepath.Join(filepath.Dir(binpath), "user")
 		err = utils.Unzip(dstFilePath, userDir)
 		if err == nil {
 			utils.Delete(dstFilePath, "用户文件")
@@ -380,7 +386,7 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 		}
 		break
 	case ".json":
-		dstFilePath := filepath.Join(filepath.Dir(binpath), "user", handler.Filename)
+		dstFilePath := filepath.Join(userDir, handler.Filename)
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
