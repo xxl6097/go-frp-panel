@@ -3,7 +3,7 @@
     <header class="grid-content header-color">
       <div class="header-content">
         <div class="brand">
-          <a href="#">Frps服务器</a>
+          <a href="#">{{ title }}</a>
         </div>
         <div class="dark-switch">
           <div class="dark-reboot">
@@ -166,6 +166,7 @@ const form = ref({
 })
 const menuIndex = ref('/')
 
+const title = ref<string>('Frps')
 const doClientsUpload = async (options: any) => {
   const { file } = options
   const formData = new FormData()
@@ -441,7 +442,8 @@ const fetchVersionData = () => {
     })
     .then((json) => {
       if (json) {
-        document.title = `Frps服务端 v${json.appVersion}`
+        title.value = `Frps服务端 v${json.appVersion}`
+        document.title = title.value
       }
     })
 }

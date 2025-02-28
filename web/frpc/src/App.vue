@@ -65,6 +65,7 @@
     <footer></footer>
   </div>
 
+<!--  客户端程序升级-->
   <el-dialog
     v-model="dialogFormVisible"
     align-center
@@ -98,7 +99,7 @@
     </template>
   </el-dialog>
 
-  <!-- 弹窗表格 -->
+  <!-- 弹窗显示版本 -->
   <el-dialog v-model="versionDialogVisible" width="30%" title="版本信息">
     <!-- 空标题插槽 -->
     <template #title></template>
@@ -155,7 +156,7 @@
       <el-form-item prop="toml">
         <el-input
           type="textarea"
-          rows="18"
+          rows="13"
           v-model="newClientForm.toml"
           placeholder="请在此输入toml格式配置内容"
         />
