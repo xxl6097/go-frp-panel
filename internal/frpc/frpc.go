@@ -83,10 +83,7 @@ func NewFrpc(i gore.Install) (*frpc, error) {
 		install:        i,
 		configFilePath: cfgFilePath,
 		svrs:           make(map[string]*frpClient),
-		upgrade: &comm.CommApi{
-			Install: i,
-			Object:  GetCfgModel(),
-		},
+		upgrade:        comm.NewCommApi(i, GetCfgModel()),
 	}
 
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"

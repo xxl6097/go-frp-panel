@@ -17,14 +17,14 @@ import (
 	"time"
 )
 
-type CommApi struct {
+type commapi struct {
 	Install gore.Install
 	Object  any
 	BufPool sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
-func NewCommApi(install gore.Install, obj any) *CommApi {
-	return &CommApi{
+func NewCommApi(install gore.Install, obj any) *commapi {
+	return &commapi{
 		Install: install,
 		Object:  obj,
 		BufPool: sync.Pool{
@@ -33,7 +33,7 @@ func NewCommApi(install gore.Install, obj any) *CommApi {
 	}
 }
 
-func (this *CommApi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
+func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	var newFilePath string
@@ -111,7 +111,7 @@ func (this *CommApi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *CommApi) ApiRestart(w http.ResponseWriter, r *http.Request) {
+func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	res.Msg = "restart sucess"
@@ -127,7 +127,7 @@ func (this *CommApi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *CommApi) ApiVersion(w http.ResponseWriter, r *http.Request) {
+func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	v := map[string]interface{}{
