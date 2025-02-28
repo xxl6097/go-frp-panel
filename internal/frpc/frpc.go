@@ -114,7 +114,11 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 }
 
 func (this *frpc) Run() error {
-	return this.svr.Run(context.Background())
+	err := this.svr.Run(context.Background())
+	if err != nil {
+		glog.Errorf("frpc run error: %v", err)
+	}
+	return err
 }
 
 func (this *frpc) runMultipleClients(cfgDir string) error {
