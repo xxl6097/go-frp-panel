@@ -1,7 +1,6 @@
 package frps
 
 import (
-	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
@@ -94,16 +93,7 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 		res.Error(err.Error())
 	} else {
 		defer utils.Delete(signFilePath, "签名文件")
-		err = this.install.Upgrade(signFilePath, func(err error) bool {
-			res.Ok("配置更新成功～")
-			bb, err := json.Marshal(res)
-			if err != nil {
-				glog.Errorf("marshal result error: %v", err)
-				w.WriteHeader(400)
-			}
-			w.Write(bb)
-			return true
-		})
+		err = this.install.Upgrade(signFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
 			return
@@ -214,16 +204,7 @@ func (this *frps) apiUpgradePOST(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	err = this.install.Upgrade(newBinPath, func(err error) bool {
-		res.Ok("程序更新成功～")
-		bb, err := json.Marshal(res)
-		if err != nil {
-			glog.Errorf("marshal result error: %v", err)
-			w.WriteHeader(400)
-		}
-		w.Write(bb)
-		return true
-	})
+	err = this.install.Upgrade(newBinPath)
 	if err != nil {
 		res.Msg = fmt.Sprintf("更新失败～%v", err)
 		res.Code = -1
