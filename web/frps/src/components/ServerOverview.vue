@@ -123,7 +123,6 @@ const fetchData = () => {
   fetch('../api/serverinfo', { credentials: 'include' })
     .then((res) => res.json())
     .then((json) => {
-      document.title = `Frps服务器 v${json.version}`
       data.value.version = json.version
       data.value.bindPort = json.bindPort
       data.value.kcpBindPort = json.kcpBindPort

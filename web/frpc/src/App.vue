@@ -282,12 +282,11 @@ const fetchData = () => {
     })
     .then((json) => {
       if (json) {
-        title.value = `Frpc客户端 v${json.frpcVersion}`
+        title.value = `Frpc客户端 v${json.appVersion}`
         document.title = title.value
       }
     })
     .catch(() => {
-      showErrorTips('重启失败')
     })
 }
 

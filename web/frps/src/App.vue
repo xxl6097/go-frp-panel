@@ -434,12 +434,27 @@ const upgrade = () => {
 //     })
 // }
 
+const fetchVersionData = () => {
+  fetch('../api/version', { credentials: 'include', method: 'GET' })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      if (json) {
+        document.title = `Frps服务端 v${json.appVersion}`
+      }
+    })
+    .catch(() => {
+    })
+}
+
 onMounted(() => {
   const mIndex = window.location.hash
   const result = mIndex.replace(/^#+/, '')
   console.log('index.menu.index', result)
   menuIndex.value = result
 })
+fetchVersionData()
 </script>
 
 <style>
