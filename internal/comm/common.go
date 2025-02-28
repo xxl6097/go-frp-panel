@@ -107,16 +107,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 	} else {
 		defer utils.Delete(signFilePath, "签名文件")
-		err = this.install.Upgrade(signFilePath, func(err error) bool {
-			res.Ok("升级成功～")
-			bb, err := json.Marshal(res)
-			if err != nil {
-				glog.Errorf("marshal result error: %v", err)
-				w.WriteHeader(400)
-			}
-			w.Write(bb)
-			return true
-		})
+		err = this.install.Upgrade(signFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
 			return
