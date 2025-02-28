@@ -363,8 +363,8 @@ const upgrade = () => {
       .then((json) => {
         showTips(json.code, json.msg)
       })
-      .catch(() => {
-        showWarmTips('更新失败')
+      .catch((error) => {
+        showWarmTips('更新失败' + JSON.stringify(error))
       })
       .finally(() => {
         loading.close()
