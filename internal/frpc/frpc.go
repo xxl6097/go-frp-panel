@@ -16,6 +16,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	_ "github.com/xxl6097/go-frp-panel/assets/frpc"
 	"github.com/xxl6097/go-frp-panel/internal/comm"
+	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"io/fs"
@@ -37,7 +38,7 @@ type frpc struct {
 	svr            *client.Service
 	install        gore.Install
 	configFilePath string
-	upgrade        *comm.CommApi
+	upgrade        iface.IComm
 	svrs           map[string]*frpClient
 }
 

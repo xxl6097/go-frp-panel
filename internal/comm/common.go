@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -23,7 +24,7 @@ type commapi struct {
 	BufPool sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
-func NewCommApi(install gore.Install, obj any) *commapi {
+func NewCommApi(install gore.Install, obj any) iface.IComm {
 	return &commapi{
 		Install: install,
 		Object:  obj,

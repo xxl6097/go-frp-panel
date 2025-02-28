@@ -24,7 +24,7 @@ type frps struct {
 	webServer *httppkg.Server
 	cfg       *v1.ServerConfig
 	install   gore.Install
-	upgrade   *comm.CommApi
+	upgrade   iface.IComm
 }
 
 func NewFrps(content []byte, install gore.Install) (iface.IFrps, error) {
