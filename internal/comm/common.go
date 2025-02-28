@@ -115,7 +115,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(400)
 			}
 			w.Write(bb)
-			return false
+			return true
 		})
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))

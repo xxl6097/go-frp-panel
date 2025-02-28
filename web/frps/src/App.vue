@@ -365,18 +365,19 @@ const upgrade = () => {
       })
       .catch((error) => {
         console.log('更新失败', error)
-        showWarmTips('更新失败' + JSON.stringify(error))
+        //showWarmTips('更新失败' + JSON.stringify(error))
       })
       .finally(() => {
         loading.close()
         setTimeout(function () {
           window.location.reload()
-        }, 10000)
+        }, 2000)
       })
   } else {
     showWarmTips('请正确输入url地址')
   }
 }
+
 
 // const uploadFile = (file: any) => {
 //   const loading = showLoading('客户端上传中...')
