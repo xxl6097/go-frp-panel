@@ -364,13 +364,14 @@ const upgrade = () => {
         showTips(json.code, json.msg)
       })
       .catch((error) => {
+        console.log('更新失败', error)
         showWarmTips('更新失败' + JSON.stringify(error))
       })
       .finally(() => {
         loading.close()
         setTimeout(function () {
           window.location.reload()
-        }, 1000)
+        }, 10000)
       })
   } else {
     showWarmTips('请正确输入url地址')
