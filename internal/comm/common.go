@@ -115,6 +115,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(400)
 			}
 			w.Write(bb)
+			time.Sleep(time.Second)
 			return true
 		})
 		if err != nil {
