@@ -54,6 +54,9 @@ func (s Service) OnInstall(binPath string) (bool, []string) {
 	if err != nil {
 		glog.Fatal("os.Executable() error", err)
 	}
+	if gore.FileExists(binPath) {
+		utils.Delete(binPath, "旧运行文件")
+	}
 	//安装程序，需要对程序进行签名，那么需要传入两个参数：
 	//1、最原始的key；
 	//2、需写入的data
