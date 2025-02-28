@@ -1,6 +1,7 @@
 package ukey
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
@@ -8,7 +9,9 @@ import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"io"
 	"math/big"
+	"os"
 )
 
 const B = 0x18
@@ -33,6 +36,50 @@ func UnInitializeBuffer() []byte {
 
 func GetBuffer() []byte {
 	return buffer
+}
+
+func GetCfgBufferFromFile(filePath string) []byte {
+	srcFile, err := os.Open(filePath)
+	if err != nil {
+		glog.Errorf("无法打开文件: %v[%s]", err, filePath)
+		return nil
+	}
+	rawKey, err := GetRawKey()
+	if err != nil {
+		glog.Errorf("GetRawKey: %v[%s]", err, filePath)
+		return nil
+	}
+	defer srcFile.Close()
+	reader := bufio.NewReader(srcFile)
+	//var indexSize int64
+	cfgBufferSize := len(buffer)
+	prevBuffer := make([]byte, 0)
+	for {
+		thisBuffer := make([]byte, utils.Divide(cfgBufferSize, 1024))
+		n, err2 := reader.Read(thisBuffer)
+		if err2 != nil && err2 != io.EOF {
+			glog.Errorf("读取文件时出错: %v", err2)
+			return nil
+		}
+		//indexSize += int64(n)
+		thisBuffer = thisBuffer[:n]
+		tempBuffer := append(prevBuffer, thisBuffer...)
+		index := bytes.Index(tempBuffer, rawKey)
+		if index > -1 {
+			glog.Printf("找到位置[%d]了，签名...\n", index)
+			tempBuffer1 := tempBuffer[index:]
+			if len(tempBuffer1) >= cfgBufferSize {
+				return tempBuffer[index : index+cfgBufferSize]
+			}
+		}
+
+		//前一次的+本次的转给 prev
+		prevBuffer = tempBuffer[len(prevBuffer):]
+		if n == 0 || err2 != nil {
+			break // 文件读取完毕
+		}
+	}
+	return nil
 }
 
 func Load() ([]byte, error) {

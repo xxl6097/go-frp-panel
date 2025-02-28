@@ -39,6 +39,48 @@ func (s Service) OnConfig() *service.Config {
 	}
 }
 
+func (s Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
+	//1、读取老文件特征数据；
+	//2、下载新文件
+	//3、替换新文件特征数据
+	//4、数据写到安装目录地址（oldBinPath）
+	cfgBufferBytes := ukey.GetCfgBufferFromFile(oldBinPath)
+	if cfgBufferBytes == nil {
+		return false, nil
+	}
+	glog.Debug("获取配置数据成功", len(cfgBufferBytes))
+	if _, err := os.Stat(oldBinPath); !os.IsNotExist(err) {
+		err := os.Remove(oldBinPath)
+		if err != nil {
+			glog.Error("删除失败", oldBinPath)
+			return false, nil
+		}
+	}
+	var newFilePath string
+	if gore.FileExists(newFileUrlOrLocalPath) {
+		newFilePath = newFileUrlOrLocalPath
+	} else if gore.IsURL(newFileUrlOrLocalPath) {
+		glog.Debug("下载文件", newFileUrlOrLocalPath)
+		temp, err := utils.DownLoad(newFileUrlOrLocalPath)
+		if err != nil {
+			glog.Error("下载失败", err)
+			return false, nil
+		}
+		glog.Debug("下载成功.", temp)
+		newFilePath = temp
+	}
+	if newFilePath != "" {
+		oldBuffer := ukey.GetBuffer()
+		err := utils.GenerateBin(newFilePath, oldBinPath, oldBuffer, cfgBufferBytes)
+		if err != nil {
+			glog.Error("签名错误：", err)
+			return false, nil
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
 func (s Service) OnInstall(binPath string) (bool, []string) {
 	if frps.IsInit() == nil {
 		return false, nil
