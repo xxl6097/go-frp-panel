@@ -444,8 +444,6 @@ const fetchVersionData = () => {
         document.title = `Frps服务端 v${json.appVersion}`
       }
     })
-    .catch(() => {
-    })
 }
 
 onMounted(() => {

@@ -286,8 +286,6 @@ const fetchData = () => {
         document.title = title.value
       }
     })
-    .catch(() => {
-    })
 }
 
 const upgrade = () => {
@@ -431,7 +429,7 @@ const customUpload = (options: any) => {
       dialogFormVisible.value = false
       setTimeout(function () {
         window.location.reload()
-      }, 10000)
+      }, 1000)
     })
 }
 
