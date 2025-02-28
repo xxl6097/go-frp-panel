@@ -186,7 +186,7 @@ import {
   showErrorTips,
   showTips,
   showWarmTips,
-  put,
+  put, showSucessTips, xhrPromise,
 } from './utils/utils.ts'
 import { ComponentSize, FormInstance, FormRules } from 'element-plus'
 
@@ -360,72 +360,27 @@ const uploadToml = (options: any) => {
 }
 
 // 自定义上传函数
-const customUpload = (options: any) => {
-  const { file } = options
-  const formData = new FormData()
-  formData.append('file', file)
-  const loading = showLoading('程序更新中...')
-  dialogFormVisible.value = false
-  // 使用 fetch 发送请求
-  fetch('../api/upgrade', {
-    method: 'POST',
-    body: formData,
-  })
-    .then((response) => {
-      return response.json()
-    })
-    .then((data:any) => {
-      // 上传成功的回调
-      console.log(data)
-    })
-    .catch((error:any) => {
-      // 上传失败的回调
-      console.log(error)
-    })
-    .finally(() => {
-      loading.close()
-      dialogFormVisible.value = false
-      setTimeout(function () {
-        window.location.reload()
-      }, 1000)
-    })
-}
-
-// 自定义上传函数
 // const customUpload = (options: any) => {
 //   const { file } = options
 //   const formData = new FormData()
 //   formData.append('file', file)
 //   const loading = showLoading('程序更新中...')
-//
 //   dialogFormVisible.value = false
-//   xhrPromise({
-//     url: '../api/upgrade',
+//   // 使用 fetch 发送请求
+//   fetch('../api/upgrade', {
 //     method: 'POST',
-//     data: formData,
-//     onUploadProgress: (progress: string) => {
-//       console.log(`上传进度：${progress}`)
-//       loading.setText(`程序更新中...${progress}%`)
-//     },
+//     body: formData,
 //   })
-//     .then((data: any) => {
-//       console.log('请求成功', data)
-//       // 上传成功的回调
-//       const json = JSON.parse(data.data)
-//       if (json.code !== 0) {
-//         if (json.msg !== '') {
-//           showErrorTips(json.msg)
-//         }
-//       } else {
-//         if (json.msg !== '') {
-//           showSucessTips(json.msg)
-//         }
-//       }
+//     .then((response) => {
+//       return response.json()
 //     })
-//     .catch((error) => {
-//       console.error('请求失败', error)
+//     .then((data:any) => {
+//       // 上传成功的回调
+//       console.log(data)
+//     })
+//     .catch((error:any) => {
 //       // 上传失败的回调
-//       showErrorTips('上传失败的回调')
+//       console.log(error)
 //     })
 //     .finally(() => {
 //       loading.close()
@@ -435,6 +390,51 @@ const customUpload = (options: any) => {
 //       }, 1000)
 //     })
 // }
+
+// 自定义上传函数
+const customUpload = (options: any) => {
+  const { file } = options
+  const formData = new FormData()
+  formData.append('file', file)
+  const loading = showLoading('程序更新中...')
+
+  dialogFormVisible.value = false
+  xhrPromise({
+    url: '../api/upgrade',
+    method: 'POST',
+    data: formData,
+    onUploadProgress: (progress: string) => {
+      console.log(`上传进度：${progress}`)
+      loading.setText(`程序更新中...${progress}%`)
+    },
+  })
+    .then((data: any) => {
+      console.log('请求成功', data)
+      // 上传成功的回调
+      const json = JSON.parse(data.data)
+      if (json.code !== 0) {
+        if (json.msg !== '') {
+          showErrorTips(json.msg)
+        }
+      } else {
+        if (json.msg !== '') {
+          showSucessTips(json.msg)
+        }
+      }
+    })
+    .catch((error) => {
+      console.error('请求失败', error)
+      // 上传失败的回调
+      showErrorTips('上传失败的回调')
+    })
+    .finally(() => {
+      loading.close()
+      dialogFormVisible.value = false
+      setTimeout(function () {
+        window.location.reload()
+      }, 10000)
+    })
+}
 
 const restart = () => {
   showWarmDialog(
