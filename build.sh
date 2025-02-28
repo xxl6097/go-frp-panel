@@ -85,7 +85,7 @@ for arch in "${os_archs[@]}"; do
 done
 
 #  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
-#  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
 }
 
 function getversion() {
