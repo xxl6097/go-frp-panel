@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	fmt.Println(os.TempDir())
 	cmd.Execute(func() error {
 		temp := os.TempDir()
 		temp = filepath.Join(temp, "frps", "logs")
