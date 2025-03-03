@@ -7,8 +7,8 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
 	"os"
@@ -54,12 +54,13 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			glog.Warnf("%s", res.Msg)
 			return
 		}
-		newFilePath, err = utils.DownLoad(string(body))
-		if err != nil {
-			res.Error(fmt.Sprintf("down load error: %v", err))
-			glog.Warnf("%s\n", res.Msg)
-			return
-		}
+		newFilePath = string(body)
+		//newFilePath, err = utils.DownLoad()
+		//if err != nil {
+		//	res.Error(fmt.Sprintf("down load error: %v", err))
+		//	glog.Warnf("%s\n", res.Msg)
+		//	return
+		//}
 		break
 	case "POST", "post":
 		// 获取上传的文件
@@ -69,7 +70,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
-		dstFilePath := filepath.Join(os.TempDir(), handler.Filename)
+		dstFilePath := filepath.Join(utils.GetUpgradeDir(), handler.Filename)
 		//dstFilePath 名称为上传文件的原始名称
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
@@ -80,7 +81,6 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		defer this.pool.Put(buf)
 		_, err = io.CopyBuffer(dst, file, buf)
 		dst.Close()
-		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
 			return
