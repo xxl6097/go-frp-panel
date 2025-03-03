@@ -140,6 +140,7 @@ func (this Service) GetAny() any {
 //}
 
 func (this *Service) menu() *frps.CfgModel {
+
 	bindPort := utils2.InputInt("请输入Frps服务器绑定端口：")
 	adminPort := utils2.InputInt("请输入管理后台端口：")
 	addr := utils2.InputStringEmpty("请输入管理后台地址(默认0.0.0.0)：", "0.0.0.0")
