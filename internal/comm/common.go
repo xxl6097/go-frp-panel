@@ -55,6 +55,11 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		newFilePath, err = utils.DownLoad(string(body))
+		if err != nil {
+			res.Error(fmt.Sprintf("down load error: %v", err))
+			glog.Warnf("%s\n", res.Msg)
+			return
+		}
 		break
 	case "POST", "post":
 		// 获取上传的文件

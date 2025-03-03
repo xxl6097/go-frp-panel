@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
-	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/internal/frps"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/gservice/ukey"
 )
 
 const B = '\x18'
@@ -37,10 +37,11 @@ func main() {
 	//http://uuxia.cn:8087/soft/acfrps/0.2.0/acfrps_0.2.0_windows_amd64.exe
 	scrFilePath := "./dist/acfrps_0.2.7_windows_amd64.exe"
 	dstFilePath := "./dist/acfrps-1.exe"
-	err = utils.GenerateBin(scrFilePath, dstFilePath, ukey.GetBuffer(), newBytes)
-	if err != nil {
-		panic(err)
-	}
+	//err = utils1.GenerateBin(scrFilePath, dstFilePath, ukey.GetBuffer(), newBytes)
+	//if err != nil {
+	//	panic(err)
+	//}
+	fmt.Println(scrFilePath, dstFilePath, ukey.GetBuffer(), newBytes)
 
 	//byteArray, err := ukey.GenConfig(cfg, true)
 	//if err != nil {
