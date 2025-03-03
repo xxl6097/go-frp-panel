@@ -11,8 +11,14 @@ import (
 )
 
 func main() {
-	fmt.Println(os.UserCacheDir())
-	fmt.Println(os.TempDir())
+	// Go 1.16+ 推荐方式
+	tmpDir, err := os.MkdirTemp("acc_", "acfrps*")
+	if err != nil {
+		fmt.Println("创建失败:", err)
+		return
+	}
+
+	fmt.Println("临时目录路径:", tmpDir) // 输出示例：/tmp/example_123456
 	cmd.Execute(func() error {
 		temp := os.TempDir()
 		temp = filepath.Join(temp, "frps", "logs")
