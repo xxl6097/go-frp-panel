@@ -146,7 +146,7 @@ func (this *Service) menu() *frps.CfgModel {
 	username := utils2.InputStringEmpty("请输入管理后台用户名(admin)：", "admin")
 	password := utils2.InputString("请输入管理后台密码：")
 	temp := os.TempDir()
-	temp = filepath.Join(temp, "frps", "logs")
+	temp = filepath.Join(temp, pkg.AppName, "frps", "logs")
 	err := os.MkdirAll(temp, 0755)
 	if err != nil {
 		fmt.Println(err)

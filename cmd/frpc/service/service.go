@@ -108,7 +108,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	adminUser := utils2.InputString("请输入管理后台用户名：")
 	adminPass := utils2.InputString("请输入管理后台密码：")
 	temp := os.TempDir()
-	temp = filepath.Join(temp, "frpc", userName, "logs")
+	temp = filepath.Join(temp, pkg.AppName, "frpc", userName, "logs")
 	err = utils.DirCheck(temp)
 	if err != nil {
 		fmt.Println(err)
