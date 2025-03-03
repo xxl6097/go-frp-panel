@@ -244,7 +244,7 @@ const customUpload = (options: any) => {
       dialogFormVisible.value = false
       setTimeout(function () {
         window.location.reload()
-      }, 1000)
+      }, 3000)
     })
 }
 
@@ -371,7 +371,7 @@ const upgrade = () => {
         loading.close()
         setTimeout(function () {
           window.location.reload()
-        }, 2000)
+        }, 3000)
       })
   } else {
     showWarmTips('请正确输入url地址')
