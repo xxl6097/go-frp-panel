@@ -161,71 +161,6 @@ func replaceBin(newPath string) error {
 	return nil
 }
 
-func Update(downloadURL string, oldCfgBytes, cfgBytes []byte) error {
-	defer glog.Flush()
-	//downloadURL := "https://example.com/new_program.exe"
-	currentPath, err := getCurrentExecutablePath()
-	if err != nil {
-		return fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-	}
-
-	// 下载新的可执行文件到临时路径
-	newPath := currentPath + ".new"
-	//err = downloadNewVersion(downloadURL, newPath)
-	_, err = DownLoad(downloadURL, newPath)
-	if err != nil {
-		return fmt.Errorf("下载新版本失败: %v\n", err)
-	}
-	glog.Infof("更新包下载完毕: %s\n", newPath)
-
-	newName := currentPath + ".bin"
-	err = GenerateBin(newPath, newName, oldCfgBytes, cfgBytes)
-	defer Delete(newName)
-	Delete(newPath)
-	if err != nil {
-		return fmt.Errorf("安装失败: %v\n", err)
-	}
-
-	//CopyFile(newName, currentPath+"abc")
-	glog.Info("签名成功", newName)
-	// 关闭当前进程
-	//err = closeCurrentProcess()
-	//if err != nil {
-	//	glog.Errorf("关闭当前进程失败: %v\n", err)
-	//	return err
-	//}
-
-	glog.Infof("替换: %s=>%s\n", newName, currentPath)
-	//if gore.IsWindows() {
-	//	err = replace(currentPath, newName, newPath)
-	//} else {
-	//	// 替换当前可执行文件
-	//	err = ReplaceExecutable(currentPath, newName)
-	//}
-	err = replaceBin(newPath)
-
-	if err != nil {
-		return fmt.Errorf("替换可执行文件失败: %v\n", err)
-	}
-	glog.Info("替换成功")
-	err = os.Chmod(currentPath, 0755)
-	if err == nil {
-		glog.Debug(currentPath, "赋予0755权限成功")
-	} else {
-		return fmt.Errorf("赋予0755权限失败 %s %v\n", currentPath, err)
-	}
-
-	// 重启程序
-	//err = restartProgram()
-	//if err != nil {
-	//	log.Printf("重启程序失败: %v", err)
-	//	return
-	//}
-
-	glog.Info("程序已成功更新并重启")
-	return nil
-}
-
 func UpdateByUpload(downFilePath string, oldCfgBytes, cfgBytes []byte) (string, error) {
 	defer glog.Flush()
 	currentPath, err := getCurrentExecutablePath()
@@ -273,37 +208,6 @@ func UpdateByUpload(downFilePath string, oldCfgBytes, cfgBytes []byte) (string, 
 
 	glog.Info("程序已成功更新并重启")
 	return newName, nil
-}
-
-func LocalGenerateBin(oldBytes, newBytes []byte) error {
-	localBin, err := getCurrentExecutablePath()
-	if err != nil {
-		return fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-	}
-	newName := localBin + ".bin"
-	err = GenerateBin(localBin, newName, oldBytes, newBytes)
-	defer Delete(newName)
-	if err != nil {
-		return fmt.Errorf("下载新版本失败: %v\n", err)
-	}
-	glog.Info("签名成功", newName)
-	if utils.IsWindows() {
-		err = replace(localBin, newName, "")
-	} else {
-		// 替换当前可执行文件
-		err = ReplaceExecutable(localBin, newName)
-	}
-	if err != nil {
-		return fmt.Errorf("替换可执行文件失败: %v\n", err)
-	}
-	glog.Info("替换成功")
-	err = os.Chmod(localBin, 0755)
-	if err == nil {
-		glog.Debug(localBin, "赋予0755权限成功")
-	} else {
-		return fmt.Errorf("赋予0755权限失败 %s %v\n", localBin, err)
-	}
-	return nil
 }
 
 func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
