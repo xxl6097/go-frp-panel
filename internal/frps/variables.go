@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,7 +31,7 @@ func (u *User) CreateUser() error {
 		return errors.New("凭证空")
 	}
 	userFilePath := GetJsonPath(u.User)
-	if gore.FileExists(userFilePath) {
+	if utils2.FileExists(userFilePath) {
 		return errors.New("user already exists")
 	}
 
@@ -56,7 +56,7 @@ func (u *User) UpdateUser() error {
 		return errors.New("user is empty")
 	}
 	userFilePath := GetJsonPath(u.User)
-	if gore.FileExists(userFilePath) {
+	if utils2.FileExists(userFilePath) {
 		err := os.Remove(userFilePath)
 		if err != nil {
 			return err

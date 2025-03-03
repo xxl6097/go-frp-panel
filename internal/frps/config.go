@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/gservice/ukey"
 	"os"
 	"path/filepath"
 )

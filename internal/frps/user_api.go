@@ -8,9 +8,9 @@ import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/comm"
-	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/ukey"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
 	"os"
@@ -188,7 +188,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		glog.Error("body is nil")
 		return
 	}
-	if body.BinUrl != "" && gore.IsURL(body.BinUrl) {
+	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
 		dstPath, err1 := utils.DownLoad(body.BinUrl, "")
 		if err1 == nil {
 			body.BinPath = dstPath
@@ -427,7 +427,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		glog.Error("body is nil")
 		return
 	}
-	if body.BinUrl != "" && gore.IsURL(body.BinUrl) {
+	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
 		dstPath, err1 := utils.DownLoad(body.BinUrl, "")
 		if err1 == nil {
 			body.BinPath = dstPath

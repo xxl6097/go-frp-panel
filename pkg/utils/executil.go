@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"syscall"
 	"time"
@@ -28,7 +28,7 @@ func RestartProgram() error {
 		args := append([]string{os.Args[0]}, "--restart")
 		env := os.Environ()
 		attr := syscall.SysProcAttr{}
-		if !gore.IsWindows() {
+		if !utils.IsWindows() {
 			//attr.Setpgid = true
 		}
 		procAttr := &os.ProcAttr{

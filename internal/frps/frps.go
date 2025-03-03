@@ -23,11 +23,11 @@ type frps struct {
 	svr       *server.Service
 	webServer *httppkg.Server
 	cfg       *v1.ServerConfig
-	install   gore.Install
+	install   gore.IGService
 	upgrade   iface.IComm
 }
 
-func NewFrps(content []byte, install gore.Install) (iface.IFrps, error) {
+func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {
 	cfg := &v1.ServerConfig{}
 	err := json.Unmarshal(content, cfg)
 	if err != nil {

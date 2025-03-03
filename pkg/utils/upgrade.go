@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -287,7 +287,7 @@ func LocalGenerateBin(oldBytes, newBytes []byte) error {
 		return fmt.Errorf("下载新版本失败: %v\n", err)
 	}
 	glog.Info("签名成功", newName)
-	if gore.IsWindows() {
+	if utils.IsWindows() {
 		err = replace(localBin, newName, "")
 	} else {
 		// 替换当前可执行文件
@@ -307,7 +307,7 @@ func LocalGenerateBin(oldBytes, newBytes []byte) error {
 }
 
 func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
-	if !gore.FileExists(newFilePath) {
+	if !utils.FileExists(newFilePath) {
 		return "", fmt.Errorf("文件不存在：%s", newFilePath)
 	}
 	if newBufferBytes == nil || len(newBufferBytes) == 0 {
