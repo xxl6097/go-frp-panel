@@ -9,7 +9,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
 	github.com/xxl6097/glog v0.1.8
-	github.com/xxl6097/go-service v0.3.35
+	github.com/xxl6097/go-service v0.3.36
 )
 
 require (
