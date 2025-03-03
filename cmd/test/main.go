@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 )
 
 func main() {
 	rawURL := "C://test.txt"
 
 	// 提取路径部分并获取文件名
-	fileName := path.Base(rawURL)
+	fileName := filepath.Base(rawURL)
 	fmt.Println("文件名:", fileName) // 输出: document.pdf
 }

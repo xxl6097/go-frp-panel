@@ -91,7 +91,7 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		res.Error(err.Error())
 	} else {
-		defer utils.Delete(signFilePath, "签名文件")
+		//defer utils.Delete(signFilePath, "签名文件")
 		err = this.install.Upgrade(signFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))

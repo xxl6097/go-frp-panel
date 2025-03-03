@@ -201,8 +201,9 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
 	}
 
-	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
+	//signFilePath := fmt.Sprintf("%s.sign", binFilePath)
 	glog.Printf("开始签名文件 %s\n", newFilePath)
+	signFilePath := filepath.Join(utils.GetUpgradeDir(), fmt.Sprintf("%s.sign", filepath.Base(binFilePath)))
 	err = utils.GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
 	if err != nil {
 		glog.Printf("签名失败 %v\n", err)
