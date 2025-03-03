@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -182,30 +183,30 @@ func replaceBin(newPath string) error {
 //	return newName, nil
 //}
 
-//func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
-//	if !utils.FileExists(newFilePath) {
-//		return "", fmt.Errorf("文件不存在：%s", newFilePath)
-//	}
-//	if newBufferBytes == nil || len(newBufferBytes) == 0 {
-//		return "", fmt.Errorf("加密数据空～")
-//	}
-//	if oldBufferBytes == nil || len(oldBufferBytes) == 0 {
-//		return "", fmt.Errorf("原始数据buffer空～")
-//	}
-//	//oldBufferBytes := ukey.UnInitializeBuffer()
-//	//config.PrintCfg()
-//
-//	binFilePath, err := os.Executable()
-//	if err != nil {
-//		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-//	}
-//
-//	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
-//	glog.Printf("开始签名文件 %s\n", newFilePath)
-//	err = GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
-//	if err != nil {
-//		glog.Printf("签名失败 %v\n", err)
-//		return "", err
-//	}
-//	return signFilePath, nil
-//}
+func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
+	if !utils.FileExists(newFilePath) {
+		return "", fmt.Errorf("文件不存在：%s", newFilePath)
+	}
+	if newBufferBytes == nil || len(newBufferBytes) == 0 {
+		return "", fmt.Errorf("加密数据空～")
+	}
+	if oldBufferBytes == nil || len(oldBufferBytes) == 0 {
+		return "", fmt.Errorf("原始数据buffer空～")
+	}
+	//oldBufferBytes := ukey.UnInitializeBuffer()
+	//config.PrintCfg()
+
+	binFilePath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
+	}
+
+	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
+	glog.Printf("开始签名文件 %s\n", newFilePath)
+	err = utils.GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
+	if err != nil {
+		glog.Printf("签名失败 %v\n", err)
+		return "", err
+	}
+	return signFilePath, nil
+}

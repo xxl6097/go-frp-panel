@@ -2,6 +2,7 @@ package frps
 
 import (
 	"fmt"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/gorilla/mux"
@@ -9,6 +10,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/gservice/ukey"
 	"io"
 	"net/http"
 	"os"
@@ -65,38 +67,38 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Println(tomlBytes)
-	//frpsCfg := v1.ServerConfig{}
-	//err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
-	//if err != nil {
-	//	res.Error(fmt.Sprintf("配置失败：%v", err))
-	//	return
-	//}
-	//cfg := GetCfgModel()
-	//cfg.Frps = frpsCfg
-	//filePath, err := os.Executable()
-	//if err != nil {
-	//	res.Error(fmt.Sprintf("%v", err))
-	//	return
-	//}
-	////下载和接收的最新文件 名称为上传文件的原始名称
-	//newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
-	//if err != nil {
-	//	res.Error(fmt.Sprintf("gen config err: %v", err))
-	//	glog.Error(res.Msg)
-	//	return
-	//}
-	//signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
-	//if err != nil {
-	//	res.Error(err.Error())
-	//} else {
-	//	defer utils.Delete(signFilePath, "签名文件")
-	//	err = this.install.Upgrade(signFilePath)
-	//	if err != nil {
-	//		res.Error(fmt.Sprintf("更新失败～%v", err))
-	//		return
-	//	}
-	//	res.Ok("配置更新成功～")
-	//}
+	frpsCfg := v1.ServerConfig{}
+	err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
+	if err != nil {
+		res.Error(fmt.Sprintf("配置失败：%v", err))
+		return
+	}
+	cfg := GetCfgModel()
+	cfg.Frps = frpsCfg
+	filePath, err := os.Executable()
+	if err != nil {
+		res.Error(fmt.Sprintf("%v", err))
+		return
+	}
+	//下载和接收的最新文件 名称为上传文件的原始名称
+	newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
+	if err != nil {
+		res.Error(fmt.Sprintf("gen config err: %v", err))
+		glog.Error(res.Msg)
+		return
+	}
+	signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
+	if err != nil {
+		res.Error(err.Error())
+	} else {
+		defer utils.Delete(signFilePath, "签名文件")
+		err = this.install.Upgrade(signFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("更新失败～%v", err))
+			return
+		}
+		res.Ok("配置更新成功～")
+	}
 }
 
 // /api/restart
