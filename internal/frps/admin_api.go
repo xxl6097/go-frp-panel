@@ -2,7 +2,6 @@ package frps
 
 import (
 	"fmt"
-	v1 "github.com/fatedier/frp/pkg/config/v1"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/gorilla/mux"
@@ -10,11 +9,9 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/ukey"
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -67,164 +64,39 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 		res.Error(fmt.Sprintf("读取body失败%v", err))
 		return
 	}
-	//glog.Println(tomlBytes)
-	frpsCfg := v1.ServerConfig{}
-	err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
-	if err != nil {
-		res.Error(fmt.Sprintf("配置失败：%v", err))
-		return
-	}
-	cfg := GetCfgModel()
-	cfg.Frps = frpsCfg
-	filePath, err := os.Executable()
-	if err != nil {
-		res.Error(fmt.Sprintf("%v", err))
-		return
-	}
-	//下载和接收的最新文件 名称为上传文件的原始名称
-	newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
-	if err != nil {
-		res.Error(fmt.Sprintf("gen config err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
-	if err != nil {
-		res.Error(err.Error())
-	} else {
-		defer utils.Delete(signFilePath, "签名文件")
-		err = this.install.Upgrade(signFilePath)
-		if err != nil {
-			res.Error(fmt.Sprintf("更新失败～%v", err))
-			return
-		}
-		res.Ok("配置更新成功～")
-	}
-	//newBytes, err := ukey.GenConfig(cfg, false)
+	glog.Println(tomlBytes)
+	//frpsCfg := v1.ServerConfig{}
+	//err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
 	//if err != nil {
-	//	res.Msg = fmt.Sprintf("加密失败%v", err)
-	//	res.Code = -1
+	//	res.Error(fmt.Sprintf("配置失败：%v", err))
 	//	return
 	//}
-	//err = utils.LocalGenerateBin(ukey.GetBuffer(), newBytes)
+	//cfg := GetCfgModel()
+	//cfg.Frps = frpsCfg
+	//filePath, err := os.Executable()
 	//if err != nil {
-	//	res.Msg = err.Error()
-	//	res.Code = -1
+	//	res.Error(fmt.Sprintf("%v", err))
+	//	return
+	//}
+	////下载和接收的最新文件 名称为上传文件的原始名称
+	//newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
+	//if err != nil {
+	//	res.Error(fmt.Sprintf("gen config err: %v", err))
 	//	glog.Error(res.Msg)
 	//	return
 	//}
-	//res.Msg = "配置成功"
-	//glog.Println("开始重启服务")
-	//if res.Code == 0 && this.install != nil {
-	//	go func() {
-	//		err = this.install.Restart()
-	//		if err != nil {
-	//			glog.Error("开始重启失败")
-	//		}
-	//		glog.Error("开始重启ok")
-	//	}()
+	//signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
+	//if err != nil {
+	//	res.Error(err.Error())
+	//} else {
+	//	defer utils.Delete(signFilePath, "签名文件")
+	//	err = this.install.Upgrade(signFilePath)
+	//	if err != nil {
+	//		res.Error(fmt.Sprintf("更新失败～%v", err))
+	//		return
+	//	}
+	//	res.Ok("配置更新成功～")
 	//}
-}
-
-func (this *frps) apiUpgradePOST(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
-	defer f(w)
-	//ParseMultipartForm将请求的主体作为multipart/form-data解析。请求的整个主体都会被解析，得到的文件记录最多 maxMemery字节保存在内存，其余部分保存在硬盘的temp文件里。如果必要，ParseMultipartForm会自行调用 ParseForm。重复调用本方法是无意义的
-	//设置内存大小
-	err := r.ParseMultipartForm(32 << 20)
-	if err != nil {
-		//httpapi.Error(w, err.Error(), httpapi.StatusInternalServerError)
-		res.Msg = err.Error()
-		glog.Error(res.Msg)
-		res.Code = -1
-		return
-	}
-
-	// 获取上传的文件
-	file, handler, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	defer file.Close()
-
-	currentPath, err := os.Executable()
-	if err != nil {
-		res.Msg = fmt.Sprintf("获取当前可执行文件路径出错: %v\n", err)
-		glog.Error(res.Msg)
-		res.Code = -1
-		return
-	}
-
-	dstFilePath := filepath.Join(filepath.Dir(currentPath), handler.Filename)
-	// 创建本地文件以保存上传的文件
-	dst, err := os.Create(dstFilePath)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-	pw := &utils.ProgressWriter{TotalSize: handler.Size, Progress: -1, Title: "文件下载："}
-	_, err = io.Copy(io.MultiWriter(dst, pw), file)
-	// 将上传的文件内容复制到本地文件
-	//_, err = io.Copy(dst, file)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
-	if err != nil {
-		glog.Println("加密失败～", err)
-		res.Msg = fmt.Sprintf("加密失败～%v", err)
-		res.Code = -1
-		return
-	}
-	if newBufferBytes == nil || len(newBufferBytes) == 0 {
-		res.Msg = fmt.Sprintf("加密信息空～")
-		res.Code = -1
-		return
-	}
-	oldBufferBytes := ukey.UnInitializeBuffer()
-	PrintCfg()
-	glog.Printf("\n请求地址：%s\n旧签名信息大小：%d\n新签名信息大小：%d\n", r.URL.Path, len(oldBufferBytes), len(newBufferBytes))
-	glog.Println("install", this.install)
-
-	newBinPath, err := utils.UpdateByUpload(dstFilePath, oldBufferBytes, newBufferBytes)
-	if err != nil {
-		res.Msg = fmt.Sprintf("加密失败～%v", err)
-		res.Code = -1
-		glog.Error(res.Msg)
-		return
-	}
-	if newBinPath == "" {
-		res.Msg = fmt.Sprintf("文件不存～%v", err)
-		res.Code = -1
-		glog.Error(res.Msg)
-		return
-	}
-	err = this.install.Upgrade(newBinPath)
-	if err != nil {
-		res.Msg = fmt.Sprintf("更新失败～%v", err)
-		res.Code = -1
-		glog.Error(res.Msg)
-		return
-	}
-	// 返回成功响应
-	res.Msg = fmt.Sprintf("文件 %s 上传成功", handler.Filename)
-	glog.Info(res.Msg)
-	res.Msg = "程序更新成功"
-	//if res.Code == 0 && this.s != nil {
-	//	go func() {
-	//		err = this.s.Restart()
-	//		if err != nil {
-	//			glog.Error("开始重启失败")
-	//		}
-	//		glog.Error("开始重启ok")
-	//	}()
-	//}
-	//time.Sleep(time.Second)
 }
 
 // /api/restart
