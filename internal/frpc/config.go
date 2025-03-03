@@ -8,7 +8,6 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	"os"
-	"path/filepath"
 )
 
 var cfgData *CfgModel
@@ -21,9 +20,6 @@ type CfgModel struct {
 
 func load() error {
 	defer glog.Flush()
-	temp := os.TempDir()
-	glog.SetLogFile(filepath.Join(temp, "frpc", "logs"), "frpc.log")
-	glog.SetCons(true)
 	byteArray, err := ukey.Load()
 	if err != nil {
 		//glog.Error(err)
@@ -48,11 +44,6 @@ func load() error {
 	//glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
 	pkg.Version()
 	return nil
-}
-
-func GetCfgBytes() []byte {
-	load()
-	return cfgBytes
 }
 
 func GetCfgModel() *CfgModel {

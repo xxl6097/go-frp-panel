@@ -20,6 +20,9 @@ type Service struct {
 }
 
 func (s Service) OnInit() *service.Config {
+	temp := os.TempDir()
+	glog.SetLogFile(filepath.Join(temp, pkg.AppName, "frps", "logs"), "frps.log")
+	glog.SetCons(true)
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,
@@ -30,10 +33,6 @@ func (s Service) OnInit() *service.Config {
 func (s Service) OnVersion() string {
 	fmt.Println(string(ukey.GetBuffer()))
 	//这里需要打印config中buffer原始信息
-	b := frps.GetCfgBytes()
-	if b != nil {
-		glog.Println(string(b))
-	}
 	ver := fmt.Sprintf("frps version:%s", version.Full())
 	pkg.Version()
 	return ver
