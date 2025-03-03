@@ -19,6 +19,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io/fs"
 	"os"
 	"os/signal"
@@ -36,19 +37,19 @@ type frpClient struct {
 }
 type frpc struct {
 	svr            *client.Service
-	install        gore.Install
+	install        gore.IGService
 	configFilePath string
 	upgrade        iface.IComm
 	svrs           map[string]*frpClient
 }
 
-func NewFrpc(i gore.Install) (*frpc, error) {
+func NewFrpc(i gore.IGService) (*frpc, error) {
 	baseDir, err := os.Executable()
 	if err != nil {
 		return nil, err
 	}
 	cfgFilePath := filepath.Join(filepath.Dir(baseDir), "config.toml")
-	if !gore.FileExists(cfgFilePath) {
+	if !utils2.FileExists(cfgFilePath) {
 		return nil, fmt.Errorf("config file %s not exists", cfgFilePath)
 	}
 	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)

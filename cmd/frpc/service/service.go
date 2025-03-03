@@ -6,11 +6,12 @@ import (
 	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/internal/comm/ukey"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/ukey"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
 )
@@ -18,6 +19,13 @@ import (
 type Service struct {
 }
 
+func (s Service) OnInit() *service.Config {
+	return &service.Config{
+		Name:        pkg.AppName,
+		DisplayName: pkg.DisplayName,
+		Description: pkg.Description,
+	}
+}
 func (s Service) OnVersion() string {
 	fmt.Println(string(ukey.GetBuffer()))
 	//这里需要打印config中buffer原始信息
@@ -30,43 +38,7 @@ func (s Service) OnVersion() string {
 	return ver
 }
 
-func (s Service) OnConfig() *service.Config {
-	return &service.Config{
-		Name:        pkg.AppName,
-		DisplayName: pkg.DisplayName,
-		Description: pkg.Description,
-	}
-}
-
-func (s Service) OnInstall(binPath string) (bool, []string) {
-	cfg := s.menu()
-	//cfg.Frpc.Complete()
-	newBufferBytes, err := ukey.GenConfig(cfg, false)
-	if err != nil {
-		panic(fmt.Errorf("构建签名信息错误: %v", err))
-	}
-	//glog.Printf("--->%s\n", string(newBufferBytes))
-	currentBinPath, err := os.Executable()
-	if err != nil {
-		glog.Fatal("os.Executable() error", err)
-	}
-	//安装程序，需要对程序进行签名，那么需要传入两个参数：
-	//1、最原始的key；
-	//2、需写入的data
-	buffer := ukey.GetBuffer()
-	glog.Info("buffer大小", len(buffer))
-	err = utils.GenerateBin(currentBinPath, binPath, buffer, newBufferBytes)
-	if err != nil {
-		glog.Fatal("签名错误：", err)
-	}
-	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
-	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
-		glog.Warnf("write content to frpc config file error: %v", err)
-	}
-	return false, nil
-}
-
-func (this Service) OnRun(i gore.Install) error {
+func (this Service) OnRun(i gore.IGService) error {
 	frpc.Assert()
 	glog.Printf("启动frpc_%s\n", pkg.AppVersion)
 	cfg := frpc.GetCfgModel()
@@ -83,6 +55,38 @@ func (this Service) OnRun(i gore.Install) error {
 	return err
 }
 
+func (this Service) GetAny() any {
+	return this.menu()
+}
+
+//func (s Service) OnInstall(binPath string) (bool, []string) {
+//	cfg := s.menu()
+//	//cfg.Frpc.Complete()
+//	newBufferBytes, err := ukey.GenConfig(cfg, false)
+//	if err != nil {
+//		panic(fmt.Errorf("构建签名信息错误: %v", err))
+//	}
+//	//glog.Printf("--->%s\n", string(newBufferBytes))
+//	currentBinPath, err := os.Executable()
+//	if err != nil {
+//		glog.Fatal("os.Executable() error", err)
+//	}
+//	//安装程序，需要对程序进行签名，那么需要传入两个参数：
+//	//1、最原始的key；
+//	//2、需写入的data
+//	buffer := ukey.GetBuffer()
+//	glog.Info("buffer大小", len(buffer))
+//	err = utils.GenerateBin(currentBinPath, binPath, buffer, newBufferBytes)
+//	if err != nil {
+//		glog.Fatal("签名错误：", err)
+//	}
+//	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
+//	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
+//		glog.Warnf("write content to frpc config file error: %v", err)
+//	}
+//	return false, nil
+//}
+
 func (this *Service) menu() *frpc.CfgModel {
 	var bindAddr, userName, password string
 	var bindPort int
@@ -90,19 +94,19 @@ func (this *Service) menu() *frpc.CfgModel {
 	c := frpc.GetCfgModel()
 	//glog.Error(err)
 	if err != nil || c == nil {
-		bindAddr = gore.InputString("请输入Frps服务器地址：")
-		bindPort = gore.InputInt("请输入Frps服务器绑定端口：")
-		userName = gore.InputString("请输入用户名：")
-		password = gore.InputString("请输入密钥：")
+		bindAddr = utils2.InputString("请输入Frps服务器地址：")
+		bindPort = utils2.InputInt("请输入Frps服务器绑定端口：")
+		userName = utils2.InputString("请输入用户名：")
+		password = utils2.InputString("请输入密钥：")
 	} else {
 		bindAddr = c.Frpc.ServerAddr
 		bindPort = c.Frpc.ServerPort
 		userName = c.Frpc.User
 		password = c.Frpc.Metadatas["token"]
 	}
-	adminPort := gore.InputInt("请输入管理后台端口：")
-	adminUser := gore.InputString("请输入管理后台用户名：")
-	adminPass := gore.InputString("请输入管理后台密码：")
+	adminPort := utils2.InputInt("请输入管理后台端口：")
+	adminUser := utils2.InputString("请输入管理后台用户名：")
+	adminPass := utils2.InputString("请输入管理后台密码：")
 	temp := os.TempDir()
 	temp = filepath.Join(temp, "frpc", userName, "logs")
 	err = utils.DirCheck(temp)
