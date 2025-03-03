@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -161,79 +160,52 @@ func replaceBin(newPath string) error {
 	return nil
 }
 
-func UpdateByUpload(downFilePath string, oldCfgBytes, cfgBytes []byte) (string, error) {
-	defer glog.Flush()
-	currentPath, err := getCurrentExecutablePath()
-	if err != nil {
-		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-	}
-	glog.Infof("更新包上传完毕: %s\n", downFilePath)
+//func UpdateByUpload(downFilePath string, oldCfgBytes, cfgBytes []byte) (string, error) {
+//	defer glog.Flush()
+//	currentPath, err := getCurrentExecutablePath()
+//	if err != nil {
+//		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
+//	}
+//	glog.Infof("更新包上传完毕: %s\n", downFilePath)
+//
+//	newName := currentPath + ".bin"
+//	err = GenerateBin(downFilePath, newName, oldCfgBytes, cfgBytes)
+//	//defer Delete(newName)
+//	Delete(downFilePath)
+//	if err != nil {
+//		return "", fmt.Errorf("安装失败: %v\n", err)
+//	}
+//	glog.Info("签名成功", newName)
+//	// 关闭当前服务程序
+//	glog.Infof("替换: %s=>%s\n", newName, currentPath)
+//	glog.Info("程序已成功更新并重启")
+//	return newName, nil
+//}
 
-	newName := currentPath + ".bin"
-	err = GenerateBin(downFilePath, newName, oldCfgBytes, cfgBytes)
-	//defer Delete(newName)
-	Delete(downFilePath)
-	if err != nil {
-		return "", fmt.Errorf("安装失败: %v\n", err)
-	}
-	glog.Info("签名成功", newName)
-
-	// 关闭当前服务程序
-	glog.Infof("替换: %s=>%s\n", newName, currentPath)
-	//if gore.IsWindows() {
-	//	err = replace(currentPath, newName, downFilePath)
-	//} else {
-	//	// 替换当前可执行文件
-	//	err = ReplaceExecutable(currentPath, newName)
-	//}
-
-	//err = replaceBin(newName)
-	//if err != nil {
-	//	return "", fmt.Errorf("替换可执行文件失败: %v\n", err)
-	//}
-	//glog.Info("替换成功")
-	//err = os.Chmod(currentPath, 0755)
-	//if err == nil {
-	//	glog.Debug(currentPath, "赋予0755权限成功")
-	//} else {
-	//	return "", fmt.Errorf("赋予0755权限失败 %s %v\n", currentPath, err)
-	//}
-
-	// 重启程序
-	//err = restartProgram()
-	//if err != nil {
-	//	log.Printf("重启程序失败: %v", err)
-	//	return
-	//}
-
-	glog.Info("程序已成功更新并重启")
-	return newName, nil
-}
-
-func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
-	if !utils.FileExists(newFilePath) {
-		return "", fmt.Errorf("文件不存在：%s", newFilePath)
-	}
-	if newBufferBytes == nil || len(newBufferBytes) == 0 {
-		return "", fmt.Errorf("加密数据空～")
-	}
-	if oldBufferBytes == nil || len(oldBufferBytes) == 0 {
-		return "", fmt.Errorf("原始数据buffer空～")
-	}
-	//oldBufferBytes := ukey.UnInitializeBuffer()
-	//config.PrintCfg()
-
-	binFilePath, err := os.Executable()
-	if err != nil {
-		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-	}
-
-	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
-	glog.Printf("开始签名文件 %s\n", newFilePath)
-	err = GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
-	if err != nil {
-		glog.Printf("签名失败 %v\n", err)
-		return "", err
-	}
-	return signFilePath, nil
-}
+//func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (string, error) {
+//	if !utils.FileExists(newFilePath) {
+//		return "", fmt.Errorf("文件不存在：%s", newFilePath)
+//	}
+//	if newBufferBytes == nil || len(newBufferBytes) == 0 {
+//		return "", fmt.Errorf("加密数据空～")
+//	}
+//	if oldBufferBytes == nil || len(oldBufferBytes) == 0 {
+//		return "", fmt.Errorf("原始数据buffer空～")
+//	}
+//	//oldBufferBytes := ukey.UnInitializeBuffer()
+//	//config.PrintCfg()
+//
+//	binFilePath, err := os.Executable()
+//	if err != nil {
+//		return "", fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
+//	}
+//
+//	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
+//	glog.Printf("开始签名文件 %s\n", newFilePath)
+//	err = GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
+//	if err != nil {
+//		glog.Printf("签名失败 %v\n", err)
+//		return "", err
+//	}
+//	return signFilePath, nil
+//}

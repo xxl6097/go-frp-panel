@@ -9,7 +9,6 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
-	"github.com/xxl6097/go-service/gservice/ukey"
 	"io"
 	"net/http"
 	"os"
@@ -19,15 +18,15 @@ import (
 )
 
 type commapi struct {
-	install gore.IGService
-	obj     any
-	pool    *sync.Pool // use sync.Pool caching buf to reduce gc ratio
+	igs  gore.IGService
+	obj  any
+	pool *sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
 func NewCommApi(install gore.IGService, obj any) iface.IComm {
 	return &commapi{
-		install: install,
-		obj:     obj,
+		igs: install,
+		obj: obj,
 		pool: &sync.Pool{
 			New: func() interface{} { return make([]byte, 32*1024) },
 		},
@@ -58,12 +57,6 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		newFilePath, err = utils.DownLoad(string(body))
 		break
 	case "POST", "post":
-		//err := r.ParseMultipartForm(32 << 20)
-		//if err != nil {
-		//	res.Error("body can't be empty")
-		//	glog.Error(res.Msg)
-		//	return
-		//}
 		// 获取上传的文件
 		file, handler, err := r.FormFile("file")
 		if err != nil {
@@ -92,38 +85,46 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	default:
 		res.Error("位置请求方法")
 	}
-	defer utils.Delete(newFilePath, "更新文件")
-	//下载和接收的最新文件 名称为上传文件的原始名称
-	newBufferBytes, err := ukey.GenConfig(this.obj, false)
-	if err != nil {
-		res.Error(fmt.Sprintf("gen config err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.UnInitializeBuffer(), newFilePath)
-	glog.Println("签名安装完毕", err, res)
-	if err != nil {
-		res.Error(err.Error())
-		glog.Error(res.Msg)
-	} else {
-		defer utils.Delete(signFilePath, "签名文件")
-		err = this.install.Upgrade(signFilePath)
+	//defer utils.Delete(newFilePath, "更新文件")
+	if newFilePath != "" {
+		err := this.igs.Upgrade(newFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
 			return
 		}
 		res.Ok("升级成功～")
 	}
+	//下载和接收的最新文件 名称为上传文件的原始名称
+	//newBufferBytes, err := ukey.GenConfig(this.obj, false)
+	//if err != nil {
+	//	res.Error(fmt.Sprintf("gen config err: %v", err))
+	//	glog.Error(res.Msg)
+	//	return
+	//}
+	//signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.UnInitializeBuffer(), newFilePath)
+	//glog.Println("签名安装完毕", err, res)
+	//if err != nil {
+	//	res.Error(err.Error())
+	//	glog.Error(res.Msg)
+	//} else {
+	//	defer utils.Delete(signFilePath, "签名文件")
+	//	err = this.igs.Upgrade(signFilePath)
+	//	if err != nil {
+	//		res.Error(fmt.Sprintf("更新失败～%v", err))
+	//		return
+	//	}
+	//	res.Ok("升级成功～")
+	//}
 }
 
 func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	res.Msg = "restart sucess"
-	if res.Code == 0 && this.install != nil {
+	if res.Code == 0 && this.igs != nil {
 		go func() {
 			time.Sleep(time.Second)
-			err := this.install.Restart()
+			err := this.igs.Restart()
 			if err != nil {
 				glog.Error("重启失败")
 			}
