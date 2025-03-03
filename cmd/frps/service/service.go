@@ -7,6 +7,7 @@ import (
 	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/internal/frps"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-service/gservice/gore"
@@ -17,6 +18,7 @@ import (
 )
 
 type Service struct {
+	ifrps iface.IFrps
 }
 
 func (s Service) OnInit() *service.Config {
@@ -28,6 +30,14 @@ func (s Service) OnInit() *service.Config {
 		DisplayName: pkg.DisplayName,
 		Description: pkg.Description,
 	}
+}
+
+func (s Service) OnStop(ss service.Service) {
+	s.ifrps.Close()
+}
+
+func (s Service) ShutDown(ss service.Service) {
+	s.ifrps.Close()
 }
 
 func (s Service) OnVersion() string {
@@ -58,6 +68,7 @@ func (this Service) OnRun(i gore.IGService) error {
 		glog.Println(conf)
 		return err
 	}
+	this.ifrps = svv
 	svv.Run()
 	return err
 }

@@ -60,6 +60,13 @@ func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {
 	return f, nil
 }
 
+func (this *frps) Close() {
+	if this.svr == nil {
+		return
+	}
+	this.svr.Close()
+}
+
 func (this *frps) Run() {
 	fmt.Printf("Run: http://127.0.0.1:%d\n", this.cfg.WebServer.Port)
 	this.svr.Run(context.Background())
