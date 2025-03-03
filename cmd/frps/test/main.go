@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	fmt.Println(os.UserCacheDir())
 	fmt.Println(os.TempDir())
 	cmd.Execute(func() error {
 		temp := os.TempDir()
