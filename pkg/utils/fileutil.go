@@ -205,7 +205,7 @@ func Zip(dir, dst string) error {
 		return nil
 	})
 }
-func UnzipToRoot(zipFile, destDir string) error {
+func UnzipToRoot(zipFile, destDir string, strich bool) error {
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
 		return err
@@ -225,6 +225,9 @@ func UnzipToRoot(zipFile, destDir string) error {
 
 			// 跳过目录条目（扁平化后无需创建子目录）
 			if f.FileInfo().IsDir() {
+				return
+			}
+			if strich && strings.HasPrefix(filePath, ".") {
 				return
 			}
 
