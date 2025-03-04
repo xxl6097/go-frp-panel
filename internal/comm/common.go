@@ -130,8 +130,12 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	if res.Code == 0 && this.igs != nil {
 		go func() {
 			time.Sleep(time.Second)
-			//err := this.igs.Restart()
-			err := this.igs.RunCmd("restart")
+			var err error
+			if utils.IsOpenWRT() {
+				err = this.igs.RunCmd("restart")
+			} else {
+				err = this.igs.Restart()
+			}
 			if err != nil {
 				glog.Error("重启失败")
 			}

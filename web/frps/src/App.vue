@@ -272,7 +272,7 @@ const restart = () => {
           setTimeout(function () {
             loading.close()
             window.location.reload()
-          }, 2000)
+          }, 3000)
         })
     },
     () => {},
