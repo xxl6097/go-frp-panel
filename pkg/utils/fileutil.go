@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/zip"
+	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"io"
@@ -227,7 +228,8 @@ func UnzipToRoot(zipFile, destDir string, strich bool) error {
 			if f.FileInfo().IsDir() {
 				return
 			}
-			if strich && strings.HasPrefix(filePath, ".") {
+			if strich && strings.HasPrefix(baseName, ".") {
+				fmt.Println("清除", filePath)
 				return
 			}
 
