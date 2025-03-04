@@ -295,7 +295,7 @@ func (this *frpc) startService(
 	go func() {
 		err1 := svr.Run(context.Background())
 		if err1 != nil {
-			glog.Errorf("frpc service run err: %v", err)
+			glog.Errorf("frpc service run err: %v", err1)
 		}
 	}()
 	return nil
