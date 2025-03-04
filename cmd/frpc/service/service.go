@@ -131,6 +131,8 @@ func (this *Service) menu() *frpc.CfgModel {
 	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
 	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
 		glog.Warnf("write content to frpc config file error: %v", err)
+	} else {
+		glog.Infof("write content to frpc config file success %s", cfgPath)
 	}
 	return cfg
 }
