@@ -6,7 +6,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
 	"os"
@@ -65,7 +65,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cfgFilePath := filepath.Join(cfgDir, body.Name)
-		if gore.FileExists(cfgFilePath) {
+		if utils2.FileExists(cfgFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
 			glog.Error(res.Msg)
 			return
@@ -93,7 +93,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 		dstFilePath := filepath.Join(cfgDir, handler.Filename)
-		if gore.FileExists(dstFilePath) {
+		if utils2.FileExists(dstFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
 			glog.Error(res.Msg)
 			return
@@ -156,7 +156,7 @@ func (this *frpc) apiClientCreatePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cfgFilePath := filepath.Join(cfgDir, body.Name)
-	if gore.FileExists(cfgFilePath) {
+	if utils2.FileExists(cfgFilePath) {
 		res.Err(fmt.Errorf("客户端已经存在"))
 		glog.Error(res.Msg)
 		return
@@ -236,24 +236,30 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	files, err := os.ReadDir(cfgDir)
-	if err != nil {
-		res.Err(fmt.Errorf("read config dir err: %v", err))
+	if utils.IsDirectoryExist(cfgDir) {
+		files, err := os.ReadDir(cfgDir)
+		if err != nil {
+			res.Err(fmt.Errorf("read config dir err: %v", err))
+			glog.Error(res.Msg)
+			return
+		}
+
+		var names []comm.Option
+		for _, f := range files {
+			ext := strings.ToLower(filepath.Ext(f.Name()))
+			if !f.IsDir() && ext == ".toml" {
+				names = append(names, comm.Option{
+					Label: f.Name(),
+					Value: f.Name(),
+				})
+			}
+		}
+		res.Sucess("客户端列表获取成功", names)
+	} else {
+		res.Err(fmt.Errorf("配置目录不存在：%v", cfgDir))
 		glog.Error(res.Msg)
-		return
 	}
 
-	var names []comm.Option
-	for _, f := range files {
-		ext := strings.ToLower(filepath.Ext(f.Name()))
-		if !f.IsDir() && ext == ".toml" {
-			names = append(names, comm.Option{
-				Label: f.Name(),
-				Value: f.Name(),
-			})
-		}
-	}
-	res.Sucess("客户端列表获取成功", names)
 }
 
 func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
@@ -302,7 +308,7 @@ func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
 	}
 	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
 	cfgFilePath := filepath.Join(cfgDir, body.Name)
-	if !gore.FileExists(cfgFilePath) {
+	if !utils2.FileExists(cfgFilePath) {
 		res.Err(fmt.Errorf("客户端不存在: %v", err))
 		glog.Error(res.Msg)
 		return

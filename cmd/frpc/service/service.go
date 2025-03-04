@@ -11,7 +11,6 @@ import (
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
-	"os"
 	"path/filepath"
 )
 
@@ -19,9 +18,6 @@ type Service struct {
 }
 
 func (s Service) OnInit() *service.Config {
-	temp := os.TempDir()
-	glog.SetLogFile(filepath.Join(temp, pkg.AppName, "frpc", "logs"), "frpc.log")
-	glog.SetCons(true)
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,

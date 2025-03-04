@@ -6,14 +6,14 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
 )
 
 func main() {
 	cfg := &v1.ClientCommonConfig{
-		ServerAddr: "192.168.0.3",
+		ServerAddr: "192.168.0.2",
 		ServerPort: 6000,
 		User:       "clife-fnos",
 		Metadatas: map[string]string{
@@ -36,7 +36,7 @@ func main() {
 	}
 	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
 
-	if !gore.FileExists(cfgPath) {
+	if !utils2.FileExists(cfgPath) {
 		if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg), 0o600); err != nil {
 			glog.Warnf("write content to frpc config file error: %v", err)
 		}
@@ -48,5 +48,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("http://localhost:%d\n", cfg.WebServer.Port)
 	cls.Run()
 }

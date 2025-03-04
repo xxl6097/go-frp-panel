@@ -63,6 +63,13 @@ func Delete(filePath string, args ...string) {
 	glog.Infof("%s 文件删除成功: %s\n", title, filePath)
 }
 
+func IsDirectoryExist(dirPath string) bool {
+	if _, err := os.Stat(dirPath); err == nil {
+		return true
+	}
+	return false
+}
+
 func DirCheck(path string) error {
 	// 检查目录是否存在
 	if _, err := os.Stat(path); err == nil {
