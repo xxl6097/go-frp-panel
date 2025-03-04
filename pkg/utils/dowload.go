@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -88,7 +89,7 @@ func DownLoad(url string, args ...string) (string, error) {
 			dstName = fmt.Sprintf("%d", fileName)
 		}
 		if dstName != "" {
-			dstFile = filepath.Join(os.TempDir(), dstName)
+			dstFile = filepath.Join(utils.GetUpgradeDir(), dstName)
 		}
 	}
 
