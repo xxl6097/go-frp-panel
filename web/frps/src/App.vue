@@ -11,9 +11,9 @@
               重启
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="shutdown"
-                    >关闭服务</el-dropdown-item
-                  >
+<!--                  <el-dropdown-item @click="shutdown"-->
+<!--                    >关闭服务</el-dropdown-item-->
+<!--                  >-->
                   <el-dropdown-item @click="dialogFormVisible = true"
                     >升级服务</el-dropdown-item
                   >
@@ -282,24 +282,25 @@ const restart = () => {
   )
 }
 
-const shutdown = () => {
-  showWarmDialog(
-    `确定关机吗？`,
-    () => {
-      fetch('../api/shutdown', { credentials: 'include' })
-        .then((res) => {
-          return res.json()
-        })
-        .then((json) => {
-          showTips(json.code, json.msg)
-        })
-        .catch(() => {
-          showErrorTips('关机失败')
-        })
-    },
-    () => {},
-  )
-}
+// const shutdown = () => {
+//   showWarmDialog(
+//     `确定关机吗？`,
+//     () => {
+//       fetch('../api/shutdown', { credentials: 'include' })
+//         .then((res) => {
+//           return res.json()
+//         })
+//         .then((json) => {
+//           showTips(json.code, json.msg)
+//         })
+//         .catch(() => {
+//           showErrorTips('关机失败')
+//         })
+//     },
+//     () => {},
+//   )
+// }
+
 const showlog = () => {
   const host = window.origin
   window.open(`${host}/log/`)

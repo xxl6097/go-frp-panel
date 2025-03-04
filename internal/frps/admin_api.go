@@ -21,7 +21,6 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter := helper.Router.NewRoute().Name("admin").Subrouter()
 	subRouter.Use(helper.AuthMiddleware)
 	staticPrefix := "/log/"
-	//baseDir, _ := os.Getwd()
 	baseDir := glog.GetCrossPlatformDataDir()
 	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
@@ -50,11 +49,6 @@ func (this *frps) apiShutdown(w http.ResponseWriter, r *http.Request) {
 
 	log.Infof("Http request: [%s]", r.URL.Path)
 	res.Msg = "ok"
-	//err := this.s.Stop()
-	//err := utils.Shutdown()
-	//if err != nil {
-	//	res.Msg = err.Error()
-	//}
 }
 
 func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
@@ -159,43 +153,3 @@ func (svr *frps) apiProxyByType(w http.ResponseWriter, r *http.Request) {
 
 	res.Msg = proxyType
 }
-
-//func (this *frps) signAndInstall(oldBufferBytes []byte, cfg interface{}, newFilePath string) error {
-//	if !gore.FileExists(newFilePath) {
-//		return fmt.Errorf("文件不存在：%s", newFilePath)
-//	}
-//	//下载和接收的最新文件 名称为上传文件的原始名称
-//	defer utils.Delete(newFilePath, "升级文件")
-//	newBufferBytes, err := ukey.GenConfig(cfg, false)
-//	if err != nil {
-//		return err
-//	}
-//	if newBufferBytes == nil || len(newBufferBytes) == 0 {
-//		return fmt.Errorf("加密数据空～")
-//	}
-//	if oldBufferBytes == nil || len(oldBufferBytes) == 0 {
-//		return fmt.Errorf("原始数据buffer空～")
-//	}
-//	//oldBufferBytes := ukey.UnInitializeBuffer()
-//	//config.PrintCfg()
-//
-//	binFilePath, err := os.Executable()
-//	if err != nil {
-//		return fmt.Errorf("获取当前可执行文件路径出错: %v\n", err)
-//	}
-//
-//	signFilePath := fmt.Sprintf("%s.sign", binFilePath)
-//	glog.Printf("开始签名文件 %s\n", newFilePath)
-//	err = utils.GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
-//	if err != nil {
-//		glog.Printf("签名失败 %v\n", err)
-//		return err
-//	}
-//	//signFilePath 签名文件
-//	defer utils.Delete(signFilePath, "签名文件")
-//	err = this.install.CommApi(signFilePath)
-//	if err != nil {
-//		return fmt.Errorf("更新失败～%v", err)
-//	}
-//	return err
-//}

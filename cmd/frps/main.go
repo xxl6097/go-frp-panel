@@ -18,10 +18,8 @@ func init() {
 
 //go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
 func main() {
-	//db.TestSqlite()
 	err := gservice.Run(service.Service{})
 	if err != nil {
 		glog.Error("程序启动出错了", err)
 	}
-	//glog.Println("服务程序启动成功，主进程退出", os.Getegid())
 }

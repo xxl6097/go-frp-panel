@@ -189,7 +189,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
-		dstPath, err1 := utils.DownLoad(body.BinUrl, "")
+		dstPath, err1 := utils.DownLoad(body.BinUrl)
 		if err1 == nil {
 			body.BinPath = dstPath
 		}
@@ -428,7 +428,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
-		dstPath, err1 := utils.DownLoad(body.BinUrl, "")
+		dstPath, err1 := utils.DownLoad(body.BinUrl)
 		if err1 == nil {
 			body.BinPath = dstPath
 		}
