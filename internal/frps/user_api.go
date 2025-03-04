@@ -165,7 +165,7 @@ func (this *frps) parseUser(data map[string]interface{}) {
 }
 
 func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
-	res := &comm.GeneralResponse{Code: 0}
+	//res := &comm.GeneralResponse{Code: 0}
 
 	//body1, err := io.ReadAll(r.Body)
 	//if err != nil {
@@ -186,48 +186,41 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if body == nil {
-		res.Error("json对象nil")
-		glog.Error(res.Msg)
+		msg := "json对象nil"
+		glog.Error(msg)
+		http.Error(w, "json对象nil", http.StatusInternalServerError)
 		return
 	}
 	glog.Debugf("body:%+v\n", body)
 	if utils2.IsURL(body.BinUrl) {
 		dstPath, err := utils.DownLoad(body.BinUrl)
 		if err != nil {
-			res.Err(fmt.Errorf("下载文件失败～"))
-			glog.Error(res.Msg)
+			msg := fmt.Errorf("下载文件失败～%v", err)
+			glog.Error(msg)
+			http.Error(w, msg.Error(), http.StatusInternalServerError)
 			return
 		}
 		body.BinPath = dstPath
 	}
 	if body.User.User == "" {
-		res.Err(fmt.Errorf("user empty"))
-		bb, err := json.Marshal(res)
-		if err != nil {
-			res.Error("解析json对象失败:" + err.Error())
-			glog.Error(res.Msg)
-			return
-		}
-		res.Raw = bb
+		msg := fmt.Errorf("用户名空")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusInternalServerError)
 		return
 	}
 	binPath := body.BinPath
 	if binPath == "" {
-		res.Error("bin文件路径空")
-		glog.Error(res.Msg)
+		msg := fmt.Errorf("bin文件路径空")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusInternalServerError)
 		return
 	}
 	glog.Infof("binPath: %s %+v\n", binPath, body)
 	tpl, err := os.Open(binPath)
 	if err != nil {
-		res.Err(fmt.Errorf("打开文件失败：%v", err))
-		bb, err := json.Marshal(res)
-		if err != nil {
-			glog.Errorf("marshal result error: %v", err)
-			w.WriteHeader(400)
-			return
-		}
-		w.Write(bb)
+		msg := fmt.Errorf("打开文件失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer tpl.Close()
@@ -247,14 +240,9 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		Token: body.User.Token,
 	}, false)
 	if err != nil {
-		res.Err(fmt.Errorf("文件签名失败：%v", err))
-		bb, err := json.Marshal(res)
-		if err != nil {
-			glog.Errorf("marshal result error: %v", err)
-			w.WriteHeader(400)
-			return
-		}
-		w.Write(bb)
+		msg := fmt.Errorf("文件签名失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusInternalServerError)
 		return
 	}
 	prevBuffer := make([]byte, 0)
