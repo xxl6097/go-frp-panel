@@ -384,7 +384,7 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 			res.Error(err.Error())
 			return
 		}
-		err = utils.UnzipToRoot(dstFilePath, userDir)
+		err = utils.UnzipToRoot(dstFilePath, userDir, true)
 		if err == nil {
 			utils.Delete(dstFilePath, "用户文件")
 			glog.Info("解压成功", userDir)
@@ -503,7 +503,7 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	glog.Println("客户端路径", clientsDir)
 	glog.Println("文件上传成功", dstFilePath)
-	err = utils.UnzipToRoot(dstFilePath, clientsDir)
+	err = utils.UnzipToRoot(dstFilePath, clientsDir, true)
 	if err != nil {
 		res.Error(err.Error())
 		glog.Error(res.Msg)
