@@ -19,7 +19,7 @@
                     >上传客户端</el-dropdown-item
                   >
                   <el-dropdown-item @click="handleClearData"
-                  >清空数据</el-dropdown-item
+                    >清空数据</el-dropdown-item
                   >
                 </el-dropdown-menu>
               </template>
@@ -184,14 +184,10 @@ const doClientsUpload = async (options: any) => {
   })
     .then((json: any) => {
       console.log('请求成功', json)
-      if (json.code !== 0) {
-        if (json.msg !== '') {
-          showErrorTips(json.msg)
-        }
+      if (json.code === 0) {
+        showSucessTips(json.msg)
       } else {
-        if (json.msg !== '') {
-          showSucessTips(json.msg)
-        }
+        showWarmTips(json.msg)
       }
     })
     .catch((error) => {
@@ -378,7 +374,6 @@ const upgrade = () => {
     showWarmTips('请正确输入url地址')
   }
 }
-
 
 // const uploadFile = (file: any) => {
 //   const loading = showLoading('客户端上传中...')
