@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function upgradeVersion() {
-  if [ ! -e version.txt ]; then
-      echo "0.0.0" > version.txt
+  if [ ! -e .version ]; then
+      echo "0.0.0" > .version
   fi
-  version=$(cat version.txt)
+  version=$(cat .version)
   if [ "$version" = "" ]; then
     version="0.0.0"
   else
@@ -24,7 +24,7 @@ function upgradeVersion() {
     fi
     version="$v1.$v2.$v3"
   fi
-    echo $version > version.txt
+    echo $version > .version
 }
 
 function todir() {

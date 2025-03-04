@@ -89,7 +89,7 @@ done
 }
 
 function getversion() {
-  version=$(cat version.txt)
+  version=$(cat .version)
   if [ "$version" = "" ]; then
     version="0.0.0"
     echo $version
@@ -246,7 +246,7 @@ function tagAndGitPush() {
     git commit -m "release v${version}"
     git tag -a v$version -m "release v${version}"
     git push origin v$version
-    echo $version >version.txt
+    echo $version >.version
 }
 
 # shellcheck disable=SC2120

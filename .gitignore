@@ -4,6 +4,7 @@
 dist
 dist-frps
 dist-frpc
+.version
 version.txt
 ./token
 .token
