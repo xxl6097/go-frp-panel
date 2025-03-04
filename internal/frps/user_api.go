@@ -143,7 +143,11 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	res.Data = utils.GetNodes(filepath.Join(filepath.Dir(binPath), "/clients/dist"))
+	configDir := filepath.Dir(binPath)
+	configPath := filepath.Join(configDir, "clients")
+	glog.Infof("扫描路径:%s", configPath)
+	res.Data = utils.GetNodes(configPath)
+	glog.Infof("扫描结果:%v", res.Data)
 }
 
 func (this *frps) parseUser(data map[string]interface{}) {
