@@ -231,7 +231,7 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 						portErr = fmt.Errorf("user [%v] port rang [%v] end port [%v] is not a number", user, port, allowedRanges[0])
 						break
 					}
-					if max(userPort, start) == userPort && min(userPort, end) == userPort {
+					if max(int64(userPort), int64(start)) == int64(userPort) && min(int64(userPort), int64(end)) == int64(userPort) {
 						portAllowed = true
 						break
 					}
@@ -244,17 +244,22 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 					if err != nil {
 						portErr = fmt.Errorf("user [%v] allowed port [%v] is not a number", user, port)
 					}
-					if allowed == userPort {
+					if int64(allowed) == int64(userPort) {
 						portAllowed = true
 						break
 					}
 				}
 			} else {
-				allowed := port
-				if allowed == userPort {
+				num, okk := port.(float64)
+				if okk && num == float64(userPort) {
 					portAllowed = true
 					break
 				}
+				//allowed := int64(port)
+				//if int64(allowed) == int64(userPort) {
+				//	portAllowed = true
+				//	break
+				//}
 			}
 
 		}
