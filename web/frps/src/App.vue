@@ -11,15 +11,15 @@
               重启
               <template #dropdown>
                 <el-dropdown-menu>
-<!--                  <el-dropdown-item @click="shutdown"-->
-<!--                    >关闭服务</el-dropdown-item-->
-<!--                  >-->
                   <el-dropdown-item @click="dialogFormVisible = true"
                     >升级服务</el-dropdown-item
                   >
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
                   <el-dropdown-item @click="dialogClientsVisible = true"
                     >上传客户端</el-dropdown-item
+                  >
+                  <el-dropdown-item @click="handleClearData"
+                  >清空数据</el-dropdown-item
                   >
                 </el-dropdown-menu>
               </template>
@@ -282,24 +282,24 @@ const restart = () => {
   )
 }
 
-// const shutdown = () => {
-//   showWarmDialog(
-//     `确定关机吗？`,
-//     () => {
-//       fetch('../api/shutdown', { credentials: 'include' })
-//         .then((res) => {
-//           return res.json()
-//         })
-//         .then((json) => {
-//           showTips(json.code, json.msg)
-//         })
-//         .catch(() => {
-//           showErrorTips('关机失败')
-//         })
-//     },
-//     () => {},
-//   )
-// }
+const handleClearData = () => {
+  showWarmDialog(
+    `确定清空应用数据吗？`,
+    () => {
+      fetch('../api/clear', { credentials: 'include', method: 'DELETE' })
+        .then((res) => {
+          return res.json()
+        })
+        .then((json) => {
+          showTips(json.code, json.msg)
+        })
+        .catch(() => {
+          showErrorTips('清空失败')
+        })
+    },
+    () => {},
+  )
+}
 
 const showlog = () => {
   const host = window.origin

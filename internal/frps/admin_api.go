@@ -11,9 +11,11 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
+	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -28,6 +30,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/panelinfo", this.apiPanelinfo).Methods("GET")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
 	subRouter.HandleFunc("/api/shutdown", this.apiShutdown).Methods("GET")
+	subRouter.HandleFunc("/api/clear", this.apiClear).Methods("DELETE")
 	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
@@ -49,6 +52,32 @@ func (this *frps) apiShutdown(w http.ResponseWriter, r *http.Request) {
 
 	log.Infof("Http request: [%s]", r.URL.Path)
 	res.Msg = "ok"
+}
+
+// /api/shutdown
+func (this *frps) apiClear(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	glog.Infof("Http request: [%s]", r.URL.Path)
+	binPath, err := os.Executable()
+	if err != nil {
+		res.Error(fmt.Sprintf("获取当前可执行文件路径出错: %v\n", err))
+		glog.Error(res.Msg)
+		return
+	}
+	binDir := filepath.Dir(binPath)
+	clientsDir := filepath.Join(binDir, "clients")
+	err = utils2.DeleteAll(clientsDir)
+	logDir := glog.GetCrossPlatformDataDir(pkg.AppName)
+	err = utils2.DeleteAll(logDir)
+	upDir := utils2.GetUpgradeDir()
+	err = utils2.DeleteAll(upDir)
+	if err != nil {
+		res.Err(err)
+	} else {
+		res.Msg = "删除成功"
+	}
+
 }
 
 func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
