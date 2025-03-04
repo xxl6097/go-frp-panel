@@ -6,6 +6,7 @@ import (
 	"github.com/xxl6097/go-service/gservice"
 )
 
+//go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
 func main() {
 	err := gservice.Run(service.Service{})
 	if err != nil {

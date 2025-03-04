@@ -5,7 +5,7 @@
     name="Github.com.JosephSpurrier.GoVersionInfo"
     version="1.0.0.0"
     processorArchitecture="*"/>
- <description>acfrps Service Application</description>
+ <description>acfrpc Service Application</description>
  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
    <security>
      <requestedPrivileges>
