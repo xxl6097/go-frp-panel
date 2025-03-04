@@ -50,8 +50,15 @@ func (this Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this Service) GetAny() any {
-	return this.menu()
+func (this Service) GetAny(binDir string) any {
+	cfg := this.menu()
+	cfgPath := filepath.Join(binDir, "config.toml")
+	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
+		glog.Warnf("write content to frpc config file error: %v", err)
+	} else {
+		glog.Infof("write content to frpc config file success %s", cfgPath)
+	}
+	return cfg
 }
 
 //func (s Service) OnInstall(binPath string) (bool, []string) {
@@ -123,16 +130,6 @@ func (this *Service) menu() *frpc.CfgModel {
 	}
 	cfg := &frpc.CfgModel{
 		Frpc: fCfg,
-	}
-	binPath, err := os.Executable()
-	if err != nil {
-		glog.Fatal("os.Executable() error", err)
-	}
-	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
-	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
-		glog.Warnf("write content to frpc config file error: %v", err)
-	} else {
-		glog.Infof("write content to frpc config file success %s", cfgPath)
 	}
 	return cfg
 }

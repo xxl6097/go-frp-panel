@@ -69,7 +69,7 @@ func (this Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this Service) GetAny() any {
+func (this Service) GetAny(binDir string) any {
 	return this.menu()
 }
 
