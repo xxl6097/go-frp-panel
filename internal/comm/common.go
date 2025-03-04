@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -129,7 +130,8 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 	if res.Code == 0 && this.igs != nil {
 		go func() {
 			time.Sleep(time.Second)
-			err := this.igs.Restart()
+			//err := this.igs.Restart()
+			err := this.igs.RunCmd("restart")
 			if err != nil {
 				glog.Error("重启失败")
 			}
@@ -158,4 +160,7 @@ func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 	}
 	res.Raw = jsonBytes
+	glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
+	glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
+	glog.Println("CPU 核心数:", runtime.NumCPU())
 }
