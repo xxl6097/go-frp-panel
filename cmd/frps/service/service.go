@@ -22,9 +22,6 @@ type Service struct {
 }
 
 func (s Service) OnInit() *service.Config {
-	temp := os.TempDir()
-	glog.SetLogFile(filepath.Join(temp, pkg.AppName, "frps", "logs"), "frps.log")
-	glog.SetCons(true)
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,

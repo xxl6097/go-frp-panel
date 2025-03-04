@@ -22,7 +22,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.Use(helper.AuthMiddleware)
 	staticPrefix := "/log/"
 	//baseDir, _ := os.Getwd()
-	baseDir := os.TempDir()
+	baseDir := glog.GetCrossPlatformDataDir()
 	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
 	// apis
