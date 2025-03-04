@@ -8,7 +8,6 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -105,12 +104,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	adminPort := utils2.InputInt("请输入管理后台端口：")
 	adminUser := utils2.InputString("请输入管理后台用户名：")
 	adminPass := utils2.InputString("请输入管理后台密码：")
-	temp := os.TempDir()
-	temp = filepath.Join(temp, pkg.AppName, "frpc", userName, "logs")
-	err = utils.DirCheck(temp)
-	if err != nil {
-		fmt.Println(err)
-	}
+	temp := glog.GetCrossPlatformDataDir(pkg.AppName, "frpc", "log")
 	fCfg := v1.ClientCommonConfig{
 		ServerAddr: bindAddr,
 		ServerPort: bindPort,
