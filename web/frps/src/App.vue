@@ -182,8 +182,9 @@ const doClientsUpload = async (options: any) => {
       loading.setText(`客户端上传中：${progress}%`)
     },
   })
-    .then((json: any) => {
-      console.log('请求成功', json)
+    .then((data: any) => {
+      console.log('请求成功', data)
+      const json = JSON.parse(data.data)
       if (json.code === 0) {
         showSucessTips(json.msg)
       } else {
