@@ -18,9 +18,6 @@
                   <el-dropdown-item @click="showVersion"
                     >查看版本</el-dropdown-item
                   >
-                  <el-dropdown-item @click="newClientFormVisible = true"
-                    >新建客户端</el-dropdown-item
-                  >
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -143,43 +140,11 @@
     </el-descriptions>
   </el-dialog>
 
-  <!--新建客户端-->
-  <el-dialog v-model="newClientFormVisible" title="创建客户端" width="700">
-    <el-form ref="ruleFormRef" :model="newClientForm" :rules="rules">
-      <el-form-item label="配置文件名：" prop="toml">
-        <el-input
-          v-model="newClientForm.name"
-          placeholder="请输入toml配置文件名"
-        />
-      </el-form-item>
 
-      <el-form-item prop="toml">
-        <el-input
-          type="textarea"
-          rows="13"
-          v-model="newClientForm.toml"
-          placeholder="请在此输入toml格式配置内容"
-        />
-      </el-form-item>
-    </el-form>
-    <el-upload :http-request="uploadToml" :limit="1">
-      <template #trigger>
-        <el-link type="primary">上传toml配置文件</el-link>
-      </template>
-    </el-upload>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="newClientFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm(ruleFormRef)"
-          >确定</el-button
-        >
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
   showLoading,
@@ -187,17 +152,13 @@ import {
   showErrorTips,
   showTips,
   showWarmTips,
-  put, showSucessTips, xhrPromise,
+  showSucessTips, xhrPromise,
 } from './utils/utils.ts'
-import { ComponentSize, FormInstance, FormRules } from 'element-plus'
+import { ComponentSize } from 'element-plus'
 
-const newClientForm = ref({
-  name: '',
-  toml: '',
-})
+
 const size = ref<ComponentSize>('default')
 
-const newClientFormVisible = ref(false)
 const versionDialogVisible = ref(false)
 const version = ref({
   description: '',
@@ -216,35 +177,6 @@ const dialogFormVisible = ref(false)
 const form = ref({
   binUrl: '',
 })
-const ruleFormRef = ref<FormInstance>()
-const rules = reactive<FormRules>({
-  name: [
-    {
-      required: true,
-      message: '请输入配置文件名',
-      trigger: 'blur',
-    },
-  ],
-  toml: [
-    {
-      required: true,
-      message: '请输入配置内容',
-      trigger: 'blur',
-    },
-  ],
-})
-
-const submitForm = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      console.log('submit!')
-      handleNewFrpcClient()
-    } else {
-      console.log('error submit!', fields)
-    }
-  })
-}
 
 const handleSelect = (key: string) => {
   if (key == '') {
@@ -318,44 +250,6 @@ const upgrade = () => {
   }
 }
 
-const handleNewFrpcClient = () => {
-  const body = JSON.stringify(newClientForm.value)
-  put('客户端创建中...', '../api/client/create', body).finally(() => {
-    newClientFormVisible.value = false
-  })
-}
-
-// 自定义上传函数
-const uploadToml = (options: any) => {
-  const { file } = options
-  const formData = new FormData()
-  formData.append('file', file)
-  const loading = showLoading('客户端创建中...')
-  dialogFormVisible.value = false
-  // 使用 fetch 发送请求
-  fetch('../api/client/create', {
-    method: 'POST',
-    body: formData,
-  })
-    .then((response) => {
-      return response.json()
-    })
-    .then((data) => {
-      // 上传成功的回调
-      options.onSuccess(data)
-    })
-    .catch((error) => {
-      // 上传失败的回调
-      options.onError(error)
-    })
-    .finally(() => {
-      loading.close()
-      dialogFormVisible.value = false
-      setTimeout(function () {
-        window.location.reload()
-      }, 1000)
-    })
-}
 
 // 自定义上传函数
 // const customUpload = (options: any) => {

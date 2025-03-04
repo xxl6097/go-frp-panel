@@ -13,7 +13,7 @@ import (
 
 func main() {
 	cfg := &v1.ClientCommonConfig{
-		ServerAddr: "192.168.0.2",
+		ServerAddr: "192.168.0.3",
 		ServerPort: 6000,
 		User:       "clife-fnos",
 		Metadatas: map[string]string{

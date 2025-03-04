@@ -29,7 +29,7 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("PUT")
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("POST")
-	subRouter.HandleFunc("/api/client/delete", this.apiClientDelete).Methods("GET")
+	subRouter.HandleFunc("/api/client/delete", this.apiClientDelete).Methods("DELETE")
 	subRouter.HandleFunc("/api/client/status", this.apiClientStatus).Methods("GET")
 	subRouter.HandleFunc("/api/client/list", this.apiClientList).Methods("GET")
 	subRouter.HandleFunc("/api/client/config/get", this.apiClientConfigGet).Methods("GET")
@@ -64,6 +64,11 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			glog.Error(res.Msg)
 			return
 		}
+		if filepath.Ext(body.Name) != ".toml" {
+			res.Error("文件必须是toml后缀～")
+			glog.Error(res.Msg)
+			return
+		}
 		cfgFilePath := filepath.Join(cfgDir, body.Name)
 		if utils2.FileExists(cfgFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
@@ -92,6 +97,11 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
+		if filepath.Ext(handler.Filename) != ".toml" {
+			res.Error("文件必须是toml后缀～")
+			glog.Error(res.Msg)
+			return
+		}
 		dstFilePath := filepath.Join(cfgDir, handler.Filename)
 		if utils2.FileExists(dstFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
@@ -285,7 +295,8 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	res.Raw = body
+	//res.Raw = body
+	res.Any(string(body))
 }
 
 func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {

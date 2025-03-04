@@ -34,6 +34,9 @@ func (g *GeneralResponse) Err(err error) *GeneralResponse {
 func (g *GeneralResponse) Error(msg string) *GeneralResponse {
 	return g.Response(-1, msg)
 }
+func (g *GeneralResponse) Any(data any) *GeneralResponse {
+	return g.response(0, "ok", data)
+}
 func (g *GeneralResponse) Ok(msg string) *GeneralResponse {
 	return g.Response(0, msg)
 }
