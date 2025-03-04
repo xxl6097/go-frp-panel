@@ -197,7 +197,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			msg := fmt.Errorf("下载文件失败～%v", err)
 			glog.Error(msg)
-			http.Error(w, msg.Error(), http.StatusInternalServerError)
+			http.Error(w, msg.Error(), http.StatusNotImplemented)
 			return
 		}
 		body.BinPath = dstPath
@@ -205,14 +205,14 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	if body.User.User == "" {
 		msg := fmt.Errorf("用户名空")
 		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusInternalServerError)
+		http.Error(w, msg.Error(), http.StatusBadGateway)
 		return
 	}
 	binPath := body.BinPath
 	if binPath == "" {
 		msg := fmt.Errorf("bin文件路径空")
 		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusInternalServerError)
+		http.Error(w, msg.Error(), http.StatusServiceUnavailable)
 		return
 	}
 	glog.Infof("binPath: %s %+v\n", binPath, body)
@@ -220,7 +220,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		msg := fmt.Errorf("打开文件失败：%v", err)
 		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusInternalServerError)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
 		return
 	}
 	defer tpl.Close()
@@ -242,7 +242,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		msg := fmt.Errorf("文件签名失败：%v", err)
 		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusInternalServerError)
+		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
 	prevBuffer := make([]byte, 0)
