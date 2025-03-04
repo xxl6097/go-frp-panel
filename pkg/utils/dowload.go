@@ -92,6 +92,7 @@ func DownLoad(url string, args ...string) (string, error) {
 			dstFile = filepath.Join(utils.GetUpgradeDir(), dstName)
 		}
 	}
+	glog.Debug("download...", url, dstFile)
 
 	// 获取文件的总大小
 	totalSize := resp.ContentLength

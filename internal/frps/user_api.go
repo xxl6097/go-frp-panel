@@ -182,36 +182,39 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		User    User   `json:"user"`
 	}](r)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("GetDataByJson", err)
+		glog.Error("解析Json对象失败", err)
 		return
 	}
 	if body == nil {
-		res.Err(errors.New("body is nil"))
-		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("body is nil")
+		res.Error("json对象nil")
+		glog.Error(res.Msg)
 		return
 	}
-	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
-		dstPath, err1 := utils.DownLoad(body.BinUrl)
-		if err1 == nil {
-			body.BinPath = dstPath
+	glog.Debugf("body:%+v\n", body)
+	if utils2.IsURL(body.BinUrl) {
+		dstPath, err := utils.DownLoad(body.BinUrl)
+		if err != nil {
+			res.Err(fmt.Errorf("下载文件失败～"))
+			glog.Error(res.Msg)
+			return
 		}
+		body.BinPath = dstPath
 	}
 	if body.User.User == "" {
 		res.Err(fmt.Errorf("user empty"))
 		bb, err := json.Marshal(res)
 		if err != nil {
-			glog.Errorf("marshal result error: %v", err)
+			res.Error("解析json对象失败:" + err.Error())
+			glog.Error(res.Msg)
 			return
 		}
-		w.Write(bb)
+		res.Raw = bb
+		return
 	}
-	//this.parseUser(data)
 	binPath := body.BinPath
 	if binPath == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("binPath is nil")
+		res.Error("bin文件路径空")
+		glog.Error(res.Msg)
 		return
 	}
 	glog.Infof("binPath: %s %+v\n", binPath, body)
