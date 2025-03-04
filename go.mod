@@ -1,6 +1,6 @@
 module github.com/xxl6097/go-frp-panel
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/fatedier/frp v0.61.1
