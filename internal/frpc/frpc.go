@@ -98,10 +98,7 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 		return nil, fmt.Errorf("can't find webServer")
 	}
 	webServer.RouteRegister(this.adminHandlers)
-	err = this.runMultipleClients(filepath.Join(filepath.Dir(baseDir), "config"))
-	if err != nil {
-		glog.Errorf("runMultipleClients err: %v", err)
-	}
+	go this.runMultipleClients(filepath.Join(filepath.Dir(baseDir), "config"))
 	return this, nil
 }
 
@@ -120,7 +117,7 @@ func (this *frpc) Run() error {
 	return err
 }
 
-func (this *frpc) runMultipleClients(cfgDir string) error {
+func (this *frpc) runMultipleClients(cfgDir string) {
 	err := filepath.WalkDir(cfgDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return nil
@@ -138,7 +135,9 @@ func (this *frpc) runMultipleClients(cfgDir string) error {
 		}
 		return err
 	})
-	return err
+	if err != nil {
+		glog.Error(err)
+	}
 }
 
 func (this *frpc) deleteClient(cfgFilePath string) error {
@@ -164,11 +163,11 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	glog.Debug("status frpc", name)
 	cls := this.svrs[name]
 	if cls == nil {
-		return nil, fmt.Errorf("没有找到客户端句柄")
+		return nil, fmt.Errorf("客户端未创建")
 	}
 	svr := cls.svr
 	if svr == nil {
-		return nil, fmt.Errorf("没有找到客户端服务句柄")
+		return nil, fmt.Errorf("客户端服务未创建")
 	}
 	ctl := utils.GetPointerInstance[client.Control]("ctl", svr)
 	if ctl == nil {
@@ -243,8 +242,12 @@ func (this *frpc) runClient(cfgFilePath string) error {
 	if err != nil {
 		return err
 	}
-	err = this.startService(cfg, proxyCfgs, visitorCfgs, cfgFilePath)
-	return err
+	e, _ := utils2.BlockingFunction[error](context.Background(), time.Second*3, func() error {
+		return this.startService(cfg, proxyCfgs, visitorCfgs, cfgFilePath)
+	})
+	if e == nil {
+	}
+	return e
 }
 
 func (this *frpc) startService(
@@ -255,12 +258,10 @@ func (this *frpc) startService(
 ) error {
 	cfg.WebServer = v1.WebServerConfig{}
 	if cfg.Log.To == "" {
-		temp := os.TempDir()
-		temp = filepath.Join(temp, "frpc", cfg.User, "logs", "frpc.log")
-		utils.DirCheck(temp)
+		temp := filepath.Join(glog.GetAppLogDir(), cfg.User, "app.log")
 		cfg.Log = v1.LogConfig{
 			To:      temp,
-			MaxDays: 15,
+			MaxDays: 7,
 		}
 	}
 
@@ -292,11 +293,11 @@ func (this *frpc) startService(
 	if shouldGracefulClose {
 		go this.handleTermSignal(svr)
 	}
-	go func() {
-		err1 := svr.Run(context.Background())
-		if err1 != nil {
-			glog.Errorf("frpc service run err: %v", err1)
-		}
-	}()
-	return nil
+	e := svr.Run(context.Background())
+	if e != nil {
+		glog.Error(e)
+	}
+	//因为Run是阻塞的，能执行到这一行，说明失败了
+	delete(this.svrs, name)
+	return e
 }

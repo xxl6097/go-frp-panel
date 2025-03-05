@@ -131,59 +131,16 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 
 	if newFilePath != "" {
 		err := this.runClient(newFilePath)
+		glog.Error(err)
 		if err != nil {
-			res.Err(fmt.Errorf("run client err: %v", err))
+			res.Err(err)
 			glog.Error(res.Msg)
+			utils.Delete(newFilePath)
 			return
 		}
 		res.Ok("创建成功～")
 	}
 
-}
-
-func (this *frpc) apiClientCreatePOST(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
-	defer f(w)
-	body, err := utils.GetDataByJson[struct {
-		Name string `json:"name"`
-		Toml string `json:"toml"`
-	}](r)
-	if body == nil {
-		res.Error("body is empty")
-		glog.Error(res.Msg)
-		return
-	}
-	binpath, err := os.Executable()
-	if err != nil {
-		res.Err(fmt.Errorf("get executable path err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	if err = utils.DirCheck(cfgDir); err != nil {
-		res.Err(fmt.Errorf("check config dir err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	cfgFilePath := filepath.Join(cfgDir, body.Name)
-	if utils2.FileExists(cfgFilePath) {
-		res.Err(fmt.Errorf("客户端已经存在"))
-		glog.Error(res.Msg)
-		return
-	}
-	err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
-	if err != nil {
-		res.Err(fmt.Errorf("write http body err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	err = this.runClient(cfgFilePath)
-	if err != nil {
-		res.Err(fmt.Errorf("run client err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
-	res.Ok("创建成功～")
 }
 
 func (this *frpc) apiClientDelete(w http.ResponseWriter, r *http.Request) {
