@@ -2,6 +2,7 @@ package frpc
 
 import (
 	"fmt"
+	"github.com/fatedier/frp/pkg/config"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/comm"
@@ -64,6 +65,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			glog.Error(res.Msg)
 			return
 		}
+
 		if filepath.Ext(body.Name) != ".toml" {
 			res.Error("文件必须是toml后缀～")
 			glog.Error(res.Msg)
@@ -79,6 +81,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			res.Err(fmt.Errorf("write http body err: %v", err))
 			glog.Error(res.Msg)
+			utils.Delete(cfgFilePath)
 			return
 		}
 		newFilePath = cfgFilePath
@@ -112,6 +115,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			utils.Delete(dstFilePath)
 			return
 		}
 		buf := this.upgrade.GetBuffer().Get().([]byte)
@@ -121,6 +125,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		//err = utils.SaveFile(file, handler.Size, dstFilePath)
 		if err != nil {
 			res.Error(err.Error())
+			utils.Delete(dstFilePath)
 			return
 		}
 		newFilePath = dstFilePath
@@ -130,6 +135,13 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if newFilePath != "" {
+		_, _, _, _, err = config.LoadClientConfig(newFilePath, true)
+		if err != nil {
+			res.Err(fmt.Errorf("文件不合法: %v", err))
+			glog.Error(res.Msg)
+			utils.Delete(newFilePath)
+			return
+		}
 		err := this.runClient(newFilePath)
 		glog.Error(err)
 		if err != nil {

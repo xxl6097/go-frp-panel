@@ -43,7 +43,7 @@
             default-active="1"
             mode="vertical"
             theme="light"
-            router="false"
+            :router="false"
             @select="handleSelect"
           >
             <el-menu-item index="/">客户端信息</el-menu-item>
@@ -62,13 +62,13 @@
     <footer></footer>
   </div>
 
-<!--  客户端程序升级-->
+  <!--  客户端程序升级-->
   <el-dialog
     v-model="dialogFormVisible"
     align-center
-    title="程序升级"
     width="500"
   >
+    <template #header><span>程序升级</span></template>
     <el-input
       v-model="form.binUrl"
       autocomplete="off"
@@ -97,9 +97,8 @@
   </el-dialog>
 
   <!-- 弹窗显示版本 -->
-  <el-dialog v-model="versionDialogVisible" width="30%" title="版本信息">
-    <!-- 空标题插槽 -->
-    <template #title></template>
+  <el-dialog v-model="versionDialogVisible" width="30%">
+    <template #header><span>版本信息</span> </template>
     <el-descriptions :column="1" :size="size" border>
       <el-descriptions-item width="100">
         <template #label>
@@ -139,7 +138,6 @@
       </el-descriptions-item>
     </el-descriptions>
   </el-dialog>
-
 
 </template>
 

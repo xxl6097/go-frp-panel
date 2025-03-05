@@ -28,22 +28,24 @@
             >刷新</el-button
           >
           <el-button
-            type="info"
-            @click="newClientFormVisible = true"
+            type="warning"
+            @click="handleShowNewFrpc"
             :loading="loading"
+            plain
             >新建客户端</el-button
           >
-
-          <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
-            <template #reference>
-              <el-button
-                type="danger"
-                v-if="selectValue !== ''"
-                :loading="loading"
-                >删除客户端</el-button
-              >
-            </template>
-          </el-popconfirm>
+          <div v-if="selectValue !== ''">
+            <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
+              <template #reference>
+                <el-button type="danger" :loading="loading" plain
+                  >删除客户端</el-button
+                >
+              </template>
+            </el-popconfirm>
+          </div>
+          <el-button type="warning" @click="drawer = true" plain
+            >新建代理</el-button
+          >
         </div></template
       >
       <template #extra> </template>
@@ -59,29 +61,32 @@
   </div>
 
   <!--新建客户端-->
-  <el-dialog v-model="newClientFormVisible" title="创建客户端" width="700">
-    <el-form ref="ruleFormRef" :model="newClientForm" :rules="rules">
-      <el-form-item label="配置文件名：" prop="toml">
-        <el-input
-          v-model="newClientForm.name"
-          placeholder="请输入toml配置文件名"
-        />
-      </el-form-item>
+  <el-dialog v-model="newClientFormVisible" width="700">
+    <template #header><span>创建客户端</span> </template>
+    <template #default>
+      <el-form ref="ruleFormRef" :model="newClientForm" :rules="rules">
+        <el-form-item label="配置文件名：" prop="name">
+          <el-input
+            v-model="newClientForm.name"
+            placeholder="请输入toml配置文件名"
+          />
+        </el-form-item>
 
-      <el-form-item prop="toml">
-        <el-input
-          type="textarea"
-          rows="13"
-          v-model="newClientForm.toml"
-          placeholder="请在此输入toml格式配置内容"
-        />
-      </el-form-item>
-    </el-form>
-    <el-upload :http-request="uploadToml" :limit="1">
-      <template #trigger>
-        <el-link type="primary">上传toml配置文件</el-link>
-      </template>
-    </el-upload>
+        <el-form-item prop="toml">
+          <el-input
+            type="textarea"
+            rows="13"
+            v-model="newClientForm.toml"
+            placeholder="请在此输入toml格式配置内容"
+          />
+        </el-form-item>
+      </el-form>
+      <el-upload :http-request="uploadToml" :limit="1">
+        <template #trigger>
+          <el-link type="primary">上传toml配置文件</el-link>
+        </template>
+      </el-upload>
+    </template>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="newClientFormVisible = false">取消</el-button>
@@ -91,12 +96,129 @@
       </div>
     </template>
   </el-dialog>
+
+  <el-drawer
+    v-model="drawer"
+    title="I am the title"
+    :with-header="true"
+    direction="rtl"
+    size="40%"
+  >
+    <template #header>
+      <h1>新建代理</h1>
+    </template>
+    <template #default>
+      <el-tabs type="border-card" :stretch="true">
+        <el-tab-pane label="TCP">
+          <el-form
+            ref="ruleFormRef"
+            :model="proxyForm"
+            :rules="proxyRules"
+            label-position="top"
+          >
+            <el-form-item label="代理名称：" prop="name">
+              <el-input v-model="proxyForm.name" placeholder="代理名称">
+                <template #append>
+                  <el-button type="primary">生成</el-button>
+                </template>
+              </el-input>
+            </el-form-item>
+
+            <el-form-item required>
+              <el-col :span="14">
+                <el-form-item label="内网地址" prop="localIP">
+                  <el-input
+                    v-model="proxyForm.localIP"
+                    placeholder="127.0.0.1"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col class="text-center" :span="2">
+                <span class="text-gray-500"></span>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="内网端口" prop="localPort">
+                  <el-col :span="15">
+<!--                    <el-input-number-->
+<!--                      v-model="proxyForm.localPort"-->
+<!--                      controls-position="right"-->
+<!--                      placeholder="请输入内网地端口"-->
+<!--                    />-->
+                    <el-select
+                      v-model.number="proxyForm.localPort"
+                      placeholder="请输入端口"
+                      filterable
+                      clearable
+                      allow-create
+                    >
+                      <el-option
+                        v-for="item in options1"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-col>
+
+                  <el-col class="text-center" :span="1">
+                    <span class="text-gray-50"></span>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-button type="primary" plain>内网端口</el-button>
+                  </el-col>
+                </el-form-item>
+              </el-col>
+            </el-form-item>
+
+            <el-form-item label="外网端口：" prop="remotePort">
+              <el-input-number
+                v-model="proxyForm.remotePort"
+                controls-position="right"
+                placeholder="请输入外网端口"
+              />
+            </el-form-item>
+
+            <el-form-item>
+              <el-select
+                v-model.number="value1"
+                placeholder="Select"
+                filterable
+                clearable
+                allow-create
+                style="width: 240px"
+              >
+                <el-option
+                  v-for="item in options1"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="UDP">udp</el-tab-pane>
+        <el-tab-pane label="HTTP">http</el-tab-pane>
+        <el-tab-pane label="HTTPS">https</el-tab-pane>
+        <el-tab-pane label="STCP">stcp</el-tab-pane>
+        <el-tab-pane label="SUDP">sudp</el-tab-pane>
+        <el-tab-pane label="TCPMUX">tcpmux</el-tab-pane>
+      </el-tabs>
+    </template>
+    <template #footer>
+      <div style="flex: auto">
+        <el-button @click="null">cancel</el-button>
+        <el-button type="primary" @click="null">confirm</el-button>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
+  getTimestamp,
   put,
   showErrorTips,
   showInfoTips,
@@ -107,17 +229,77 @@ interface Option {
   value: string
   label: string
 }
-
+const drawer = ref(false)
 const newClientFormVisible = ref(false)
 const loading = ref<boolean>(false)
 const uploading = ref<boolean>(false)
 const textarea = ref('')
 const selectValue = ref('')
 const options = ref<Option[]>([])
-
+const value1 = ref('')
+const options1 = [
+  {
+    value: 'Option1',
+    label: 'Option1',
+  },
+  {
+    value: 'Option2',
+    label: 'Option2',
+  },
+  {
+    value: 'Option3',
+    label: 'Option3',
+  },
+  {
+    value: 'Option4',
+    label: 'Option4',
+  },
+  {
+    value: 'Option5',
+    label: 'Option5',
+  },
+]
 const newClientForm = ref({
   name: '',
   toml: '',
+})
+
+const proxyForm = ref({
+  name: '',
+  localIP: '',
+  localPort: 0,
+  remotePort: 0,
+})
+
+const proxyRules = reactive<FormRules>({
+  name: [
+    {
+      required: true,
+      message: '请输入代理名称',
+      trigger: 'blur',
+    },
+  ],
+  localIP: [
+    {
+      required: true,
+      message: '请输入代理本地地址',
+      trigger: 'blur',
+    },
+  ],
+  localPort: [
+    {
+      required: true,
+      message: '请输入代理本地端口',
+      trigger: 'blur',
+    },
+  ],
+  remotePort: [
+    {
+      required: true,
+      message: '请输入代理远程端口',
+      trigger: 'blur',
+    },
+  ],
 })
 
 const ruleFormRef = ref<FormInstance>()
@@ -138,6 +320,11 @@ const rules = reactive<FormRules>({
   ],
 })
 
+const handleShowNewFrpc = () => {
+  newClientFormVisible.value = true
+  newClientForm.value.name = `${getTimestamp()}.toml`
+}
+
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid, fields) => {
@@ -151,7 +338,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 }
 
 const handleNewFrpcClient = () => {
-  const body = JSON.stringify(newClientForm.value)
+  const body = JSON.stringify(newClientForm)
   put('客户端创建中...', '../api/client/create', body).finally(() => {
     newClientFormVisible.value = false
     fetchListData()

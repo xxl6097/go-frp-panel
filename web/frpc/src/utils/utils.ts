@@ -2,6 +2,9 @@ import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+export function getTimestamp(){
+  return new Date().getTime() // 输出：1632994993000
+}
 export function generateRandomKey(length: number) {
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
