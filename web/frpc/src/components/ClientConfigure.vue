@@ -133,6 +133,7 @@
                     @change="handleProxyLocalPort()"
                     loading-text="局域网主机扫描中..."
                     filterable
+                    :loading="locaIPScanning"
                     clearable
                     allow-create
                   >
@@ -276,6 +277,7 @@ const checkPortErr = ref({
   msg: '暂未检测',
 })
 const tabIndex = ref('tcp')
+const locaIPScanning = ref(false)
 const proxyAddSaveLoading = ref(false)
 const portLoading = ref(false)
 const newClientFormVisible = ref(false)
@@ -349,7 +351,8 @@ const rules = reactive<FormRules>({
   ],
 })
 
-const fetchProxyIps = () => {
+const scanLocalIp = () => {
+  locaIPScanning.value = true
   // 使用 fetch 发送请求
   fetch(`../api/proxy/ips`, {
     method: 'GET',
@@ -362,6 +365,9 @@ const fetchProxyIps = () => {
       if (json.code === 0) {
         ips.value = json.data
       }
+    })
+    .finally(() => {
+      locaIPScanning.value = false
     })
 }
 
@@ -455,7 +461,7 @@ const handleShowNewProxyDrawer = () => {
   //获取远程可使用端口列表
   fetchRemotePorts(selectValue.value)
   //获取局域网活动主机IP
-  fetchProxyIps()
+  scanLocalIp()
 }
 
 const handleNewTCPProxy = () => {
