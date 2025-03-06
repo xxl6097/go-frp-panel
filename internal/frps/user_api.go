@@ -233,12 +233,18 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
 	//cfgBuffer := ukey.GetBuffer()
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
-	cfgNewBytes, err := ukey.GenConfig(ukey.ClientCommonConfig{
-		Addr:  body.Addr,
-		Port:  GetCfgModel().Frps.BindPort,
-		User:  body.User.User,
-		Token: body.User.Token,
-	}, false)
+	cfg := comm.BufferConfig{
+		Addr:       body.Addr,
+		Port:       GetCfgModel().Frps.BindPort,
+		User:       body.User.User,
+		Token:      body.User.Token,
+		Comment:    body.User.Comment,
+		Ports:      body.User.Ports,
+		Domains:    body.User.Domains,
+		Subdomains: body.User.Subdomains,
+	}
+
+	cfgNewBytes, err := ukey.GenConfig(cfg, false)
 	if err != nil {
 		msg := fmt.Errorf("文件签名失败：%v", err)
 		glog.Error(msg)

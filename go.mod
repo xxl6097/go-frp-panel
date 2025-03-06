@@ -9,7 +9,8 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
 	github.com/xxl6097/glog v0.1.13
-	github.com/xxl6097/go-service v0.4.7
+	github.com/xxl6097/go-service v0.4.8
+	golang.org/x/net v0.35.0
 	golang.org/x/text v0.22.0
 )
 
@@ -53,7 +54,6 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect

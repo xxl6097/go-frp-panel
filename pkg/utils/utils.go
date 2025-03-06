@@ -21,6 +21,17 @@ var (
 	ErrFailedVerification = errors.New(`common.ENTITY_CHECK_FAILED`)
 )
 
+// RemoveSlice 泛型删除所有匹配值的元素
+func RemoveSlice[T comparable](slice []T, value T) []T {
+	result := make([]T, 0, len(slice))
+	for _, v := range slice {
+		if v != value {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
 func If[T any](b bool, t, f T) T {
 	if b {
 		return t

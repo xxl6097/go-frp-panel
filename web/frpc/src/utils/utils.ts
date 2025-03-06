@@ -16,6 +16,10 @@ export function generateRandomKey(length: number) {
   return key
 }
 
+export function getProxyName(prefix: string): string {
+  return `${prefix}_${generateRandomKey(4)}`
+}
+
 export function showWarmTips(message: string) {
   ElMessage({
     showClose: true,

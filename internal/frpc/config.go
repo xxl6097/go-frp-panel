@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
@@ -15,7 +16,7 @@ var cfgBytes []byte
 
 type CfgModel struct {
 	Frpc v1.ClientCommonConfig `json:"frpc"`
-	Data any                   `json:"data"`
+	Cfg  *comm.BufferConfig    `json:"cfg"`
 }
 
 func load() error {
@@ -27,20 +28,22 @@ func load() error {
 	}
 	cfgBytes = byteArray
 	//c := CfgModel{}
-	c := ukey.ClientCommonConfig{}
+	c := comm.BufferConfig{}
 	err = json.Unmarshal(cfgBytes, &c)
 	if err != nil {
 		glog.Println("cfgBytes解析错误", err)
 		return err
 	}
-	cfgData = &CfgModel{Frpc: v1.ClientCommonConfig{
-		ServerAddr: c.Addr,
-		ServerPort: c.Port,
-		User:       c.User,
-		Metadatas: map[string]string{
-			"token": c.Token,
+	cfgData = &CfgModel{
+		Frpc: v1.ClientCommonConfig{
+			ServerAddr: c.Addr,
+			ServerPort: c.Port,
+			User:       c.User,
+			Metadatas: map[string]string{
+				"token": c.Token,
+			},
 		},
-	}}
+		Cfg: &c}
 	//glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
 	pkg.Version()
 	return nil
@@ -48,6 +51,10 @@ func load() error {
 
 func GetCfgModel() *CfgModel {
 	return cfgData
+}
+
+func SetCfgModel(c *CfgModel) {
+	cfgData = c
 }
 
 func PrintCfg() {

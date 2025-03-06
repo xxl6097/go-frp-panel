@@ -43,7 +43,7 @@
             default-active="1"
             mode="vertical"
             theme="light"
-            :router="false"
+            :router="'false'"
             @select="handleSelect"
           >
             <el-menu-item index="/">客户端信息</el-menu-item>

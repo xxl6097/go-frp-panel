@@ -1,12 +1,9 @@
 package frpc
 
 import (
-	"cmp"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/fatedier/frp/client"
-	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
@@ -20,27 +17,26 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
-	"io/fs"
 	"os"
 	"os/signal"
-	"path"
 	"path/filepath"
-	"slices"
-	"strings"
 	"syscall"
 	"time"
 )
 
 type frpClient struct {
-	svr *client.Service
-	cfg *v1.ClientCommonConfig
+	svr            *client.Service
+	configFilePath string
+	cfg            *v1.ClientCommonConfig
+	proxyCfg       []v1.ProxyConfigurer
+	visitorCfg     []v1.VisitorConfigurer
 }
 type frpc struct {
-	svr            *client.Service
-	install        gore.IGService
-	configFilePath string
-	upgrade        iface.IComm
-	svrs           map[string]*frpClient
+	install   gore.IGService
+	upgrade   iface.IComm
+	cls       *frpClient
+	cfgBuffer *comm.BufferConfig
+	svrs      map[string]*frpClient
 }
 
 func NewFrpc(i gore.IGService) (*frpc, error) {
@@ -80,12 +76,21 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	if err != nil {
 		return nil, err
 	}
+	cfgModel := GetCfgModel()
 	this := &frpc{
-		svr:            svr,
-		install:        i,
-		configFilePath: cfgFilePath,
-		svrs:           make(map[string]*frpClient),
-		upgrade:        comm.NewCommApi(i, GetCfgModel()),
+		install: i,
+		svrs:    make(map[string]*frpClient),
+		upgrade: comm.NewCommApi(i, cfgModel),
+		cls: &frpClient{
+			svr:            svr,
+			configFilePath: cfgFilePath,
+			cfg:            cfg,
+			proxyCfg:       proxyCfgs,
+			visitorCfg:     visitorCfgs,
+		},
+	}
+	if cfgModel.Cfg != nil {
+		this.cfgBuffer = cfgModel.Cfg
 	}
 
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
@@ -110,194 +115,9 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 }
 
 func (this *frpc) Run() error {
-	err := this.svr.Run(context.Background())
+	err := this.cls.svr.Run(context.Background())
 	if err != nil {
 		glog.Errorf("frpc run error: %v", err)
 	}
 	return err
-}
-
-func (this *frpc) runMultipleClients(cfgDir string) {
-	err := filepath.WalkDir(cfgDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-		ext := strings.ToLower(filepath.Ext(d.Name()))
-		if ext != ".toml" {
-			return nil
-		}
-		time.Sleep(time.Millisecond)
-		err = this.runClient(path)
-		if err != nil {
-			glog.Errorf("创建客户端【%s】失败:%v", d.Name(), err)
-		} else {
-			glog.Infof("创建客户端【%s】成功", d.Name())
-		}
-		return err
-	})
-	if err != nil {
-		glog.Error(err)
-	}
-}
-
-func (this *frpc) deleteClient(cfgFilePath string) error {
-	name := path.Base(cfgFilePath)
-	glog.Debug("delete frpc", name)
-	cls := this.svrs[name]
-	if cls == nil {
-		return fmt.Errorf("can't find client")
-	}
-	svr := cls.svr
-	if svr == nil {
-		return fmt.Errorf("can't find service")
-	}
-	svr.Close()
-	svr.GracefulClose(100 * time.Millisecond)
-	//svr.StatusExporter().GetProxyStatus()
-	utils.Delete(cfgFilePath, fmt.Sprintf("客户端:%s", cfgFilePath))
-	return nil
-}
-
-func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
-	name := path.Base(cfgFilePath)
-	glog.Debug("status frpc", name)
-	cls := this.svrs[name]
-	if cls == nil {
-		return nil, fmt.Errorf("客户端未创建")
-	}
-	svr := cls.svr
-	if svr == nil {
-		return nil, fmt.Errorf("客户端服务未创建")
-	}
-	ctl := utils.GetPointerInstance[client.Control]("ctl", svr)
-	if ctl == nil {
-		return nil, fmt.Errorf("没有找到服务控制器")
-	}
-	pm := utils.GetPointerInstance[proxy.Manager]("pm", ctl)
-	if pm == nil {
-		return nil, fmt.Errorf("没有找到服务代理器")
-	}
-	var (
-		buf []byte
-		res client.StatusResp = make(map[string][]client.ProxyStatusResp)
-	)
-	ps := pm.GetAllProxyStatus()
-	glog.Debug("GetAllProxyStatus", len(ps))
-	for _, status := range ps {
-		res[status.Type] = append(res[status.Type], client.NewProxyStatusResp(status, cls.cfg.ServerAddr))
-	}
-
-	for _, arrs := range res {
-		if len(arrs) <= 1 {
-			continue
-		}
-		slices.SortFunc(arrs, func(a, b client.ProxyStatusResp) int {
-			return cmp.Compare(a.Name, b.Name)
-		})
-	}
-	log.Infof("Http response [/api/status]")
-	buf, _ = json.Marshal(&res)
-	return buf, nil
-}
-
-func (this *frpc) updateClient(cfgFilePath string) error {
-	name := path.Base(cfgFilePath)
-	glog.Debug("update frpc", name)
-	cls := this.svrs[name]
-	if cls == nil {
-		return fmt.Errorf("can't find client")
-	}
-	svr := cls.svr
-	if svr == nil {
-		return fmt.Errorf("can't find service")
-	}
-	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(cfgFilePath, true)
-	if err != nil {
-		return fmt.Errorf("reload frpc config error: %v", err)
-	}
-	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("validate frpc proxy config error: %v", err)
-	}
-
-	if err := svr.UpdateAllConfigurer(proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("update frpc proxy config error: %v", err)
-	}
-	return nil
-}
-
-func (this *frpc) runClient(cfgFilePath string) error {
-	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)
-	if err != nil {
-		return err
-	}
-	if isLegacyFormat {
-		fmt.Printf("WARNING: ini format is deprecated and the support will be removed in the future, " +
-			"please use yaml/json/toml format instead!\n")
-	}
-
-	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
-	if warning != nil {
-		fmt.Printf("WARNING: %v\n", warning)
-	}
-	if err != nil {
-		return err
-	}
-	e, _ := utils2.BlockingFunction[error](context.Background(), time.Second*3, func() error {
-		return this.startService(cfg, proxyCfgs, visitorCfgs, cfgFilePath)
-	})
-	if e == nil {
-	}
-	return e
-}
-
-func (this *frpc) startService(
-	cfg *v1.ClientCommonConfig,
-	proxyCfgs []v1.ProxyConfigurer,
-	visitorCfgs []v1.VisitorConfigurer,
-	cfgFile string,
-) error {
-	cfg.WebServer = v1.WebServerConfig{}
-	if cfg.Log.To == "" {
-		temp := filepath.Join(glog.GetAppLogDir(), cfg.User, "app.log")
-		cfg.Log = v1.LogConfig{
-			To:      temp,
-			MaxDays: 7,
-		}
-	}
-
-	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
-
-	if cfgFile != "" {
-		log.Infof("start frpc service for config file [%s]", cfgFile)
-		defer log.Infof("frpc service for config file [%s] stopped", cfgFile)
-	}
-
-	svr, err := client.NewService(client.ServiceOptions{
-		Common:         cfg,
-		ProxyCfgs:      proxyCfgs,
-		VisitorCfgs:    visitorCfgs,
-		ConfigFilePath: cfgFile,
-	})
-	if err != nil {
-		return err
-	}
-
-	name := path.Base(cfgFile)
-	this.svrs[name] = &frpClient{
-		svr: svr,
-		cfg: cfg,
-	}
-	glog.Debug("create frpc", name)
-	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
-	// Capture the exit signal if we use kcp or quic.
-	if shouldGracefulClose {
-		go this.handleTermSignal(svr)
-	}
-	e := svr.Run(context.Background())
-	if e != nil {
-		glog.Error(e)
-	}
-	//因为Run是阻塞的，能执行到这一行，说明失败了
-	delete(this.svrs, name)
-	return e
 }

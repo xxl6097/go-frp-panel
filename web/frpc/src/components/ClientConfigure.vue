@@ -20,7 +20,7 @@
         </el-select>
       </template>
       <template #content>
-        <div class="flex items-center">
+        <div style="display: flex">
           <el-button type="primary" @click="upload" :loading="uploading" plain
             >更新</el-button
           >
@@ -34,7 +34,10 @@
             plain
             >新建客户端</el-button
           >
-          <div v-if="selectValue !== ''">
+          <div
+            v-if="selectValue !== ''"
+            style="margin-left: 10px; margin-right: 10px"
+          >
             <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
               <template #reference>
                 <el-button type="danger" :loading="loading" plain
@@ -43,11 +46,11 @@
               </template>
             </el-popconfirm>
           </div>
-          <el-button type="warning" @click="drawer = true" plain
+          <el-button type="warning" @click="handleShowNewProxyDrawer" plain
             >新建代理</el-button
           >
-        </div></template
-      >
+        </div>
+      </template>
       <template #extra> </template>
     </el-page-header>
 
@@ -97,19 +100,14 @@
     </template>
   </el-dialog>
 
-  <el-drawer
-    v-model="drawer"
-    title="I am the title"
-    :with-header="true"
-    direction="rtl"
-    size="40%"
-  >
+  <!--  新建代理-->
+  <el-drawer v-model="drawer" :with-header="true" direction="rtl" size="35%">
     <template #header>
       <h1>新建代理</h1>
     </template>
-    <template #default>
-      <el-tabs type="border-card" :stretch="true">
-        <el-tab-pane label="TCP">
+    <div class="demo-drawer__content">
+      <el-tabs type="border-card" v-model="tabIndex">
+        <el-tab-pane label="tcp" name="tcp">
           <el-form
             ref="ruleFormRef"
             :model="proxyForm"
@@ -119,7 +117,9 @@
             <el-form-item label="代理名称：" prop="name">
               <el-input v-model="proxyForm.name" placeholder="代理名称">
                 <template #append>
-                  <el-button type="primary">生成</el-button>
+                  <el-button type="primary" @click="handleGenProxyName('tcp')"
+                    >生成
+                  </el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -127,10 +127,22 @@
             <el-form-item required>
               <el-col :span="14">
                 <el-form-item label="内网地址" prop="localIP">
-                  <el-input
+                  <el-select
                     v-model="proxyForm.localIP"
                     placeholder="127.0.0.1"
-                  />
+                    @change="handleProxyLocalPort()"
+                    loading-text="局域网主机扫描中..."
+                    filterable
+                    clearable
+                    allow-create
+                  >
+                    <el-option
+                      v-for="item in ips"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
                 </el-form-item>
               </el-col>
               <el-col class="text-center" :span="2">
@@ -138,79 +150,106 @@
               </el-col>
               <el-col :span="8">
                 <el-form-item label="内网端口" prop="localPort">
-                  <el-col :span="15">
-<!--                    <el-input-number-->
-<!--                      v-model="proxyForm.localPort"-->
-<!--                      controls-position="right"-->
-<!--                      placeholder="请输入内网地端口"-->
-<!--                    />-->
-                    <el-select
-                      v-model.number="proxyForm.localPort"
-                      placeholder="请输入端口"
-                      filterable
-                      clearable
-                      allow-create
-                    >
-                      <el-option
-                        v-for="item in options1"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                      />
-                    </el-select>
-                  </el-col>
-
-                  <el-col class="text-center" :span="1">
-                    <span class="text-gray-50"></span>
-                  </el-col>
-                  <el-col :span="8">
-                    <el-button type="primary" plain>内网端口</el-button>
-                  </el-col>
+                  <el-select
+                    v-model.number="proxyForm.localPort"
+                    placeholder="请输入端口"
+                    :loading="portLoading"
+                    loading-text="端口扫描中..."
+                    filterable
+                    clearable
+                    allow-create
+                  >
+                    <el-option
+                      v-for="item in ports"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
                 </el-form-item>
               </el-col>
             </el-form-item>
 
             <el-form-item label="外网端口：" prop="remotePort">
-              <el-input-number
-                v-model="proxyForm.remotePort"
-                controls-position="right"
-                placeholder="请输入外网端口"
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <el-select
-                v-model.number="value1"
-                placeholder="Select"
-                filterable
-                clearable
-                allow-create
-                style="width: 240px"
-              >
-                <el-option
-                  v-for="item in options1"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
+              <div style="display: flex">
+                <el-select
+                  style="width: 150px"
+                  v-model.number="proxyForm.remotePort"
+                  placeholder="请输入外网端口"
+                  @change="handleProxyRemotePortCheck"
+                  filterable
+                  clearable
+                  allow-create
+                >
+                  <el-option
+                    v-for="item in remoteports"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  >
+                  </el-option>
+                </el-select>
+                <div
+                  v-if="
+                    proxyForm.remotePort != null && proxyForm.remotePort > 0
+                  "
+                  style="
+                    align-content: center;
+                    align-items: center;
+                    margin-left: 5px;
+                  "
+                >
+                  <svg
+                    v-if="checkPortErr.code === 0"
+                    viewBox="0 0 1024 1024"
+                    width="16"
+                    height="16"
+                  >
+                    <path
+                      fill="#67c23a"
+                      d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm-55.808 536.384-122.88-122.88a38.4 38.4 0 0 0-54.336 54.336l153.6 153.6a38.4 38.4 0 0 0 54.336 0l307.2-307.2a38.4 38.4 0 0 0-54.336-54.336L456.192 600.384z"
+                    />
+                  </svg>
+                  <svg
+                    viewBox="0 0 16 16"
+                    width="16"
+                    height="16"
+                    v-if="checkPortErr.code !== 0"
+                  >
+                    <path
+                      d="M2 2 L12 12 M2 12 L12 2"
+                      stroke="red"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                  <el-text v-if="checkPortErr.code !== 0">{{
+                    checkPortErr.msg
+                  }}</el-text>
+                </div>
+              </div>
             </el-form-item>
           </el-form>
         </el-tab-pane>
-        <el-tab-pane label="UDP">udp</el-tab-pane>
-        <el-tab-pane label="HTTP">http</el-tab-pane>
-        <el-tab-pane label="HTTPS">https</el-tab-pane>
-        <el-tab-pane label="STCP">stcp</el-tab-pane>
-        <el-tab-pane label="SUDP">sudp</el-tab-pane>
-        <el-tab-pane label="TCPMUX">tcpmux</el-tab-pane>
+        <el-tab-pane label="udp" name="udp">开发中...</el-tab-pane>
+        <el-tab-pane label="http" name="http">开发中...</el-tab-pane>
+        <el-tab-pane label="https" name="https">开发中...</el-tab-pane>
+        <el-tab-pane label="stcp" name="stcp">开发中...</el-tab-pane>
+        <el-tab-pane label="xtcp" name="xtcp">开发中...</el-tab-pane>
+        <el-tab-pane label="sudp" name="sudp">开发中...</el-tab-pane>
+        <el-tab-pane label="tcpmux" name="tcpmux">开发中...</el-tab-pane>
       </el-tabs>
-    </template>
-    <template #footer>
-      <div style="flex: auto">
-        <el-button @click="null">cancel</el-button>
-        <el-button type="primary" @click="null">confirm</el-button>
+      <div class="demo-drawer__footer">
+        <el-button @click="null">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handleNewTCPProxy"
+          :loading="proxyAddSaveLoading"
+          >{{ proxyAddSaveLoading ? '保存中 ...' : '保存' }}</el-button
+        >
       </div>
-    </template>
+    </div>
   </el-drawer>
 </template>
 
@@ -218,6 +257,7 @@
 import { reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
+  getProxyName,
   getTimestamp,
   put,
   showErrorTips,
@@ -225,40 +265,28 @@ import {
   showLoading,
   showSucessTips,
 } from '../utils/utils.ts'
+
 interface Option {
   value: string
   label: string
 }
 const drawer = ref(false)
+const checkPortErr = ref({
+  code: -1,
+  msg: '暂未检测',
+})
+const tabIndex = ref('tcp')
+const proxyAddSaveLoading = ref(false)
+const portLoading = ref(false)
 const newClientFormVisible = ref(false)
 const loading = ref<boolean>(false)
 const uploading = ref<boolean>(false)
 const textarea = ref('')
 const selectValue = ref('')
 const options = ref<Option[]>([])
-const value1 = ref('')
-const options1 = [
-  {
-    value: 'Option1',
-    label: 'Option1',
-  },
-  {
-    value: 'Option2',
-    label: 'Option2',
-  },
-  {
-    value: 'Option3',
-    label: 'Option3',
-  },
-  {
-    value: 'Option4',
-    label: 'Option4',
-  },
-  {
-    value: 'Option5',
-    label: 'Option5',
-  },
-]
+const ports = ref<Option[]>([])
+const remoteports = ref<Option[]>([])
+const ips = ref<Option[]>([])
 const newClientForm = ref({
   name: '',
   toml: '',
@@ -267,8 +295,9 @@ const newClientForm = ref({
 const proxyForm = ref({
   name: '',
   localIP: '',
-  localPort: 0,
-  remotePort: 0,
+  type: '',
+  localPort: null as number | null,
+  remotePort: null as number | null,
 })
 
 const proxyRules = reactive<FormRules>({
@@ -320,9 +349,142 @@ const rules = reactive<FormRules>({
   ],
 })
 
+const fetchProxyIps = () => {
+  // 使用 fetch 发送请求
+  fetch(`../api/proxy/ips`, {
+    method: 'GET',
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('ips', json)
+      if (json.code === 0) {
+        ips.value = json.data
+      }
+    })
+}
+
+const handleProxyLocalPort = () => {
+  if (proxyForm.value.localIP === '') {
+    //showWarmTips('请先输入内网地址')
+    return
+  }
+  portLoading.value = true
+  ports.value = []
+  // 使用 fetch 发送请求
+  fetch(`../api/proxy/ports?localIP=${proxyForm.value.localIP}`, {
+    method: 'GET',
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('ports', json)
+      if (json.code === 0) {
+        ports.value = json.data
+      }
+    })
+    .finally(() => {
+      portLoading.value = false
+    })
+}
+
+const handleProxyRemotePortCheck = () => {
+  ports.value = []
+  const name = selectValue.value
+  fetch(
+    `../api/proxy/port/check?name=${name}&port=${proxyForm.value.remotePort}`,
+    {
+      method: 'GET',
+    },
+  )
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('ports', json)
+      checkPortErr.value = json
+      if (json.code === 0) {
+        showSucessTips(json.msg)
+      } else {
+        showErrorTips(json.msg)
+      }
+    })
+    .catch((err) => {
+      checkPortErr.value = {
+        code: -1,
+        msg: err.toString(),
+      }
+    })
+}
+
+const fetchRemotePorts = (name: string) => {
+  fetch(`../api/proxy/remote/ports?name=${name}`, {
+    method: 'GET',
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('fetchRemotePorts', json)
+      if (json.code === 0) {
+        remoteports.value = json.data
+      }
+    })
+}
+
+const handleGenProxyName = (prefix: string) => {
+  proxyForm.value.name = getProxyName(prefix)
+}
+
 const handleShowNewFrpc = () => {
   newClientFormVisible.value = true
   newClientForm.value.name = `${getTimestamp()}.toml`
+}
+
+const handleShowNewProxyDrawer = () => {
+  drawer.value = true
+  proxyForm.value = {
+    name: '',
+    localIP: '',
+    type: '',
+    localPort: null as number | null,
+    remotePort: null as number | null,
+  }
+  //获取远程可使用端口列表
+  fetchRemotePorts(selectValue.value)
+  //获取局域网活动主机IP
+  fetchProxyIps()
+}
+
+const handleNewTCPProxy = () => {
+  const data = {
+    type: tabIndex.value,
+    name: proxyForm.value.name,
+    localIP: proxyForm.value.localIP,
+    localPort: proxyForm.value.localPort,
+    remotePort: proxyForm.value.remotePort,
+  }
+  proxyAddSaveLoading.value = true
+  fetch(`../api/proxy/tcp/add?name=${selectValue.value}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('fetchRemotePorts', json)
+      if (json.code === 0) {
+        remoteports.value = json.data
+      }
+      showInfoTips(json.msg)
+    })
+    .finally(() => {
+      proxyAddSaveLoading.value = false
+      drawer.value = false
+    })
 }
 
 const submitForm = async (formEl: FormInstance | undefined) => {
@@ -576,5 +738,10 @@ fetchListData()
   min-width: 250px; /* 初始最小宽度 */
   max-width: 400px; /* 初始最小宽度 */
   margin-left: 10px;
+}
+.success-icon {
+  color: #67c23a; /* Element Plus 成功色 */
+  font-size: 16px;
+  margin-right: 8px; /* 调整图标与输入框右侧间距 */
 }
 </style>

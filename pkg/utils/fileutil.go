@@ -12,6 +12,23 @@ import (
 	"sync"
 )
 
+func WriteAppend(filePath string, content []byte) error {
+	// 1. 打开文件（追加模式，不存在则创建，权限为 0666）
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Println("打开文件失败:", err)
+		return err
+	}
+	defer file.Close() // 确保文件关闭
+
+	// 2. 追加写入内容
+	if _, err := file.Write(content); err != nil {
+		fmt.Println("写入文件失败:", err)
+		return err
+	}
+	return nil
+}
+
 func Write(filePath string, content []byte) error {
 	// 写入文件
 	return os.WriteFile(filePath, content, 0644)

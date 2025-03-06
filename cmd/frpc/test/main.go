@@ -4,6 +4,7 @@ import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/comm"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -29,6 +30,16 @@ func main() {
 			Password: "admin",
 		},
 	}
+
+	cfgBuffer := &comm.BufferConfig{
+		Addr:  cfg.ServerAddr,
+		Port:  cfg.ServerPort,
+		User:  cfg.User,
+		Token: cfg.User,
+		Ports: []any{8089, "8200-9000"},
+	}
+
+	frpc.SetCfgModel(&frpc.CfgModel{Frpc: *cfg, Cfg: cfgBuffer})
 
 	binPath, err := os.Executable()
 	if err != nil {
