@@ -5,7 +5,7 @@
         <el-select
           v-model="selectValue"
           @change="handleSelectChange"
-          placeholder="请选择配置文件"
+          placeholder="多客户端配置"
           clearable
           :fit-input-width="true"
           size="default"
