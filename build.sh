@@ -240,10 +240,9 @@ function initArgs() {
 
 function tagAndGitPush() {
     git add .
-    git commit -m "release v${version}"
-    git tag -a v$version -m "release v${version}"
-    git push origin v$version
-    echo $version >.version
+    git commit -m "release ${version}"
+    git tag -a $version -m "release ${version}"
+    git push origin $version
 }
 
 # shellcheck disable=SC2120
