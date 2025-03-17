@@ -92,7 +92,7 @@ function forceBranch() {
     # 获取所有分支列表（包含远程分支）
     git fetch origin > /dev/null 2>&1
     # shellcheck disable=SC2207
-    branches=($(git branch -a | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
+    branches=($(git branch -r | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
 
     # 获取所有远程分支信息
 #    git fetch origin --prune > /dev/null 2>&1
@@ -135,6 +135,7 @@ function pullMenu() {
     echo "4. 分支更新(强制)"
     echo "请输入编号:"
     read index
+    clear
     case "$index" in
     [1]) (forcePullCurrent);;
     [2]) (pull);;
@@ -150,7 +151,7 @@ function m() {
     echo "3. 项目标签"
     echo "请输入编号:"
     read index
-
+    clear
     case "$index" in
     [1]) (pullMenu);;
     [2]) (push);;
@@ -161,18 +162,33 @@ function m() {
 
 function main() {
   main_pre
-    case $1 in
-    pull) (pull) ;;
-       m) (m) ;;
-      -f) (forcepull) ;;
-       *) (push $1)  ;;
-    esac
+  m
 }
 
 function test() {
-    echo "====>>>>${version}"
-    upgradeVersion
-    echo "====>>>>${version}"
+    git fetch origin > /dev/null 2>&1
+    # shellcheck disable=SC2207
+    branches=($(git branch -r | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
+    echo "$branches"# 生成分支菜单
+    echo "可更新的分支列表："
+    select branch in "${branches[@]}"; do
+        if [[ -n "$branch" ]]; then
+            if [ $1 -eq 0 ]; then
+                echo "正在更新分支：$branch"
+                git checkout "$branch" > /dev/null 2>&1
+                git pull origin "$branch"
+            else
+                echo "正在更新分支（强制）：$branch"
+                git checkout "$branch" > /dev/null 2>&1
+                forcepull "$branch"
+            fi
+            break
+        else
+            echo "输入无效，请重新选择。"
+        fi
+    done
 }
 
-main m
+main
+#test
+
