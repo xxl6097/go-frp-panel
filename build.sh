@@ -1,15 +1,15 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #appname=$(basename $module)
-appname="acfrps"
-appdir="./cmd/frps"
-DisplayName="AcFrps网络代理程序"
-Description="一款基于GO语言的网络代理服务程序"
-version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
-versionDir="$module/pkg"
-builddir="./dist"
+#appname="acfrps"
+#appdir="./cmd/frps"
+#DisplayName="AcFrps网络代理程序"
+#Description="一款基于GO语言的网络代理服务程序"
+#builddir="./dist"
 #options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64")
+version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
+versionDir="$module/pkg"
 
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
@@ -50,39 +50,56 @@ func Version() string {
 EOF
 }
 
-
-
+# builddir：输出目录
+# appname：应用名称
+# version：应用版本
+# appdir：main.go目录
+# ldflags：编译参数
 function buildMenu() {
-    PS3="请选择需要编译的平台："
-    select arch in "${options[@]}"; do
-          if [[ -n "$arch" ]]; then
-            IFS=":" read -r os arch extra <<< "$arch"
+  builddir=$1
+  appname=$2
+  version=$3
+  appdir=$4
+  ldflags=$5
+  PS3="请选择需要编译的平台："
+  select arch in "${options[@]}"; do
+      if [[ -n "$arch" ]]; then
+        IFS=":" read -r os arch extra <<< "$arch"
+          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+          flags='';
+          if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+            if [ "${extra}" = "7" ]; then
+              flags=GOARM=7;
+              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
+            elif [ "${extra}" = "5" ]; then
+              flags=GOARM=5;
               dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-              flags='';
-              if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-                if [ "${extra}" = "7" ]; then
-                  flags=GOARM=7;
-                  dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
-                elif [ "${extra}" = "5" ]; then
-                  flags=GOARM=5;
-                  dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-                fi;
-              elif [ "${os}" = "windows" ] ; then
-                dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
-              elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-                flags=GOMIPS=${extra};
-              fi;
-              echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-              env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
-#              break
-              return $?
-          else
-            echo "输入无效，请重新选择。"
-          fi
-    done
+            fi;
+          elif [ "${os}" = "windows" ] ; then
+            dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+          elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+            flags=GOMIPS=${extra};
+          fi;
+          echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
+          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
+          return $?
+      else
+        echo "输入无效，请重新选择。"
+      fi
+  done
 }
 
+# builddir：输出目录
+# appname：应用名称
+# version：应用版本
+# appdir：main.go目录
+# ldflags：编译参数
 function buildAll() {
+  builddir=$1
+  appname=$2
+  version=$3
+  appdir=$4
+  ldflags=$5
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
       #echo "OS: $os | Arch: $arch | extra: ${extra}"
@@ -104,6 +121,14 @@ function buildAll() {
       echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
       env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
   done
+}
+
+function build() {
+  if [ $6 -eq 1 ]; then
+    buildMenu $1 $2 $3 $4 $5
+  else
+    buildAll $1 $2 $3 $4 $5
+  fi
 }
 
 function upgradeVersion() {
@@ -132,31 +157,31 @@ function upgradeVersion() {
 function buildLdflags() {
   #os_name=$(uname -s)
   #echo "os type $os_name"
+  DisplayName=$1
+  Description=$2
   APP_NAME=${appname}
   BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
   BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S")
   GIT_REVISION=$(git rev-parse --short HEAD)
   GIT_BRANCH=$(git name-rev --name-only HEAD)
   GO_VERSION=$(go version)
-  ldflags="-s -w\
- -X '${versionDir}.AppName=${APP_NAME}'\
+  # shellcheck disable=SC2089
+  local ldflags="-s -w\
  -X '${versionDir}.DisplayName=${DisplayName}_v${version}'\
  -X '${versionDir}.Description=${Description}'\
+ -X '${versionDir}.AppName=${APP_NAME}'\
  -X '${versionDir}.AppVersion=${version}'\
  -X '${versionDir}.BuildVersion=${BUILD_VERSION}'\
  -X '${versionDir}.BuildTime=${BUILD_TIME}'\
  -X '${versionDir}.GitRevision=${GIT_REVISION}'\
  -X '${versionDir}.GitBranch=${GIT_BRANCH}'\
  -X '${versionDir}.GoVersion=${GO_VERSION}'"
-  echo "------->$ldflags"
+  echo "$ldflags"
 }
 
-function initArgs() {
+function initCommArgs() {
   upgradeVersion
   echo "version:${version}"
-  rm -rf ${builddir}
-  buildLdflags
-  #3. 在pkg下创建version.go文件
   writeVersionGoFile
 }
 
@@ -192,10 +217,9 @@ function buildFrpc() {
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
     builddir="./dist/frpc"
-    writeVersionGoFile
-    buildLdflags
-    buildAll
-    upload
+    ldflags=$(buildLdflags $appname $DisplayName)
+    rm -rf ${builddir}
+    build $builddir $appname $version $appdir $ldflags $1
 }
 
 function buildFrps() {
@@ -203,40 +227,45 @@ function buildFrps() {
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
     builddir="./dist/frps"
-    writeVersionGoFile
-    buildLdflags
-    buildAll
-    upload
+    ldflags=$(buildLdflags $appname $DisplayName)
+    rm -rf ${builddir}
+    build $builddir $appname $version $appdir $ldflags $1
 }
 
 function buildFrpcAndFrpsAll() {
-  buildFrpc &
-  buildFrps &
+  buildFrpc 2 &
+  buildFrps 2 &
   wait  # 等待所有后台进程结束
+  builddir="./dist"
   echo "所有任务完成"
 }
 
+function buildFrpcMenu() {
+  echo "1、Frpc编译菜单"
+  echo "2、编译全部"
+  read index
+  buildFrpc index
+}
+
+function buildFrpsMenu() {
+  echo "1、Frps编译菜单"
+  echo "2、编译全部"
+  read index
+  buildFrps index
+}
+
 function main() {
-  initArgs
+  initCommArgs
   echo "1、编译Frps"
   echo "2、编译Frpc"
   echo "3、编译全部"
   read index
   if [ $index == 1 ]; then
-    appname="acfrps"
-    appdir="./cmd/frps"
-    DisplayName="AcFrps网络代理程序"
-    buildMenu
-    upload
+    buildFrpsMenu
   elif [ $index == 2 ]; then
-    appname="acfrpc"
-    appdir="./cmd/frpc"
-    DisplayName="AcFrpc网络代理程序"
-    buildMenu
-    upload
+    buildFrpcMenu
   else
     buildFrpcAndFrpsAll
-    builddir="./dist"
   fi
   gitCommit
 }
