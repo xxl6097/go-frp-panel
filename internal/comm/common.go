@@ -152,11 +152,12 @@ func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			time.Sleep(time.Second)
 			var err error
-			if utils.IsOpenWRT() {
-				err = this.igs.RunCmd("uninstall")
-			} else {
-				err = this.igs.Uninstall()
-			}
+			//if utils.IsOpenWRT() {
+			//	err = this.igs.RunCmd("uninstall")
+			//} else {
+			//	err = this.igs.Uninstall()
+			//}
+			err = this.igs.RunCmd("uninstall")
 			if err != nil {
 				glog.Error("uninstall 失败", err)
 			} else {
