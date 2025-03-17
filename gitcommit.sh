@@ -145,17 +145,51 @@ function pullMenu() {
   esac
 }
 
-function m() {
-    echo "1. 项目更新"
-    echo "2. 项目提交"
-    echo "3. 项目标签"
+function createBranch() {
+    read -p "请输入分支名称: " branchName
+    git branch "$branchName"
+    commit="$(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
+    git add .
+    git commit -m "new branch $branchName created ${commit}"
+    #-u 首次推送，-f 强制推送
+    git push -u origin "$branchName"
+}
+function queryBranch() {
+    git branch origin/test002
+}
+
+function switchBranch() {
+    git branch origin/test002
+}
+
+function branchMenu() {
+    echo "1. 创建分支"
+    echo "2. 查看分支"
+    echo "3. 切换分支"
     echo "请输入编号:"
     read index
     clear
     case "$index" in
-    [1]) (pullMenu);;
-    [2]) (push);;
+    [1]) (createBranch);;
+    [2]) (queryBranch);;
+    [3]) (switchBranch);;
+    *) echo "exit" ;;
+  esac
+}
+
+function m() {
+    echo "1. 快速提交"
+    echo "2. 项目更新"
+    echo "3. 项目标签"
+    echo "4. 分支管理"
+    echo "请输入编号:"
+    read index
+    clear
+    case "$index" in
+    [1]) (push);;
+    [2]) (pullMenu);;
     [3]) (tagAndGitPush);;
+    [4]) (branchMenu);;
     *) echo "exit" ;;
   esac
 }
