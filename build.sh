@@ -131,6 +131,11 @@ function build_win() {
   go generate ${appdir}
   #echo "编译 CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}"
   CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
+  if [ $? -eq 0 ]; then
+      echo "编译成功"
+  else
+      echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+  fi
   rm -rf ${appdir}/resource.syso
   echo "编译完成 ${distDir}"
   #go generate ./cmd/app

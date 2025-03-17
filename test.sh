@@ -1,18 +1,16 @@
 #!/bin/bash
 
-# 获取所有分支列表（包含远程分支）
-git fetch origin > /dev/null 2>&1
-branches=($(git branch -a | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
-
-# 生成分支菜单
-echo "可更新的分支列表："
-select branch in "${branches[@]}"; do
-    if [[ -n "$branch" ]]; then
-        echo "正在更新分支：$branch"
-        git checkout "$branch" > /dev/null 2>&1
-        git pull origin "$branch"
-        break
+function check_status() {
+    grep "error" /var/log/wifi.log  # 假设函数内执行某个操作
+    return $?  # 显式返回上一个命令的状态
+}
+function check_direct() {
+    ls /nonexistent_directory  # 执行一个可能失败的命令
+    if [ $? -eq 0 ]; then
+        echo "目录存在"
     else
-        echo "输入无效，请重新选择。"
+        echo "目录不存在，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
     fi
-done
+}
+check_direct
+echo "函数返回状态: $?"  # 输出grep命令的结果（例如0表示找到匹配，1表示未找到）
