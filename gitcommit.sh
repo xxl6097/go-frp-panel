@@ -93,7 +93,7 @@ function forceBranch() {
     git fetch origin > /dev/null 2>&1
     # shellcheck disable=SC2207
     branches=($(git branch -r | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
-
+    #git branch origin/test001
     # 获取所有远程分支信息
 #    git fetch origin --prune > /dev/null 2>&1
 #
