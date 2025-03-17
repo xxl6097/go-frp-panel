@@ -7,7 +7,6 @@ version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 #git tag -l "v[0-99][0-99].[0-99][0-99].[0-99][0-99]" --sort=-v:refname | head -n 1
 #git tag -l "v*.*.*" --sort=-v:refname | head -n 1
 # git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1
-branch=$(git branch)
 function upgradeVersion() {
   if [ "$version" = "" ]; then
     version="0.0.0"
@@ -40,6 +39,7 @@ function pull() {
   git pull
 }
 
+# shellcheck disable=SC2120
 function forcepull() {
   todir
   echo "git fetch --all && git reset --hard origin/$1 && git pull"
@@ -91,16 +91,32 @@ function tagAndGitPush() {
 function forceBranch() {
     # 获取所有分支列表（包含远程分支）
     git fetch origin > /dev/null 2>&1
+    # shellcheck disable=SC2207
     branches=($(git branch -a | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
+
+    # 获取所有远程分支信息
+#    git fetch origin --prune > /dev/null 2>&1
+#
+#    # 获取所有本地和远程分支（过滤 HEAD 和重复项）
+#    branches=$(git branch -a |
+#        grep -v 'HEAD' |
+#        sed 's/^\*\? *//;s/remotes\/origin\///' |
+#        awk '!seen[$0]++' |
+#        grep -vE '^origin/(main|master)$')  # 过滤远程默认分支
 
     # 生成分支菜单
     echo "可更新的分支列表："
     select branch in "${branches[@]}"; do
         if [[ -n "$branch" ]]; then
-            echo "正在更新分支：$branch"
-            git checkout "$branch" > /dev/null 2>&1
-            #git pull origin "$branch"
-            forcepull "$branch"
+            if [ $1 -eq 0 ]; then
+                echo "正在更新分支：$branch"
+                git checkout "$branch" > /dev/null 2>&1
+                git pull origin "$branch"
+            else
+                echo "正在更新分支（强制）：$branch"
+                git checkout "$branch" > /dev/null 2>&1
+                forcepull "$branch"
+            fi
             break
         else
             echo "输入无效，请重新选择。"
@@ -108,20 +124,37 @@ function forceBranch() {
     done
 }
 
+function forcePullCurrent() {
+  forcepull "$(git branch)"
+}
 
-function m() {
+function pullMenu() {
     echo "1. 强制更新"
     echo "2. 普通更新"
-    echo "3. 提交项目"
-    echo "4. 打标签"
+    echo "3. 分支更新"
+    echo "4. 分支更新(强制)"
+    echo "请输入编号:"
+    read index
+    case "$index" in
+    [1]) (forcePullCurrent);;
+    [2]) (pull);;
+    [3]) (forceBranch 0);;
+    [4]) (forceBranch 1);;
+    *) echo "exit" ;;
+  esac
+}
+
+function m() {
+    echo "1. 项目更新"
+    echo "2. 项目提交"
+    echo "3. 项目标签"
     echo "请输入编号:"
     read index
 
     case "$index" in
-    [1]) (forceBranch);;
-    [2]) (pull);;
-    [3]) (push);;
-    [4]) (tagAndGitPush);;
+    [1]) (pullMenu);;
+    [2]) (push);;
+    [3]) (tagAndGitPush);;
     *) echo "exit" ;;
   esac
 }
