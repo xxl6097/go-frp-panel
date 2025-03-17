@@ -201,23 +201,25 @@ function tagAndGitPush() {
 }
 
 function upload() {
-    # shellcheck disable=SC2317
-    ls ${builddir}
-    if [ $? -eq 0 ]; then
-        echo "上传文件 ${builddir} /soft/${appname}/${version}"
-        bash <(curl -s -S -L http://uuxia.cn:8087/up) ${builddir} /soft/${appname}/${version}
-    else
-        echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
-    fi
+  builddir=$1
+  appname=$2
+  version=$3
+  ls ${builddir}
+  if [ $? -eq 0 ]; then
+      echo "上传文件 ${builddir} /soft/${appname}/${version}"
+      bash <(curl -s -S -L http://uuxia.cn:8087/up) ${builddir} /soft/${appname}/${version}
+  else
+      echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+  fi
 }
 
 function gitCommit() {
-    if [ $? -eq 0 ]; then
-        echo "编译成功，git提交代码..."
-        tagAndGitPush
-    else
-        echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
-    fi
+  if [ $? -eq 0 ]; then
+      echo "编译成功，git提交代码..."
+      tagAndGitPush
+  else
+      echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+  fi
 }
 
 function buildFrpc() {
@@ -228,6 +230,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
+    upload $builddir $appname "$version"
 }
 
 function buildFrps() {
@@ -238,6 +241,7 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
+    upload $builddir $appname "$version"
 }
 
 function buildFrpcAndFrpsAll() {
