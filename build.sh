@@ -186,7 +186,7 @@ function gitCommit() {
     fi
 }
 
-function buildFrpcAndFrpsAll() {
+function buildFrpc() {
     appname="acfrpc"
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
@@ -194,7 +194,10 @@ function buildFrpcAndFrpsAll() {
     writeVersionGoFile
     buildLdflags
     buildAll
+    upload
+}
 
+function buildFrps() {
     appname="acfrps"
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
@@ -202,6 +205,14 @@ function buildFrpcAndFrpsAll() {
     writeVersionGoFile
     buildLdflags
     buildAll
+    upload
+}
+
+function buildFrpcAndFrpsAll() {
+  buildFrpc &
+  buildFrps &
+  wait  # 等待所有后台进程结束
+  echo "所有任务完成"
 }
 
 function main() {
@@ -215,17 +226,18 @@ function main() {
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
     buildMenu
+    upload
   elif [ $index == 2 ]; then
     appname="acfrpc"
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
     buildMenu
+    upload
   else
     buildFrpcAndFrpsAll
     builddir="./dist"
   fi
   gitCommit
-  upload
 }
 
 main
