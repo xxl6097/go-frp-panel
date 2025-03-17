@@ -54,13 +54,16 @@ EOF
 # appname：应用名称
 # version：应用版本
 # appdir：main.go目录
-# ldflags：编译参数
+# disname：显示名
+# describe：描述
 function buildMenu() {
   builddir=$1
   appname=$2
   version=$3
   appdir=$4
-  ldflags=$5
+  disname=$5
+  describe=$6
+  ldflags=$(buildLdflags $appname $disname $describe)
   PS3="请选择需要编译的平台："
   select arch in "${options[@]}"; do
       if [[ -n "$arch" ]]; then
@@ -93,13 +96,16 @@ function buildMenu() {
 # appname：应用名称
 # version：应用版本
 # appdir：main.go目录
-# ldflags：编译参数
+# disname：显示名
+# describe：描述
 function buildAll() {
   builddir=$1
   appname=$2
   version=$3
   appdir=$4
-  ldflags=$5
+  disname=$5
+  describe=$6
+  ldflags=$(buildLdflags $appname $disname $describe)
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
       #echo "OS: $os | Arch: $arch | extra: ${extra}"
@@ -124,7 +130,9 @@ function buildAll() {
 }
 
 function build() {
-  if [ $6 -eq 1 ]; then
+  index=$6
+  echo "---->$index"
+  if [ $index -eq 1 ]; then
     buildMenu $1 $2 $3 $4 $5
   else
     buildAll $1 $2 $3 $4 $5
@@ -157,8 +165,9 @@ function upgradeVersion() {
 function buildLdflags() {
   #os_name=$(uname -s)
   #echo "os type $os_name"
-  DisplayName=$1
-  Description=$2
+  appname=$1
+  DisplayName=$2
+  Description=$3
   APP_NAME=${appname}
   BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
   BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S")
@@ -181,7 +190,7 @@ function buildLdflags() {
 
 function initCommArgs() {
   upgradeVersion
-  echo "version:${version}"
+  #echo "version:${version}"
   writeVersionGoFile
 }
 
@@ -216,20 +225,20 @@ function buildFrpc() {
     appname="acfrpc"
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
+    Description="一款基于GO语言的网络代理服务程序"
     builddir="./dist/frpc"
-    ldflags=$(buildLdflags $appname $DisplayName)
     rm -rf ${builddir}
-    build $builddir $appname $version $appdir $ldflags $1
+    build $builddir $appname "$version" $appdir $DisplayName $Description $1
 }
 
 function buildFrps() {
     appname="acfrps"
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
+    Description="一款基于GO语言的网络代理服务程序"
     builddir="./dist/frps"
-    ldflags=$(buildLdflags $appname $DisplayName)
     rm -rf ${builddir}
-    build $builddir $appname $version $appdir $ldflags $1
+    build $builddir $appname "$version" $appdir $DisplayName $Description $1
 }
 
 function buildFrpcAndFrpsAll() {
