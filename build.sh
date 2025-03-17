@@ -7,9 +7,8 @@ module=$(grep "module" go.mod | cut -d ' ' -f 2)
 appname="acfrps"
 appdir="./cmd/frps"
 DisplayName="AcFrps网络代理程序"
-
 Description="一款基于GO语言的网络代理服务程序"
-version=0.0.0
+version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 #appdir="./cmd/memfix"
 #appdir="./cmd/test"
@@ -88,11 +87,9 @@ done
   bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
 }
 
-function getversion() {
-  version=$(cat .version)
+function upgradeVersion() {
   if [ "$version" = "" ]; then
     version="0.0.0"
-    echo $version
   else
     v3=$(echo $version | awk -F'.' '{print($3);}')
     v2=$(echo $version | awk -F'.' '{print($2);}')
@@ -108,8 +105,7 @@ function getversion() {
     else
       v3=$(expr $v3 + 1)
     fi
-    ver="$v1.$v2.$v3"
-    echo $ver
+    version="$v1.$v2.$v3"
   fi
 }
 
@@ -186,7 +182,7 @@ function buildArgs() {
  -X '${versionDir}.Description=${Description}'\
  -X '${versionDir}.AppVersion=${version}'\
  -X '${versionDir}.BuildVersion=${BUILD_VERSION}'\
- -X '${versionDir}.BuildTime=${bTime}'\
+ -X '${versionDir}.BuildTime=${BUILD_TIME}'\
  -X '${versionDir}.GitRevision=${GIT_REVISION}'\
  -X '${versionDir}.GitBranch=${GIT_BRANCH}'\
  -X '${versionDir}.GoVersion=${GO_VERSION}'"
@@ -232,7 +228,7 @@ function startdocker() {
 }
 
 function initArgs() {
-  version=$(getversion)
+  upgradeVersion
   echo "version:${version}"
   rm -rf dist
   tagAndGitPush
@@ -243,10 +239,9 @@ function initArgs() {
 
 function tagAndGitPush() {
     git add .
-    git commit -m "release v${version}"
-    git tag -a v$version -m "release v${version}"
-    git push origin v$version
-    echo $version >.version
+    git commit -m "release ${version}"
+    git tag -a $version -m "release ${version}"
+    git push origin $version
 }
 
 # shellcheck disable=SC2120
@@ -277,7 +272,7 @@ function bootstrap() {
 }
 
 function buildFrpcAndFrpsAll() {
-    version=$(getversion)
+    upgradeVersion
     echo "version:${version}"
     rm -rf dist
     appname="acfrpc"
