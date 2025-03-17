@@ -30,6 +30,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/panelinfo", this.apiPanelinfo).Methods("GET")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
 	subRouter.HandleFunc("/api/shutdown", this.apiShutdown).Methods("GET")
+	subRouter.HandleFunc("/api/uninstall", this.upgrade.ApiUninstall).Methods("GET")
 	subRouter.HandleFunc("/api/clear", this.apiClear).Methods("DELETE")
 	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
