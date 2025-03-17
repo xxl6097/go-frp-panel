@@ -130,7 +130,7 @@ function buildAll() {
 }
 
 function build() {
-  echo "---->$1 $2 $3 $4 $5 $6 $7"
+  #echo "---->$1 $2 $3 $4 $5 $6 $7"
   if [ $7 -eq 1 ]; then
     buildMenu $1 $2 $3 $4 $5 $6
   else
