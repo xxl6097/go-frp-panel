@@ -185,6 +185,7 @@ function deleteBranch() {
                         if [ $? -eq 0 ]; then
                             echo "删除成功"
                             git fetch --prune  # 清理本地缓存
+                            break
                         else
                             echo "删除失败，请检查权限或网络"
                         fi
