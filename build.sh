@@ -130,7 +130,7 @@ function build_win() {
   distDir=./dist/${appname}_${version}_${os}_${arch}.exe
   go generate ${appdir}
   #echo "编译 CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}"
-  CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
+  CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir1} ${appdir}
   if [ $? -eq 0 ]; then
       echo "编译成功"
   else
