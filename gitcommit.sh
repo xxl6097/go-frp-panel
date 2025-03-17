@@ -176,5 +176,3 @@ function test() {
 }
 
 main m
-#upgradeVersion
-#test
