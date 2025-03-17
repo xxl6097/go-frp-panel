@@ -16,7 +16,7 @@ versionDir="$module/pkg"
 #clife-fnos
 #jCQdc3CcLGnFiuzK
 bTime=$(date +"%Y-%m-%d $(date +%A) %H:%M:%S")
-
+options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
     mkdir "./pkg"
@@ -58,33 +58,58 @@ EOF
 
 
 
+function buildMenu() {
+    PS3="请选择需要编译的平台："
+    select arch in "${options[@]}"; do
+          if [[ -n "$arch" ]]; then
+            IFS=":" read -r os arch extra <<< "$arch"
+              dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+              flags='';
+              if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+                if [ "${extra}" = "7" ]; then
+                  flags=GOARM=7;
+                  dstFilePath=./dist/${appname}_${version}_${os}_${arch}hf
+                elif [ "${extra}" = "5" ]; then
+                  flags=GOARM=5;
+                  dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+                fi;
+              elif [ "${os}" = "windows" ] ; then
+                dstFilePath=./dist/${appname}_${version}_${os}_${arch}.exe
+              elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+                flags=GOMIPS=${extra};
+              fi;
+              echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
+              env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
+#              break
+              return $?
+          else
+            echo "输入无效，请重新选择。"
+          fi
+    done
+}
 
-function buildall() {
-os_archs=("darwin:amd64" "darwin:arm64" "freebsd:amd64" "linux:amd64" "linux:arm:7" "linux:arm:5" "linux:arm64" "windows:amd64" "windows:arm64" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "android:arm64")
-for arch in "${os_archs[@]}"; do
-    IFS=":" read -r os arch extra <<< "$arch"
-    #echo "OS: $os | Arch: $arch | extra: ${extra}"
-    dstFilePath=./dist/${appname}_${version}_${os}_${arch}
-    flags='';
-    if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-      if [ "${extra}" = "7" ]; then
-        flags=GOARM=7;
-        dstFilePath=./dist/${appname}_${version}_${os}_${arch}hf
-      elif [ "${extra}" = "5" ]; then
-        flags=GOARM=5;
-        dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+function buildAll() {
+  for arch in "${options[@]}"; do
+      IFS=":" read -r os arch extra <<< "$arch"
+      #echo "OS: $os | Arch: $arch | extra: ${extra}"
+      dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+      flags='';
+      if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+        if [ "${extra}" = "7" ]; then
+          flags=GOARM=7;
+          dstFilePath=./dist/${appname}_${version}_${os}_${arch}hf
+        elif [ "${extra}" = "5" ]; then
+          flags=GOARM=5;
+          dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+        fi;
+      elif [ "${os}" = "windows" ] ; then
+        dstFilePath=./dist/${appname}_${version}_${os}_${arch}.exe
+      elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+        flags=GOMIPS=${extra};
       fi;
-    elif [ "${os}" = "windows" ] ; then
-      dstFilePath=./dist/${appname}_${version}_${os}_${arch}.exe
-    elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-      flags=GOMIPS=${extra};
-    fi;
-    echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-    env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
-done
-
-#  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
-  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+      echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
+      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
+  done
 }
 
 function upgradeVersion() {
@@ -110,64 +135,7 @@ function upgradeVersion() {
 }
 
 
-function build_linux_mips_opwnert_REDMI_AC2100() {
-  distDir=./dist/${appname}_${version}_linux_mipsle
-  CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
-  echo "编译完成 ${distDir}"
-}
-
-function build() {
-  os=$1
-  arch=$2
-  distDir=./dist/${appname}_${version}_${os}_${arch}
-  CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
-  echo "编译完成 ${distDir}"
-}
-
-function build_win() {
-  os=$1
-  arch=$2
-  distDir=./dist/${appname}_${version}_${os}_${arch}.exe
-  go generate ${appdir}
-  #echo "编译 CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}"
-  CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir1} ${appdir}
-  rm -rf ${appdir}/resource.syso
-  echo "编译完成 ${distDir}"
-  #go generate ./cmd/app
-  #CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -linkmode internal" -o ./dist/go-file-server.exe ./cmd/app
-  #CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -linkmode internal" -o /Volumes/Desktop/go-file-server.exe ./cmd/app
-}
-
-
-function build_windows_arm64() {
-  distDir=./dist/${appname}_${version}_windows_arm64.exe
-  CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}
-  echo "编译完成 ${distDir}"
-}
-
-function build_menu() {
-  my_array=("$@")
-  for index in "${my_array[@]}"; do
-        case "$index" in
-          [1]) (build_win windows amd64) ;;
-          [2]) (build_windows_arm64) ;;
-          [3]) (build linux amd64) ;;
-          [4]) (build linux arm64) ;;
-          [5]) (build_linux_mips_opwnert_REDMI_AC2100) ;;
-          [6]) (build darwin arm64) ;;
-          [7]) (build darwin amd64) ;;
-          *) echo "-->exit" ;;
-          esac
-  done
-
-#  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
-  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
-#  bash <(curl -s -S -L http://10.6.14.26:8087/up) ./dist /soft/${appname}/${version}
-
-#  github_release
-}
-
-function buildArgs() {
+function buildLdflags() {
   os_name=$(uname -s)
   #echo "os type $os_name"
   APP_NAME=${appname}
@@ -189,50 +157,11 @@ function buildArgs() {
   echo "------->$ldflags"
 }
 
-
-
-function check_docker_macos() {
-  if ! docker info &>/dev/null; then
-    echo "Docker 未启动，正在启动 Docker..."
-    open --background -a Docker
-    echo "Docker 已启动"
-    sleep 10
-    docker version
-  else
-    echo "Docker 已经在运行"
-  fi
-}
-
-function check_docker_linux() {
-  if ! docker info &>/dev/null; then
-    echo "Docker 未启动，正在启动 Docker..."
-    systemctl start docker
-    echo "Docker 已启动"
-    sleep 20
-    docker version
-  else
-    echo "Docker 已经在运行"
-  fi
-}
-
-function startdocker() {
-  os_name=$(uname -s)
-  echo "操作系统:$os_name"
-  if [ "$os_name" = "Darwin" ]; then
-    check_docker_macos
-  elif [ "$os_name" = "Linux" ]; then
-    check_docker_linux
-  else
-    echo "未知操作系统"
-  fi
-}
-
 function initArgs() {
   upgradeVersion
   echo "version:${version}"
   rm -rf dist
-  tagAndGitPush
-  buildArgs
+  buildLdflags
   #3. 在pkg下创建version.go文件
   writeVersionGoFile
 }
@@ -244,73 +173,66 @@ function tagAndGitPush() {
     git push origin $version
 }
 
-# shellcheck disable=SC2120
-function m() {
-  echo "1. 编译 Windows amd64"
-  echo "2. 编译 Windows arm64"
-  echo "3. 编译 Linux amd64"
-  echo "4. 编译 Linux arm64"
-  echo "5. 编译 Linux mips"
-  echo "6. 编译 Darwin arm64"
-  echo "7. 编译 Darwin amd64"
-  echo "8. 编译全平台"
-  echo "请输入编号:"
-  read -r -a inputData "$@"
-  initArgs
-  if (( inputData[0] == 8 )); then
-     buildall
-  else
-     (build_menu "${inputData[@]}")
-  fi
-}
-
-function bootstrap() {
-    case $1 in
-    buildall) (buildall) ;;
-    *) (m)  ;;
-    esac
-}
 
 function buildFrpcAndFrpsAll() {
-    upgradeVersion
     echo "version:${version}"
     rm -rf dist
     appname="acfrpc"
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
     buildArgs
-    buildall
+    buildAll
     mv dist dist-frpc
     appname="acfrps"
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
     buildArgs
-    buildall
+    buildAll
     mv dist dist-frps
     tagAndGitPush
     writeVersionGoFile
 }
 
-function main() {
-    echo "1、Frps服务器编译"
-    echo "2、Frpc客户端编译"
-    echo "3、编译全部"
-    read index
-    if [ $index == 1 ]; then
-      appname="acfrps"
-      appdir="./cmd/frps"
-      DisplayName="AcFrps网络代理程序"
-      bootstrap $1
-    elif [ $index == 2 ]; then
-      appname="acfrpc"
-      appdir="./cmd/frpc"
-      DisplayName="AcFrpc网络代理程序"
-      bootstrap $1
+function upload() {
+    # shellcheck disable=SC2317
+    if [ $? -eq 0 ]; then
+        echo "编译成功，上传文件..."
+        bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
     else
-      buildFrpcAndFrpsAll
+        echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
     fi
 }
 
-main $1
-#test
-# cd web/frpc && make build
+function gitCommit() {
+    if [ $? -eq 0 ]; then
+        echo "编译成功，git提交代码..."
+        tagAndGitPush
+    else
+        echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+    fi
+}
+
+function main() {
+  initArgs
+  echo "1、Frps服务器编译"
+  echo "2、Frpc客户端编译"
+  echo "3、编译全部"
+  read index
+  if [ $index == 1 ]; then
+    appname="acfrps"
+    appdir="./cmd/frps"
+    DisplayName="AcFrps网络代理程序"
+    buildMenu
+  elif [ $index == 2 ]; then
+    appname="acfrpc"
+    appdir="./cmd/frpc"
+    DisplayName="AcFrpc网络代理程序"
+    buildMenu
+  else
+    buildFrpcAndFrpsAll
+  fi
+  gitCommit
+  upload
+}
+
+main
