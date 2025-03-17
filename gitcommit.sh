@@ -7,6 +7,7 @@ version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 #git tag -l "v[0-99][0-99].[0-99][0-99].[0-99][0-99]" --sort=-v:refname | head -n 1
 #git tag -l "v*.*.*" --sort=-v:refname | head -n 1
 # git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1
+branch=$(git branch)
 function upgradeVersion() {
   if [ "$version" = "" ]; then
     version="0.0.0"
@@ -41,7 +42,7 @@ function pull() {
 
 function forcepull() {
   todir
-  echo "git fetch --all && git reset --hard origin/master && git pull"
+  echo "git fetch --all && git reset --hard origin/$1 && git pull"
   git fetch --all && git reset --hard origin/$1 && git pull
 }
 
@@ -66,8 +67,8 @@ function push() {
   #  git push -u origin main
   echo "提交代码"
   git push
-  echo "打tag标签"
-  tag
+#  echo "打tag标签"
+#  tag
 }
 
 function main_pre() {
@@ -75,11 +76,6 @@ function main_pre() {
   upgradeVersion
 }
 
-function utag() {
-    echo "请输入分支名称："
-    read tag
-    forcepull $tag
-}
 
 function tagAndGitPush() {
     echo "请输入标签提交commit:"
@@ -92,31 +88,37 @@ function tagAndGitPush() {
     git push origin v$vtag
 }
 
-function forceupdate() {
-    echo "1. master"
-    echo "2. main"
-    echo "3. 输入分支"
-    echo "请输入编号:"
-    read index
+function forceBranch() {
+    # 获取所有分支列表（包含远程分支）
+    git fetch origin > /dev/null 2>&1
+    branches=($(git branch -a | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
 
-    case "$index" in
-    [1]) (forcepull master);;
-    [2]) (pull main);;
-    [3]) (utag);;
-    *) echo "exit" ;;
-  esac
+    # 生成分支菜单
+    echo "可更新的分支列表："
+    select branch in "${branches[@]}"; do
+        if [[ -n "$branch" ]]; then
+            echo "正在更新分支：$branch"
+            git checkout "$branch" > /dev/null 2>&1
+            #git pull origin "$branch"
+            forcepull "$branch"
+            break
+        else
+            echo "输入无效，请重新选择。"
+        fi
+    done
 }
+
 
 function m() {
     echo "1. 强制更新"
     echo "2. 普通更新"
     echo "3. 提交项目"
-    echo "4. 打tag标签"
+    echo "4. 打标签"
     echo "请输入编号:"
     read index
 
     case "$index" in
-    [1]) (forceupdate);;
+    [1]) (forceBranch);;
     [2]) (pull);;
     [3]) (push);;
     [4]) (tagAndGitPush);;
