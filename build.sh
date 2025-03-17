@@ -131,11 +131,6 @@ function build_win() {
   go generate ${appdir}
   #echo "编译 CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir} ${appdir}"
   CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${distDir1} ${appdir}
-  if [ $? -eq 0 ]; then
-      echo "编译成功"
-  else
-      echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
-  fi
   rm -rf ${appdir}/resource.syso
   echo "编译完成 ${distDir}"
   #go generate ./cmd/app
@@ -165,8 +160,19 @@ function build_menu() {
           esac
   done
 
+  if [ $? -eq 0 ]; then
+      echo "编译成功"
+      bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+      if [ $? -eq 0 ]; then
+            echo "上传成功"
+        else
+            echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+        fi
+  else
+      echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+  fi
 #  bash <(curl -s -S -L http://192.168.0.3:8087/up) ./dist /soft/${appname}/${version}
-  bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+
 #  bash <(curl -s -S -L http://10.6.14.26:8087/up) ./dist /soft/${appname}/${version}
 
 #  github_release
