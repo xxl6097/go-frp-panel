@@ -7,6 +7,7 @@ DisplayName="AcFrps网络代理程序"
 Description="一款基于GO语言的网络代理服务程序"
 version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
+builddir="./dist"
 bTime=$(date +"%Y-%m-%d $(date +%A) %H:%M:%S")
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 function writeVersionGoFile() {
@@ -55,18 +56,18 @@ function buildMenu() {
     select arch in "${options[@]}"; do
           if [[ -n "$arch" ]]; then
             IFS=":" read -r os arch extra <<< "$arch"
-              dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
               flags='';
               if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
                 if [ "${extra}" = "7" ]; then
                   flags=GOARM=7;
-                  dstFilePath=./dist/${appname}_${version}_${os}_${arch}hf
+                  dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
                 elif [ "${extra}" = "5" ]; then
                   flags=GOARM=5;
-                  dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+                  dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
                 fi;
               elif [ "${os}" = "windows" ] ; then
-                dstFilePath=./dist/${appname}_${version}_${os}_${arch}.exe
+                dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
               elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
                 flags=GOMIPS=${extra};
               fi;
@@ -84,18 +85,18 @@ function buildAll() {
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
       #echo "OS: $os | Arch: $arch | extra: ${extra}"
-      dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
       flags='';
       if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
         if [ "${extra}" = "7" ]; then
           flags=GOARM=7;
-          dstFilePath=./dist/${appname}_${version}_${os}_${arch}hf
+          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
         elif [ "${extra}" = "5" ]; then
           flags=GOARM=5;
-          dstFilePath=./dist/${appname}_${version}_${os}_${arch}
+          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
         fi;
       elif [ "${os}" = "windows" ] ; then
-        dstFilePath=./dist/${appname}_${version}_${os}_${arch}.exe
+        dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
       elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
         flags=GOMIPS=${extra};
       fi;
@@ -152,7 +153,7 @@ function buildLdflags() {
 function initArgs() {
   upgradeVersion
   echo "version:${version}"
-  rm -rf dist
+  rm -rf ${builddir}
   buildLdflags
   #3. 在pkg下创建version.go文件
   writeVersionGoFile
@@ -170,7 +171,7 @@ function upload() {
     ls ${appdir}
     if [ $? -eq 0 ]; then
         echo "上传文件..."
-        bash <(curl -s -S -L http://uuxia.cn:8087/up) ${appdir} /soft/${appname}/${version}
+        bash <(curl -s -S -L http://uuxia.cn:8087/up) ${builddir} /soft/${appname}/${version}
     else
         echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
     fi
@@ -189,17 +190,18 @@ function buildFrpcAndFrpsAll() {
     appname="acfrpc"
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
+    builddir="./dist/frpc"
     writeVersionGoFile
     buildLdflags
     buildAll
-    mv dist dist-frpc
+
     appname="acfrps"
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
+    builddir="./dist/frps"
     writeVersionGoFile
     buildLdflags
     buildAll
-    mv dist dist-frps
 }
 
 function main() {
@@ -220,6 +222,7 @@ function main() {
     buildMenu
   else
     buildFrpcAndFrpsAll
+    builddir="./dist"
   fi
   gitCommit
   upload
