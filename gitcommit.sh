@@ -64,9 +64,9 @@ function push() {
   echo $commit
   git add .
   git commit -m "${version} $commit"
-  #  git push -u origin main
   echo "提交代码"
-  git push
+  #git push
+  git push -u origin main
 #  echo "打tag标签"
 #  tag
 }
