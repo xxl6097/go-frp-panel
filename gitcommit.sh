@@ -154,7 +154,7 @@ function createBranch() {
     #-u 首次推送，-f 强制推送
     git push -u origin "$branchName"
 }
-function queryBranch() {
+function deleteBranch() {
     # 获取远程分支列表（过滤 origin/HEAD 无效指针）
     # shellcheck disable=SC2207
     remote_branches=($(git branch -r | grep -v "HEAD" | sed 's/origin\///' | awk '{print $1}'))
@@ -225,20 +225,7 @@ function switchBranch() {
                 if [[ "$REPLY" =~ ^[0-9]+$ ]] && [ "$REPLY" -le ${#branches[@]} ]; then
                     selected_branch=${branches[$REPLY-1]}
 
-                    # 判断是否为远程分支
-                    # shellcheck disable=SC2143
-                    if [[ $(git branch -a | grep "remotes/origin/$selected_branch") ]]; then
-                        echo -n "检测到远程分支 origin/$selected_branch，是否创建本地跟踪分支？(y/n): "
-                        read confirm
-                        if [[ $confirm =~ [Yy] ]]; then
-                            git checkout --track "origin/$selected_branch"
-                        else
-                            echo "取消切换"
-                            exit 0
-                        fi
-                    else
-                        git checkout "$selected_branch"
-                    fi
+                    git checkout "$selected_branch"
 
                     # 检查切换结果
                     if [ $? -eq 0 ]; then
@@ -258,14 +245,14 @@ function switchBranch() {
 
 function branchMenu() {
     echo "1. 创建分支"
-    echo "2. 查看分支"
+    echo "2. 删除分支"
     echo "3. 切换分支"
     echo "请输入编号:"
     read index
     clear
     case "$index" in
     [1]) (createBranch);;
-    [2]) (queryBranch);;
+    [2]) (deleteBranch);;
     [3]) (switchBranch);;
     *) echo "exit" ;;
   esac
