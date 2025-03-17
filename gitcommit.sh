@@ -78,8 +78,7 @@ function main_pre() {
 
 
 function tagAndGitPush() {
-    echo "请输入标签提交commit:"
-    read commit
+    read -p "请输入标签名称: " commit
     commit="$commit $(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
     vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
     git add .
