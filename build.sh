@@ -249,16 +249,18 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcMenu() {
+  clear
   echo "1、Frpc编译菜单"
   echo "2、编译全部"
-  read index
+  read -p "请选择：" index
   buildFrpc $index
 }
 
 function buildFrpsMenu() {
+  clear
   echo "1、Frps编译菜单"
   echo "2、编译全部"
-  read index
+  read -p "请选择：" index
   buildFrps $index
 }
 
@@ -267,7 +269,7 @@ function main() {
   echo "1、编译Frps"
   echo "2、编译Frpc"
   echo "3、编译全部"
-  read index
+  read -p "请选择：" index
   if [ $index == 1 ]; then
     buildFrpsMenu
   elif [ $index == 2 ]; then
