@@ -130,12 +130,11 @@ function buildAll() {
 }
 
 function build() {
-  index=$6
-  echo "---->$index"
-  if [ $index -eq 1 ]; then
-    buildMenu $1 $2 $3 $4 $5
+  echo "---->$1 $2 $3 $4 $5 $6 $7"
+  if [ $7 -eq 1 ]; then
+    buildMenu $1 $2 $3 $4 $5 $6
   else
-    buildAll $1 $2 $3 $4 $5
+    buildAll $1 $2 $3 $4 $5 $6
   fi
 }
 
@@ -228,7 +227,7 @@ function buildFrpc() {
     Description="一款基于GO语言的网络代理服务程序"
     builddir="./dist/frpc"
     rm -rf ${builddir}
-    build $builddir $appname "$version" $appdir $DisplayName $Description $1
+    build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
 }
 
 function buildFrps() {
@@ -238,7 +237,7 @@ function buildFrps() {
     Description="一款基于GO语言的网络代理服务程序"
     builddir="./dist/frps"
     rm -rf ${builddir}
-    build $builddir $appname "$version" $appdir $DisplayName $Description $1
+    build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
 }
 
 function buildFrpcAndFrpsAll() {
@@ -253,14 +252,14 @@ function buildFrpcMenu() {
   echo "1、Frpc编译菜单"
   echo "2、编译全部"
   read index
-  buildFrpc index
+  buildFrpc $index
 }
 
 function buildFrpsMenu() {
   echo "1、Frps编译菜单"
   echo "2、编译全部"
   read index
-  buildFrps index
+  buildFrps $index
 }
 
 function main() {
