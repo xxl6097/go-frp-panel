@@ -10,6 +10,7 @@ versionDir="$module/pkg"
 builddir="./dist"
 bTime=$(date +"%Y-%m-%d $(date +%A) %H:%M:%S")
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
+
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
     mkdir "./pkg"
