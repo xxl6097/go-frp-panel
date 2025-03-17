@@ -136,7 +136,7 @@ function upgradeVersion() {
 
 
 function buildLdflags() {
-  os_name=$(uname -s)
+  #os_name=$(uname -s)
   #echo "os type $os_name"
   APP_NAME=${appname}
   BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
@@ -173,33 +173,14 @@ function tagAndGitPush() {
     git push origin $version
 }
 
-
-function buildFrpcAndFrpsAll() {
-    echo "version:${version}"
-    rm -rf dist
-    appname="acfrpc"
-    appdir="./cmd/frpc"
-    DisplayName="AcFrpc网络代理程序"
-    buildArgs
-    buildAll
-    mv dist dist-frpc
-    appname="acfrps"
-    appdir="./cmd/frps"
-    DisplayName="AcFrps网络代理程序"
-    buildArgs
-    buildAll
-    mv dist dist-frps
-    tagAndGitPush
-    writeVersionGoFile
-}
-
 function upload() {
     # shellcheck disable=SC2317
+    ls ${appdir}
     if [ $? -eq 0 ]; then
-        echo "编译成功，上传文件..."
+        echo "上传文件..."
         bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
     else
-        echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
+        echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
     fi
 }
 
@@ -212,10 +193,27 @@ function gitCommit() {
     fi
 }
 
+function buildFrpcAndFrpsAll() {
+    appname="acfrpc"
+    appdir="./cmd/frpc"
+    DisplayName="AcFrpc网络代理程序"
+    writeVersionGoFile
+    buildLdflags
+    buildAll
+    mv dist dist-frpc
+    appname="acfrps"
+    appdir="./cmd/frps"
+    DisplayName="AcFrps网络代理程序"
+    writeVersionGoFile
+    buildLdflags
+    buildAll
+    mv dist dist-frps
+}
+
 function main() {
   initArgs
-  echo "1、Frps服务器编译"
-  echo "2、Frpc客户端编译"
+  echo "1、编译Frps"
+  echo "2、编译Frpc"
   echo "3、编译全部"
   read index
   if [ $index == 1 ]; then
