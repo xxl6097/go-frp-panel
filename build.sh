@@ -1,20 +1,12 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #appname=$(basename $module)
-#appname="acfrpc"
-#appdir="./cmd/frpc"
-#DisplayName="AcFrpc网络代理程序"
 appname="acfrps"
 appdir="./cmd/frps"
 DisplayName="AcFrps网络代理程序"
 Description="一款基于GO语言的网络代理服务程序"
 version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
-#appdir="./cmd/memfix"
-#appdir="./cmd/test"
-#appdir="./cmd/app"
-#clife-fnos
-#jCQdc3CcLGnFiuzK
 bTime=$(date +"%Y-%m-%d $(date +%A) %H:%M:%S")
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 function writeVersionGoFile() {
@@ -178,7 +170,7 @@ function upload() {
     ls ${appdir}
     if [ $? -eq 0 ]; then
         echo "上传文件..."
-        bash <(curl -s -S -L http://uuxia.cn:8087/up) ./dist /soft/${appname}/${version}
+        bash <(curl -s -S -L http://uuxia.cn:8087/up) ${appdir} /soft/${appname}/${version}
     else
         echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
     fi
