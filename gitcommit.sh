@@ -155,11 +155,105 @@ function createBranch() {
     git push -u origin "$branchName"
 }
 function queryBranch() {
-    git branch origin/test002
+    # 获取远程分支列表（过滤 origin/HEAD 无效指针）
+    # shellcheck disable=SC2207
+    remote_branches=($(git branch -r | grep -v "HEAD" | sed 's/origin\///' | awk '{print $1}'))
+
+    # 检查是否有远程分支
+    if [ ${#remote_branches[@]} -eq 0 ]; then
+        echo "无远程分支可删除"
+        exit 0
+    fi
+
+    # 显示分支菜单
+    echo "可删除的远程分支列表："
+    PS3="请输入要删除的分支编号（输入 q 退出）: "
+    select branch in "${remote_branches[@]}"; do
+        case $REPLY in
+            q|Q)
+                echo "退出操作"
+                exit 0
+                ;;
+            *)
+                if [[ "$REPLY" =~ ^[0-9]+$ ]] && [ "$REPLY" -le ${#remote_branches[@]} ]; then
+                    selected_branch=${remote_branches[$REPLY-1]}
+                    echo -n "确认删除远程分支 origin/$selected_branch ？(y/n): "
+                    read confirm
+                    if [[ $confirm =~ [Yy] ]]; then
+                        git push origin --delete "$selected_branch"
+                        # 检查删除结果
+                        if [ $? -eq 0 ]; then
+                            echo "删除成功"
+                            git fetch --prune  # 清理本地缓存
+                        else
+                            echo "删除失败，请检查权限或网络"
+                        fi
+                    else
+                        echo "取消删除"
+                    fi
+                else
+                    echo "输入无效，请重新选择"
+                fi
+                ;;
+        esac
+    done
 }
 
 function switchBranch() {
-    git branch origin/test002
+    # 获取所有本地和远程分支（过滤 origin/HEAD 指针）
+    # shellcheck disable=SC2207
+    #branches=($(git branch -a | grep -v "HEAD" | sed 's/remotes\/origin\///' | awk '{print $1}' | sort -u))
+    branches=($(git branch -r | grep -v "HEAD" | sed 's/origin\///' | awk '{print $1}'))
+
+    # 检查是否有可用分支
+    if [ ${#branches[@]} -eq 0 ]; then
+        echo "无可用分支"
+        exit 1
+    fi
+
+    # 显示分支菜单
+    echo "可用分支列表："
+    PS3="请输入要切换的分支编号（输入 q 退出）: "
+    select branch in "${branches[@]}"; do
+        case $REPLY in
+            q|Q)
+                echo "退出操作"
+                exit 0
+                ;;
+            *)
+                # 输入有效性校验
+                if [[ "$REPLY" =~ ^[0-9]+$ ]] && [ "$REPLY" -le ${#branches[@]} ]; then
+                    selected_branch=${branches[$REPLY-1]}
+
+                    # 判断是否为远程分支
+                    # shellcheck disable=SC2143
+                    if [[ $(git branch -a | grep "remotes/origin/$selected_branch") ]]; then
+                        echo -n "检测到远程分支 origin/$selected_branch，是否创建本地跟踪分支？(y/n): "
+                        read confirm
+                        if [[ $confirm =~ [Yy] ]]; then
+                            git checkout --track "origin/$selected_branch"
+                        else
+                            echo "取消切换"
+                            exit 0
+                        fi
+                    else
+                        git checkout "$selected_branch"
+                    fi
+
+                    # 检查切换结果
+                    if [ $? -eq 0 ]; then
+                        echo "已切换到分支：$selected_branch"
+                        exit 0
+                    else
+                        echo "切换失败，请检查未提交的修改（可使用 git stash 暂存）"
+                        exit 1
+                    fi
+                else
+                    echo "输入无效，请重新选择"
+                fi
+                ;;
+        esac
+    done
 }
 
 function branchMenu() {
@@ -203,6 +297,7 @@ function test() {
     git fetch origin > /dev/null 2>&1
     # shellcheck disable=SC2207
     branches=($(git branch -r | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
+    # shellcheck disable=SC2128
     echo "$branches"# 生成分支菜单
     echo "可更新的分支列表："
     select branch in "${branches[@]}"; do
