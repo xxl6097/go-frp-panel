@@ -158,9 +158,10 @@ func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 				err = this.igs.Uninstall()
 			}
 			if err != nil {
-				glog.Error("uninstall 失败")
+				glog.Error("uninstall 失败", err)
+			} else {
+				glog.Error("uninstall ok")
 			}
-			glog.Error("uninstall ok")
 		}()
 	}
 }
