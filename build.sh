@@ -170,7 +170,7 @@ function upload() {
     # shellcheck disable=SC2317
     ls ${appdir}
     if [ $? -eq 0 ]; then
-        echo "上传文件..."
+        echo "上传文件...${builddir} /soft/${appname}/${version}"
         bash <(curl -s -S -L http://uuxia.cn:8087/up) ${builddir} /soft/${appname}/${version}
     else
         echo "上传失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
