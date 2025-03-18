@@ -120,7 +120,7 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 func (this *frpc) Run() error {
 	err := this.cls.svr.Run(context.Background())
 	if err != nil {
-		glog.Errorf("frpc run error: %v", err)
+		glog.Errorf("frpc启动错误: %v", err)
 	}
 	return err
 }

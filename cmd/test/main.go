@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"path/filepath"
+	"github.com/avast/retry-go/v4"
+	"github.com/xxl6097/glog/glog"
+	"time"
 )
 
 //	func PingRaw(ip string) bool {
@@ -27,16 +30,25 @@ import (
 //		return err == nil
 //	}
 func main() {
-	rawURL := "C://test.txt"
+	//rawURL := "C://test.txt"
+	//
+	//// 提取路径部分并获取文件名
+	//fileName := filepath.Base(rawURL)
+	//fmt.Println("文件名:", fileName) // 输出: document.pdf
+	////utils.ScanIP()
+	////fmt.Println(utils.PingRaw("192.168.0.10"))
+	//a := 30
+	//b := 9
+	//for i := min(a, b); i < max(a, b); i++ {
+	//	fmt.Println(i)
+	//}
 
-	// 提取路径部分并获取文件名
-	fileName := filepath.Base(rawURL)
-	fmt.Println("文件名:", fileName) // 输出: document.pdf
-	//utils.ScanIP()
-	//fmt.Println(utils.PingRaw("192.168.0.10"))
-	a := 30
-	b := 9
-	for i := min(a, b); i < max(a, b); i++ {
-		fmt.Println(i)
-	}
+	e := retry.Do(func() error {
+		for i := 0; i < 5; i++ {
+			glog.Println("wahaha", i)
+			time.Sleep(time.Second)
+		}
+		return errors.New("error")
+	}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
+	fmt.Println("-->", e)
 }
