@@ -85,7 +85,7 @@ func (this *frpc) startService(
 		visitorCfg:     visitorCfgs,
 		configFilePath: cfgFile,
 	}
-	glog.Debug("create frpc", name)
+	glog.Debug("创建frpc客户端", name)
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	// Capture the exit signal if we use kcp or quic.
 	if shouldGracefulClose {
@@ -93,7 +93,7 @@ func (this *frpc) startService(
 	}
 	e := svr.Run(context.Background())
 	if e != nil {
-		glog.Error(e)
+		glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
 	}
 	//因为Run是阻塞的，能执行到这一行，说明失败了
 	delete(this.svrs, name)
@@ -229,6 +229,7 @@ func (this *frpc) runClient(cfgFilePath string) error {
 		fmt.Printf("WARNING: %v\n", warning)
 	}
 	if err != nil {
+		glog.Errorf("配置文件校验失败: %s %v\n", cfgFilePath, err)
 		return err
 	}
 	e, _ := utils2.BlockingFunction[error](context.Background(), time.Second*3, func() error {
@@ -236,5 +237,6 @@ func (this *frpc) runClient(cfgFilePath string) error {
 	})
 	if e == nil {
 	}
+	glog.Errorf("运行客户端: %s %v\n", cfgFilePath, e)
 	return e
 }

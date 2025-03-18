@@ -48,8 +48,10 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	if !utils2.FileExists(cfgFilePath) {
 		return nil, fmt.Errorf("config file %s not exists", cfgFilePath)
 	}
+	glog.Debug("加载配置文件", cfgFilePath)
 	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)
 	if err != nil {
+		glog.Debug("加载配置文件失败", cfgFilePath, err)
 		return nil, fmt.Errorf("load config file %s not exists", cfgFilePath)
 	}
 	if isLegacyFormat {
@@ -59,9 +61,10 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 
 	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
 	if warning != nil {
-		fmt.Printf("WARNING: %v\n", warning)
+		glog.Errorf("加载配置文件告警: %v\n", warning)
 	}
 	if err != nil {
+		glog.Errorf("配置文件校验失败: %v\n", err)
 		return nil, fmt.Errorf("ValidateAllClientConfig config file %v err", err)
 	}
 
