@@ -1,7 +1,7 @@
 #!/bin/bash
 #version=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
 #version=$(git tag -l "v*" --sort=-creatordate | head -n 1)
-version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
+version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 #git tag --sort=-creatordate | head -n 1
 #git tag -l "v*" --sort=-creatordate | head -n 1
 #git tag -l "v[0-99][0-99].[0-99][0-99].[0-99][0-99]" --sort=-v:refname | head -n 1
@@ -46,29 +46,12 @@ function forcepull() {
   git fetch --all && git reset --hard origin/$1 && git pull
 }
 
-function tag() {
-  echo "===>${version}"
-  git add .
-  git commit -m "release ${version}"
-  git tag -a $version -m "release ${version}"
-  git push origin $version
-}
-
+# shellcheck disable=SC2120
 function push() {
-  commit=""
-  if [ ! -n "$1" ]; then
-    commit="$(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
-  else
-    commit="$1 by ${USER}"
-  fi
-  echo $commit
   git add .
-  git commit -m "${version} $commit"
+  git commit -m "${version} by ${USER}"
   echo "提交代码"
   git push
-#  git push -u origin main
-#  echo "打tag标签"
-#  tag
 }
 
 function main_pre() {
@@ -76,16 +59,6 @@ function main_pre() {
   upgradeVersion
 }
 
-
-function tagAndGitPush() {
-    read -p "请输入标签名称: " commit
-    commit="$commit $(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
-    vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
-    git add .
-    git commit -m "${commit}"
-    git tag -a v$vtag -m "${commit}"
-    git push origin v$vtag
-}
 
 function forceBranch() {
     # 获取所有分支列表（包含远程分支）
@@ -258,6 +231,39 @@ function branchMenu() {
   esac
 }
 
+
+function customTag() {
+    read -p "请输入标签备注: " commit
+    commit="$commit by ${USER}"
+    vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
+    git add .
+    git commit -m "${commit}"
+    git tag -a v$vtag -m "${commit}"
+    git push origin v$vtag
+    echo "标签：v$vtag"
+}
+
+function quickTagAndPush() {
+  git add .
+  git commit -m "release ${version}"
+  git tag -a v$version -m "release v{version}"
+  git push origin v$version
+  push
+}
+
+function tagMenu() {
+    echo "1. 快速标签"
+    echo "2. 自定义标签"
+    echo "请输入编号:"
+    read index
+    clear
+    case "$index" in
+    [1]) (quickTagAndPush);;
+    [2]) (customTag);;
+    *) echo "exit" ;;
+  esac
+}
+
 function m() {
     echo "1. 快速提交"
     echo "2. 项目更新"
@@ -269,7 +275,7 @@ function m() {
     case "$index" in
     [1]) (push);;
     [2]) (pullMenu);;
-    [3]) (tagAndGitPush);;
+    [3]) (tagMenu);;
     [4]) (branchMenu);;
     *) echo "exit" ;;
   esac
@@ -281,28 +287,9 @@ function main() {
 }
 
 function test() {
-    git fetch origin > /dev/null 2>&1
-    # shellcheck disable=SC2207
-    branches=($(git branch -r | grep -v "HEAD" | sed 's/^* //' | sed 's/remotes\///'))
-    # shellcheck disable=SC2128
-    echo "$branches"# 生成分支菜单
-    echo "可更新的分支列表："
-    select branch in "${branches[@]}"; do
-        if [[ -n "$branch" ]]; then
-            if [ $1 -eq 0 ]; then
-                echo "正在更新分支：$branch"
-                git checkout "$branch" > /dev/null 2>&1
-                git pull origin "$branch"
-            else
-                echo "正在更新分支（强制）：$branch"
-                git checkout "$branch" > /dev/null 2>&1
-                forcepull "$branch"
-            fi
-            break
-        else
-            echo "输入无效，请重新选择。"
-        fi
-    done
+    echo "start---->$version"
+    upgradeVersion
+    echo "end---->$version"
 }
 
 main

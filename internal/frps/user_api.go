@@ -292,6 +292,7 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer utils2.Delete(zipFilePath, "用户配置")
 	tpl, err := os.Open(zipFilePath)
 	if err != nil {
 		res.Err(fmt.Errorf("打开文件失败：%v", err))

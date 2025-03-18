@@ -8,7 +8,7 @@ module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #builddir="./dist"
 #options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64")
-version=$(git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
+version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 
 function writeVersionGoFile() {
@@ -193,11 +193,19 @@ function initCommArgs() {
   writeVersionGoFile
 }
 
-function tagAndGitPush() {
-    git add .
-    git commit -m "release ${version}"
-    git tag -a $version -m "release ${version}"
-    git push origin $version
+function push() {
+  git add .
+  git commit -m "${version} by ${USER}"
+  echo "提交代码"
+  git push
+}
+
+function quickTagAndPush() {
+  git add .
+  git commit -m "release ${version}"
+  git tag -a v$version -m "release v{version}"
+  git push origin v$version
+  push
 }
 
 function upload() {
@@ -216,7 +224,7 @@ function upload() {
 function gitCommit() {
   if [ $? -eq 0 ]; then
       echo "编译成功，git提交代码..."
-      tagAndGitPush
+      quickTagAndPush
   else
       echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
   fi
