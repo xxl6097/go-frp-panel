@@ -269,31 +269,47 @@ function main() {
 }
 
 function upgradeVersion() {
-  echo "远程版本：${version}"
-  if [ "$version" = "" ]; then
-    version="v0.0.0"
-  else
-    v3=$(echo $version | awk -F'.' '{print($3);}')
-    v2=$(echo $version | awk -F'.' '{print($2);}')
-    v1=$(echo $version | awk -F'.' '{print($1);}')
-    if [[ $(expr $v3 \>= 99) == 1 ]]; then
-      v3=0
-      if [[ $(expr $v2 \>= 99) == 1 ]]; then
-        v2=0
-        v1=$(expr $v1 + 1)
-      else
-        v2=$(expr $v2 + 1)
-      fi
-    else
-      v3=$(expr $v3 + 1)
-    fi
-    version="$v1.$v2.$v3"
-  fi
+  version=$(increment_version "$version")
 }
+
+function increment_version() {
+    local version_part=$1
+    if [ "$version_part" = "" ]; then
+      version_part="v0.0.0"
+    fi
+    local prefix="${version_part%%[0-9.]*}"  # 提取前缀（删除数字/点后的所有内容）
+    local version="${version_part#$prefix}"  # 提取版本号（删除前缀后的剩余部分）
+    # 分割版本号
+    IFS='.' read -ra parts <<< "$version"
+    local major=${parts[0]}
+    local minor=${parts[1]}
+    local patch=${parts[2]}
+    patch=$((patch + 1))
+    if [[ $patch -ge 100 ]]; then
+        minor=$((minor + 1))
+        patch=0
+        # 检查次版本是否需要进位
+        if [[ $minor -ge 100 ]]; then
+            major=$((major + 1))
+            minor=0
+        fi
+    fi
+    # 重组并返回新版本号
+    echo "${prefix}${major}.${minor}.${patch}"
+}
+
 function test() {
-    echo "start---->${version}"
-    upgradeVersion
-    echo "end---->$version"
+#    echo "start---->${version}"
+#    upgradeVersion
+#    echo "end---->$version"
+
+  # 示例调用
+  version_part="v12.98.2"
+
+    local prefix="${version_part%%[0-9.]*}"  # 提取前缀（删除数字/点后的所有内容）
+    local version="${version_part#$prefix}"  # 提取版本号（删除前缀后的剩余部分）
+    echo "--->${prefix}    ${version}"
+
 }
 
 main
