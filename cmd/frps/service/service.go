@@ -171,7 +171,8 @@ func (this *Service) menu() *frps.CfgModel {
 			},
 			Log: v1.LogConfig{
 				To:      filepath.Join(temp, "frps.log"),
-				MaxDays: 15,
+				MaxDays: 3,
+				Level:   "error",
 			},
 		},
 	}

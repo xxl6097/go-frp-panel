@@ -3,13 +3,14 @@ module github.com/xxl6097/go-frp-panel
 go 1.23.2
 
 require (
-	github.com/fatedier/frp v0.61.1
+	github.com/avast/retry-go/v4 v4.6.1
+	github.com/fatedier/frp v0.61.2
 	github.com/gorilla/mux v1.8.1
 	github.com/kardianos/service v1.2.2
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
-	github.com/xxl6097/glog v0.1.13
-	github.com/xxl6097/go-service v0.4.8
+	github.com/xxl6097/glog v0.1.15
+	github.com/xxl6097/go-service v0.4.9
 	golang.org/x/net v0.35.0
 	golang.org/x/text v0.22.0
 )
@@ -17,11 +18,10 @@ require (
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
-	github.com/avast/retry-go/v4 v4.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.10.0 // indirect
-	github.com/fatedier/golib v0.5.0 // indirect
+	github.com/fatedier/golib v0.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -46,7 +46,6 @@ require (
 	github.com/quic-go/quic-go v0.48.2 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/templexxx/cpu v0.1.1 // indirect
 	github.com/templexxx/xorsimd v0.4.3 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect

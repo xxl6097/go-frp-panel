@@ -54,7 +54,7 @@ func (this *frpc) startService(
 ) error {
 	cfg.WebServer = v1.WebServerConfig{}
 	if cfg.Log.To == "" {
-		temp := filepath.Join(glog.GetAppLogDir(), cfg.User, "app.log")
+		temp := filepath.Join(glog.GetAppDataDir(), cfg.User, "app.log")
 		cfg.Log = v1.LogConfig{
 			To:      temp,
 			MaxDays: 7,

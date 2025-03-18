@@ -119,7 +119,8 @@ func (this *Service) menu() *frpc.CfgModel {
 		},
 		Log: v1.LogConfig{
 			To:      filepath.Join(temp, "frpc.log"),
-			MaxDays: 15,
+			MaxDays: 7,
+			Level:   "error",
 		},
 		WebServer: v1.WebServerConfig{
 			Addr:     "0.0.0.0",

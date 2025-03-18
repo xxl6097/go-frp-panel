@@ -281,9 +281,12 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 		glog.Error(err)
 		return
 	}
-	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
 	userDir := filepath.Join(filepath.Dir(binpath), "user")
-	zipFilePath := filepath.Join(filepath.Dir(binpath), fileName)
+
+	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
+	tempDir := filepath.Join(glog.GetAppDataDir(), "user")
+	utils2.EnsureDir(tempDir)
+	zipFilePath := filepath.Join(tempDir, fileName)
 	err = utils.Zip(userDir, zipFilePath)
 
 	if err != nil {
