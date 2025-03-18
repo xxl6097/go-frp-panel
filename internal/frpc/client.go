@@ -99,7 +99,7 @@ func (this *frpc) startService(
 			glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
 		}
 		return e
-	}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
+	}, retry.Delay(time.Second*5), retry.Attempts(10))
 
 	//e := svr.Run(context.Background())
 	//if e != nil {

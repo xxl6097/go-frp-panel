@@ -3,6 +3,7 @@ package frpc
 import (
 	"context"
 	"fmt"
+	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
@@ -118,9 +119,16 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 }
 
 func (this *frpc) Run() error {
-	err := this.cls.svr.Run(context.Background())
+	err := retry.Do(func() error {
+		e := this.cls.svr.Run(context.Background())
+		if e != nil {
+			glog.Errorf("frpc启动错误[%s]: %v", this.cls.configFilePath, e)
+		}
+		return e
+	}, retry.Delay(time.Second*5), retry.Attempts(10))
+
 	if err != nil {
-		glog.Errorf("frpc启动错误: %v", err)
+		glog.Error("启动失败", err)
 	}
 	return err
 }

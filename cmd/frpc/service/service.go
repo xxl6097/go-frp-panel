@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/avast/retry-go/v4"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/kardianos/service"
@@ -15,7 +14,6 @@ import (
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type Service struct {
@@ -48,13 +46,7 @@ func (this Service) OnRun(i gore.IGService) error {
 		glog.Printf("启动frp_%s失败\n", pkg.AppVersion)
 		return err
 	}
-	err = retry.Do(func() error {
-		return svv.Run()
-	}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
-
-	if err != nil {
-		glog.Error("启动失败", err)
-	}
+	err = svv.Run()
 	return err
 }
 
