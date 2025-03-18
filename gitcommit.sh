@@ -7,27 +7,6 @@ version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 #git tag -l "v[0-99][0-99].[0-99][0-99].[0-99][0-99]" --sort=-v:refname | head -n 1
 #git tag -l "v*.*.*" --sort=-v:refname | head -n 1
 # git tag -l "[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1
-function upgradeVersion() {
-  if [ "$version" = "" ]; then
-    version="0.0.0"
-  else
-    v3=$(echo $version | awk -F'.' '{print($3);}')
-    v2=$(echo $version | awk -F'.' '{print($2);}')
-    v1=$(echo $version | awk -F'.' '{print($1);}')
-    if [[ $(expr $v3 \>= 99) == 1 ]]; then
-      v3=0
-      if [[ $(expr $v2 \>= 99) == 1 ]]; then
-        v2=0
-        v1=$(expr $v1 + 1)
-      else
-        v2=$(expr $v2 + 1)
-      fi
-    else
-      v3=$(expr $v3 + 1)
-    fi
-    version="$v1.$v2.$v3"
-  fi
-}
 
 function todir() {
   pwd
@@ -246,8 +225,9 @@ function customTag() {
 function quickTagAndPush() {
   git add .
   git commit -m "release ${version}"
-  git tag -a v$version -m "release v{version}"
-  git push origin v$version
+  git tag -a $version -m "release v{version}"
+  git push origin $version
+  echo "新标签：${version}"
   push
 }
 
@@ -266,17 +246,19 @@ function tagMenu() {
 
 function m() {
     echo "1. 快速提交"
-    echo "2. 项目更新"
-    echo "3. 项目标签"
-    echo "4. 分支管理"
+    echo "2. 快速标签+提交"
+    echo "3. 项目更新"
+    echo "4. 项目标签"
+    echo "5. 分支管理"
     echo "请输入编号:"
     read index
     clear
     case "$index" in
     [1]) (push);;
-    [2]) (pullMenu);;
-    [3]) (tagMenu);;
-    [4]) (branchMenu);;
+    [2]) (quickTagAndPush);;
+    [3]) (pullMenu);;
+    [4]) (tagMenu);;
+    [5]) (branchMenu);;
     *) echo "exit" ;;
   esac
 }
@@ -286,8 +268,30 @@ function main() {
   m
 }
 
+function upgradeVersion() {
+  echo "远程版本：${version}"
+  if [ "$version" = "" ]; then
+    version="v0.0.0"
+  else
+    v3=$(echo $version | awk -F'.' '{print($3);}')
+    v2=$(echo $version | awk -F'.' '{print($2);}')
+    v1=$(echo $version | awk -F'.' '{print($1);}')
+    if [[ $(expr $v3 \>= 99) == 1 ]]; then
+      v3=0
+      if [[ $(expr $v2 \>= 99) == 1 ]]; then
+        v2=0
+        v1=$(expr $v1 + 1)
+      else
+        v2=$(expr $v2 + 1)
+      fi
+    else
+      v3=$(expr $v3 + 1)
+    fi
+    version="$v1.$v2.$v3"
+  fi
+}
 function test() {
-    echo "start---->$version"
+    echo "start---->${version}"
     upgradeVersion
     echo "end---->$version"
 }
