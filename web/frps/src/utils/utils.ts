@@ -127,18 +127,20 @@ export function downloadByPost(title: string, path: string, body: any) {
       headers: header,
       body: body,
     })
-      .then((response) => {
+      .then(async (response) => {
         //if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        if (!response.ok){
-          const text = response.text();
-          console.log('downloadByPost', text[Symbol.toStringTag], response)
-          throw new Error(`HTTP ${response.statusText}`)
+        if (response.ok) {
+          const disposition = response.headers.get('Content-Disposition')
+          const filename = getFilenameFromContentDisposition(
+            disposition as string,
+          )
+          return response.blob().then((blob) => ({ blob, filename }))
+        } else {
+          const text = await response.text()
+          console.log('downloadByPost', text, response)
+          showErrorTips(text)
+          throw new Error(`HTTP ${response.statusText} ${text}`)
         }
-        const disposition = response.headers.get('Content-Disposition')
-        const filename = getFilenameFromContentDisposition(
-          disposition as string,
-        )
-        return response.blob().then((blob) => ({ blob, filename }))
       })
       .then(({ blob, filename }) => {
         const link = document.createElement('a')
@@ -151,7 +153,7 @@ export function downloadByPost(title: string, path: string, body: any) {
         resolve(filename)
       })
       .catch((error) => {
-        console.log('downloadByPost',path, error)
+        console.log('downloadByPost', path, error)
         showErrorTips(error.message)
         reject(error.message)
       })
