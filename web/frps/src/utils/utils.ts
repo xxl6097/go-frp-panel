@@ -130,8 +130,8 @@ export function downloadByPost(title: string, path: string, body: any) {
       .then((response) => {
         //if (!response.ok) throw new Error(`HTTP ${response.status}`)
         if (!response.ok){
-          console.log('downloadByPost',response)
-          showErrorTips(response.statusText)
+          const text = response.text();
+          console.log('downloadByPost', text[Symbol.toStringTag], response)
           throw new Error(`HTTP ${response.statusText}`)
         }
         const disposition = response.headers.get('Content-Disposition')
