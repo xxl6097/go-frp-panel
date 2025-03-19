@@ -128,7 +128,12 @@ export function downloadByPost(title: string, path: string, body: any) {
       body: body,
     })
       .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        //if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        if (!response.ok){
+          console.log('downloadByPost',response)
+          showErrorTips(response.statusText)
+          throw new Error(`HTTP ${response.statusText}`)
+        }
         const disposition = response.headers.get('Content-Disposition')
         const filename = getFilenameFromContentDisposition(
           disposition as string,
@@ -146,9 +151,9 @@ export function downloadByPost(title: string, path: string, body: any) {
         resolve(filename)
       })
       .catch((error) => {
-        console.log(path, error)
-        reject(error.message)
+        console.log('downloadByPost',path, error)
         showErrorTips(error.message)
+        reject(error.message)
       })
       .finally(() => {
         if (loading) {
