@@ -34,4 +34,4 @@ jobs:
         with:
           files: build/*
           draft: true  # 创建草稿版 Release[1,8](@ref)
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
