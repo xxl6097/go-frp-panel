@@ -47,3 +47,5 @@ function build() {
 }
 
 build
+
+curl -H "Authorization: Basic YWRtaW46aGV0MDAyNDAy" -w "进度: %{speed_upload} KB/s | 已上传: %{size_upload} 字节" -T local_file.txt ftp://host/
