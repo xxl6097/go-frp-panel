@@ -1,91 +1,40 @@
-name: Go Multi-Platform Build and Release
-
+name: Release Build
 on:
   push:
-    tags:
+    tags: # 通过标签触发（如 v1.0.0）
       - 'v*'
-
+      - 'draft-*'
 jobs:
   build:
-    name: Build for Multiple Platforms
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        goos_arch: ["linux/amd64"]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-
-      - name: Build the binary
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
+          go-version: '^1.21' # 指定 Go 版本[1,4](@ref)
+          check-latest: true
+      - name: Install cross-compile tools
         run: |
-          output_name="your_app_${{ matrix.goos }}_${{ matrix.goarch }}"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            output_name="${output_name}.exe"
-          fi
-          go build -o $output_name ./cmd/frps
-          echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
-
-      - name: Package the binary
-        run: |
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            7z a -tzip ${{ env.OUTPUT_NAME }}.zip ${{ env.OUTPUT_NAME }}
-            echo "PACKAGE_NAME=${{ env.OUTPUT_NAME }}.zip" >> $GITHUB_ENV
-          else
-            tar -czvf ${{ env.OUTPUT_NAME }}.tar.gz ${{ env.OUTPUT_NAME }}
-            echo "PACKAGE_NAME=${{ env.OUTPUT_NAME }}.tar.gz" >> $GITHUB_ENV
-          fi
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.PACKAGE_NAME }}
-          path: ${{ env.PACKAGE_NAME }}
-
-  release:
-    name: Create and Publish Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+          go install github.com/mitchellh/gox@v1.0.1
+      - name: Compile binaries
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: |
-            This release contains builds for multiple platforms.
-            - Linux (amd64, arm64)
-            - Windows (amd64, arm64)
-            - macOS (amd64, arm64)
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CGO_ENABLED: 0
         run: |
-          for file in artifacts/*/*; do
-            asset_name=$(basename $file)
-            upload_url="${{ steps.create_release.outputs.upload_url }}?name=$asset_name"
-            curl -X POST \
-              -H "Authorization: Bearer $GITHUB_TOKEN" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary "@$file" \
-              "$upload_url"
-          done
+          mkdir -p build
+          gox -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"
+      - name: Generate checksums
+        run: |
+          cd build
+          rhash -r -a . -o checksums
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*
+          draft: true  # 创建草稿版 Release[1,8](@ref)
+          token: ${{ secrets.GITHUB_TOKEN }}
