@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 # compile for version
 make
