@@ -31,7 +31,7 @@ jobs:
           if [ "${{ matrix.goos }}" = "windows" ]; then
             output_name="${output_name}.exe"
           fi
-          go build -o $output_name .
+          go build -o $output_name ./cmd/frps
           echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
 
       - name: Package the binary
