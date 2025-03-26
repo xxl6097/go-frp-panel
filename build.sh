@@ -256,7 +256,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version"
+    #upload $builddir $appname "$version"
 }
 
 function buildFrps() {
@@ -267,7 +267,7 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version"
+    #upload $builddir $appname "$version"
 }
 
 function buildFrpcAndFrpsAll() {
@@ -309,8 +309,8 @@ function github_release() {
         FILES+=("$file")
     done < <(find "$DIRECTORY" -type f)
     # 打印数组内容
-#    echo "Found files:"
-#    printf '%s\n' "${FILES[@]}"
+    echo "Found files:"
+    printf '%s\n' "${FILES[@]}"
 
     # 创建一个新的release
     response=$(curl -s -X POST \
@@ -353,12 +353,7 @@ function github_release() {
 
 
 function buildAllUploadGithub() {
-  buildFrpc 2 &
-  buildFrps 2 &
-  github_release &
-  wait  # 等待所有后台进程结束
-  builddir="./dist"
-  echo "所有任务完成"
+  github_release
 }
 
 function main() {
