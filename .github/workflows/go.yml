@@ -8,7 +8,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         goos_arch: ["linux/amd64"]
     runs-on: ${{ matrix.os }}
     steps:
