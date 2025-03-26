@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        goos_arch: ["linux/amd64", "linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64", "windows/amd64"]
+        goos_arch: ["windows/amd64", "windows/arm64", "linux/amd64", "linux/arm64", "linux/arm/7", "linux/arm/5", "linux/mips64", "linux/mips64le", "linux/mips/softfloat", "linux/mipsle/softfloat", "linux/riscv64", "linux/loong64", "darwin/amd64", "darwin/arm64", "freebsd/amd64", "android/arm64"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p build
           gox -osarch="${{ matrix.goos_arch }}" -output="build/ac{{.Dir}}_${{ github.ref_name }}_{{.OS}}_{{.Arch}}" ./cmd/frps
-          gox -osarch="${{ matrix.goos_arch }}" -output="build/ac{{.Dir}}_${{ github.ref_name }}_{{.OS}}_{{.Arch}}" ./cmd/frps
+          gox -osarch="${{ matrix.goos_arch }}" -output="build/ac{{.Dir}}_${{ github.ref_name }}_{{.OS}}_{{.Arch}}" ./cmd/frpc
           ls -lh build/
       - name: Upload Release
         uses: softprops/action-gh-release@v1
