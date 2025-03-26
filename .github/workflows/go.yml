@@ -27,7 +27,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p build
-          gox -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"
+          gox ./cmd/frps -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"
       - name: Generate checksums
         run: |
           cd build
