@@ -28,10 +28,7 @@ jobs:
         run: |
           mkdir -p build
           gox -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" ./cmd/frps
-      - name: Generate checksums
-        run: |
-          cd build
-          rhash -r -a . -o checksums
+          gox -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" ./cmd/frpc
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
