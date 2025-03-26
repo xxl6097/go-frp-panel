@@ -256,7 +256,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-#    upload $builddir $appname "$version"
+    upload $builddir $appname "$version" &
 }
 
 function buildFrps() {
@@ -267,7 +267,7 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-#    upload $builddir $appname "$version"
+    upload $builddir $appname "$version" &
 }
 
 function buildFrpcAndFrpsAll() {
