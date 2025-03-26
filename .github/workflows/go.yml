@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p build
           gox -osarch="${{ matrix.goos_arch }}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}_${{ github.ref_name }}" ./cmd/frps
-          ls -l build/
+          ls -lh build/
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
