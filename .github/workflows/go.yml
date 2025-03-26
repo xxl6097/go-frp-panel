@@ -22,7 +22,6 @@ jobs:
       - name: Install cross-compile tools
         run: |
           go install github.com/mitchellh/gox@v1.0.1
-          sudo apt-get install rhash -y  # 哈希校验工具[1](@ref)
       - name: Compile binaries
         env:
           CGO_ENABLED: 0
