@@ -256,7 +256,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    #upload $builddir $appname "$version"
+#    upload $builddir $appname "$version"
 }
 
 function buildFrps() {
@@ -267,7 +267,7 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    #upload $builddir $appname "$version"
+#    upload $builddir $appname "$version"
 }
 
 function buildFrpcAndFrpsAll() {
@@ -309,8 +309,8 @@ function github_release() {
         FILES+=("$file")
     done < <(find "$DIRECTORY" -type f)
     # 打印数组内容
-    echo "Found files:"
-    printf '%s\n' "${FILES[@]}"
+#    echo "Found files:"
+#    printf '%s\n' "${FILES[@]}"
 
     # 创建一个新的release
     response=$(curl -s -X POST \
@@ -357,19 +357,21 @@ function buildAllUploadGithub() {
 }
 
 function main() {
-  initCommArgs
   echo "1、编译Frps"
   echo "2、编译Frpc"
   echo "3、编译全部"
   echo "4、上传github"
   read -p "请选择：" index
   if [ $index == 1 ]; then
+    initCommArgs
     buildFrpsMenu
     gitCommit
   elif [ $index == 2 ]; then
+    initCommArgs
     buildFrpcMenu
     gitCommit
   elif [ $index == 3 ]; then
+    initCommArgs
     buildFrpcAndFrpsAll
     gitCommit
   elif [ $index == 4 ]; then
