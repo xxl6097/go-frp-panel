@@ -48,4 +48,4 @@ function build() {
 
 build
 
-curl -H "Authorization: Basic YWRtaW46aGV0MDAyNDAy" -w "进度: %{speed_upload} KB/s | 已上传: %{size_upload} 字节" -T local_file.txt ftp://host/
+curl -H "Authorization: Basic YWRtaW46aGV0MDAyNDAy" -w "进度: %{speed_upload} KB/s | 已上传: %{size_upload} 字节" -F "file=@/Users/uuxia/Desktop/work/code/github/golang/go-frp-panel/dist/frpc/acfrpc_v0.0.6_android_arm64"
