@@ -4,35 +4,30 @@ on:
     tags: # 通过标签触发（如 v1.0.0）
       - 'v*'
       - 'draft-*'
+
+
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        goos_arch: ["windows/amd64", "windows/arm64", "linux/amd64", "linux/arm64", "linux/arm/7", "linux/arm/5", "linux/mips64", "linux/mips64le", "linux/mips/softfloat", "linux/mipsle/softfloat", "linux/riscv64", "linux/loong64", "darwin/amd64", "darwin/arm64", "freebsd/amd64", "android/arm64"]
-    runs-on: ${{ matrix.os }}
+  goreleaser:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.21' # 指定 Go 版本[1,4](@ref)
-          check-latest: true
-      - name: Install cross-compile tools
+          go-version: '1.23'
+
+      - name: Make All
         run: |
-          go install github.com/mitchellh/gox@v1.0.1
-      - name: Compile binaries
-        env:
-          CGO_ENABLED: 0
-        run: |
-          mkdir -p build
-          gox -osarch="${{ matrix.goos_arch }}" -output="build/ac{{.Dir}}_${{ github.ref_name }}_{{.OS}}_{{.Arch}}" ./cmd/frps
-          gox -osarch="${{ matrix.goos_arch }}" -output="build/ac{{.Dir}}_${{ github.ref_name }}_{{.OS}}_{{.Arch}}" ./cmd/frpc
-          ls -lh build/
-      - name: Upload Release
-        uses: softprops/action-gh-release@v1
+          ./package.sh
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
-          files: build/*
-          draft: true  # 创建草稿版 Release[1,8](@ref)
-          token: ${{ secrets.GH_TOKEN }}
+          version: latest
+          args: release --clean --release-notes=./Release.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
