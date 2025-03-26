@@ -1,0 +1,185 @@
+package main
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"sync"
+)
+
+const (
+	uploadDir = "./uploads"
+)
+
+var (
+	lock sync.Mutex
+)
+
+func init() {
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		if err := os.Mkdir(uploadDir, 0755); err != nil {
+			log.Fatalf("Failed to create upload directory: %v", err)
+		}
+	}
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	fileName := r.Header.Get("X-File-Name")
+	if fileName == "" {
+		http.Error(w, "Missing file name", http.StatusBadRequest)
+		return
+	}
+
+	chunkIndexStr := r.Header.Get("X-Chunk-Index")
+	if chunkIndexStr == "" {
+		http.Error(w, "Missing chunk index", http.StatusBadRequest)
+		return
+	}
+
+	chunkIndex, err := strconv.Atoi(chunkIndexStr)
+	if err != nil {
+		http.Error(w, "Invalid chunk index", http.StatusBadRequest)
+		return
+	}
+
+	totalChunksStr := r.Header.Get("X-Total-Chunks")
+	if totalChunksStr == "" {
+		http.Error(w, "Missing total chunks", http.StatusBadRequest)
+		return
+	}
+
+	totalChunks, err := strconv.Atoi(totalChunksStr)
+	if err != nil {
+		http.Error(w, "Invalid total chunks", http.StatusBadRequest)
+		return
+	}
+
+	hash := r.Header.Get("X-File-Hash")
+	if hash == "" {
+		http.Error(w, "File hash missed", http.StatusBadRequest)
+		return
+	}
+
+	lock.Lock()
+	defer lock.Unlock()
+
+	tempDir := filepath.Join(uploadDir, hash)
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
+		if err := os.Mkdir(tempDir, 0755); err != nil {
+			errs := fmt.Sprintf("Failed to create upload directory: %v", err)
+			http.Error(w, errs, http.StatusBadRequest)
+			return
+		}
+	}
+
+	chunkPath := filepath.Join(tempDir, fmt.Sprintf("%s.chunk%d", fileName, chunkIndex))
+	file, err := os.OpenFile(chunkPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to open chunk file: %v", err), http.StatusInternalServerError)
+		fmt.Println("Failed to open chunk file:", err)
+		return
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, r.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to write chunk: %v", err), http.StatusInternalServerError)
+		fmt.Println("Failed to write chunk:", err)
+		return
+	}
+
+	fmt.Println("chunkPath", chunkIndex, chunkPath)
+	if chunkIndex == totalChunks-1 {
+		// 合并所有块
+		if err := mergeChunks(tempDir, fileName, totalChunks); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to merge chunks: %v", err), http.StatusInternalServerError)
+			fmt.Println("Failed to merge chunks:", err)
+			return
+		}
+
+		//filePath := filepath.Join(uploadDir, fileName)
+		//// 文件校验
+		//hash, err := calculateFileHash(filePath)
+		//if err != nil {
+		//	http.Error(w, fmt.Sprintf("Failed to calculate file hash: %v", err), http.StatusInternalServerError)
+		//	fmt.Println("Failed to calculate file hash:", err)
+		//	return
+		//}
+		//
+		//expectedHash := r.Header.Get("X-File-Hash")
+		//if hash != expectedHash {
+		//	http.Error(w, "File hash mismatch", http.StatusBadRequest)
+		//	fmt.Println("File hash mismatch", http.StatusBadRequest)
+		//	return
+		//}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func mergeChunks(tempDir, fileName string, totalChunks int) error {
+	outputPath := filepath.Join(tempDir, fileName)
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	for i := 0; i < totalChunks; i++ {
+		chunkPath := filepath.Join(tempDir, fmt.Sprintf("%s.chunk%d", fileName, i))
+		chunkFile, err := os.Open(chunkPath)
+		if err != nil {
+			fmt.Printf("Failed to open chunk file: %v\n", err)
+			return err
+		}
+
+		_, err = io.Copy(outputFile, chunkFile)
+		chunkFile.Close()
+		if err != nil {
+			fmt.Println("Failed to copy chunk:", err)
+			return err
+		}
+
+		os.Remove(chunkPath)
+	}
+
+	return nil
+}
+
+func calculateFileHash(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func serveIndexPage(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "index.html")
+}
+
+// env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
+func main() {
+	http.HandleFunc("/upload", uploadHandler)
+	http.HandleFunc("/", serveIndexPage)
+	log.Println("Server started on http://127.0.0.1:8083")
+	log.Fatal(http.ListenAndServe(":8083", nil))
+}

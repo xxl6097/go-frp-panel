@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+</head>
+
+<body>
+<input type="file" id="fileInput">
+<button id="uploadButton">Upload</button>
+<div id="progressBar" style="width: 300px; height: 20px; border: 1px solid #000;">
+    <div id="progress" style="width: 0%; height: 100%; background-color: #00ff00;"></div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const progressBar = document.getElementById('progress');
+
+    async function upload(api,method,file,onProgress,onFinish) {
+        const chunkSize = 1024 * 1024; // 512KB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const hash = Date.now().toString();
+
+        let uploadedChunks = 0;
+        const concurrency = 50; // 最多并发 3 个请求
+
+        // 分批次上传（使用队列控制并发）
+        const queue = [];
+        for (let i = 0; i < totalChunks; i++) {
+            queue.push(i);
+        }
+
+        async function processQueue() {
+            let currentPromises = [];
+            while (queue.length > 0 && currentPromises.length < concurrency) {
+                const chunkIndex = queue.shift();
+                const start = chunkIndex * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
+                const chunk = file.slice(start, end);
+
+                const promise = uploadChunk(api,method,chunk, file.name, chunkIndex, totalChunks, hash)
+                    .then(() => {
+                        uploadedChunks++;
+                        const progress = (uploadedChunks / totalChunks) * 100
+                        if (onProgress){
+                            onProgress(progress)
+                        }
+                        // progressBar.style.width = `${progress}%`;
+                        // progressBar.innerText = `${progress}%`;
+                        // console.log('progress',progress)
+                    })
+                    .catch((error) => {
+                        console.error(`Chunk ${chunkIndex} failed:`, error);
+                        queue.unshift(chunkIndex); // 失败的分片重新加入队列
+                    });
+
+                currentPromises.push(promise);
+            }
+
+            await Promise.all(currentPromises);
+            if (queue.length > 0) {
+                //await new Promise(resolve => setTimeout(resolve, delayMs));
+                //console.log('queue',queue.length)
+                await processQueue();
+            }
+        }
+
+        await processQueue();
+        if (onFinish){
+            onFinish()
+        }
+    }
+    async function upload1(file) {
+        const chunkSize = 1024 * 1024; // 512KB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const hash = Date.now().toString();
+
+        let uploadedChunks = 0;
+        const concurrency = 50; // 最多并发 3 个请求
+        // const delayMs = 500; // 每个请求间隔 500ms
+
+        // 分批次上传（使用队列控制并发）
+        const queue = [];
+        for (let i = 0; i < totalChunks; i++) {
+            queue.push(i);
+        }
+
+        async function processQueue() {
+            let currentPromises = [];
+            while (queue.length > 0 && currentPromises.length < concurrency) {
+                const chunkIndex = queue.shift();
+                const start = chunkIndex * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
+                const chunk = file.slice(start, end);
+
+                const promise = uploadChunk(chunk, file.name, chunkIndex, totalChunks, hash)
+                    .then(() => {
+                        uploadedChunks++;
+                        const progress = (uploadedChunks / totalChunks) * 100
+                        progressBar.style.width = `${progress}%`;
+                        progressBar.innerText = `${progress}%`;
+                        console.log('progress',progress)
+                    })
+                    .catch((error) => {
+                        console.error(`Chunk ${chunkIndex} failed:`, error);
+                        queue.unshift(chunkIndex); // 失败的分片重新加入队列
+                    });
+
+                currentPromises.push(promise);
+            }
+
+            await Promise.all(currentPromises);
+            if (queue.length > 0) {
+                //await new Promise(resolve => setTimeout(resolve, delayMs));
+                //console.log('queue',queue.length)
+                await processQueue();
+            }
+        }
+
+        await processQueue();
+    }
+
+    async function upload1(file) {
+        const chunkSize = 1024 * 1024; // 1MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        //const hash = await calculateFileHash(file);
+        const hash = Date.now().toString();
+
+        console.log('hash',hash)
+        console.log('totalChunks',totalChunks)
+
+        let uploadedChunks = 0;
+        const uploadPromises = [];
+
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(start + chunkSize, file.size);
+            const chunk = file.slice(start, end);
+
+            const uploadPromise = uploadChunk(chunk, file.name, i, totalChunks, hash);
+            uploadPromises.push(uploadPromise);
+
+            uploadPromise.then(() => {
+                uploadedChunks++;
+                const progress = (uploadedChunks / totalChunks) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressBar.innerText = `${progress}%`;
+                console.log('progress',progress)
+            }).catch((error) => {
+                console.error(`Error uploading chunk ${i}:`, error);
+                // 错误重试
+                uploadChunk(chunk, file.name, i, totalChunks, hash).then(() => {
+                    uploadedChunks++;
+                    const progress = (uploadedChunks / totalChunks) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.innerText = `${progress}%`;
+                    console.log('err.progress',progress)
+                }).catch((retryError) => {
+                    console.error(`Failed to retry uploading chunk ${i}:`, retryError);
+                });
+            });
+        }
+
+        await Promise.all(uploadPromises);
+        alert('File uploaded successfully.');
+    }
+
+    uploadButton.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Please select a file.');
+            return;
+        }
+
+        let start = new Date().getTime(); // 获取开始时间
+        await upload('/upload','POST',file,(progress)=>{
+            progressBar.style.width = `${progress}%`;
+            progressBar.innerText = `${progress}%`;
+            console.log('progress',progress)
+        },()=>{
+            console.log('onFinish')
+        })
+        let end = new Date().getTime(); // 获取结束时间
+        const res = calculateTimeDifference(start,end)
+        console.log(res);
+        alert('耗时：' + res.seconds + '秒，' + res.milliseconds + '毫秒');
+    });
+
+    async function uploadChunk(api,method,chunk, fileName, chunkIndex, totalChunks, hash) {
+        // const formData = new FormData();
+        // formData.append('chunk', chunk);
+
+        const response = await fetch(api, {
+            method: method,
+            headers: {
+                'X-File-Name': fileName,
+                'X-Chunk-Index': chunkIndex,
+                'X-Total-Chunks': totalChunks,
+                'X-File-Hash': hash
+            },
+            body: chunk
+        });
+        // const response = await fetch('/upload', {
+        //     method: 'POST',
+        //     headers: {
+        //         'X-File-Name': fileName,
+        //         'X-Chunk-Index': chunkIndex,
+        //         'X-Total-Chunks': totalChunks,
+        //         'X-File-Hash': hash
+        //     },
+        //     body: chunk
+        // });
+
+        if (!response.ok) {
+            throw new Error(`Upload failed with status ${response.status}`);
+        }
+    }
+
+    function calculateTimeDifference(startTime, endTime) {
+        // 计算时间差（以毫秒为单位）
+        const diff = endTime - startTime;
+
+        // 将时间差分解为时、分、秒和毫秒
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const milliseconds = diff % 1000;
+
+        return {
+            hours: hours,
+            minutes: minutes,
+            seconds: seconds,
+            milliseconds: milliseconds
+        };
+    }
+</script>
+</body>
+
+</html>
