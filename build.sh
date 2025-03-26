@@ -256,7 +256,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version" &
+    upload $builddir $appname "$version"
 }
 
 function buildFrps() {
@@ -267,7 +267,7 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version" &
+    upload $builddir $appname "$version"
 }
 
 function buildFrpcAndFrpsAll() {
@@ -364,16 +364,16 @@ function main() {
   read -p "请选择：" index
   if [ $index == 1 ]; then
     initCommArgs
-    buildFrpsMenu
     gitCommit
+    buildFrpsMenu
   elif [ $index == 2 ]; then
     initCommArgs
-    buildFrpcMenu
     gitCommit
+    buildFrpcMenu
   elif [ $index == 3 ]; then
     initCommArgs
-    buildFrpcAndFrpsAll
     gitCommit
+    buildFrpcAndFrpsAll
   elif [ $index == 4 ]; then
     buildAllUploadGithub
   fi
