@@ -1,4 +1,5 @@
-name: Release Workflow - ${{ github.ref_name }}
+name: "Build for ${{ github.ref_name }}"
+run-name: "Triggered by ${{ github.event_name }} at ${{ now() }}"
 #on:
 #  workflow_dispatch:
 on:
