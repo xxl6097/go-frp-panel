@@ -230,6 +230,15 @@ function quickPushAndTag() {
   echo "新标签：${version}"
 }
 
+function quickPushAndTagDeploy() {
+  push
+  git add .
+  git commit -m "[DEPLOY] ${version}"
+  git tag -a $version -m "[DEPLOY] ${version}"
+  git push origin $version
+  echo "新标签：${version}"
+}
+
 function tagMenu() {
     echo "1. 快速标签"
     echo "2. 自定义标签"
@@ -245,19 +254,21 @@ function tagMenu() {
 
 function m() {
     echo "1. 快速提交"
-    echo "2. 快速标签+提交"
-    echo "3. 项目更新"
-    echo "4. 项目标签"
-    echo "5. 分支管理"
+    echo "2. 发布版本"
+    echo "3. 快速标签+提交"
+    echo "4. 项目更新"
+    echo "5. 项目标签"
+    echo "6. 分支管理"
     echo "请输入编号:"
     read index
     clear
     case "$index" in
     [1]) (push);;
-    [2]) (quickPushAndTag);;
-    [3]) (pullMenu);;
-    [4]) (tagMenu);;
-    [5]) (branchMenu);;
+    [2]) (quickPushAndTagDeploy);;
+    [3]) (quickPushAndTag);;
+    [4]) (pullMenu);;
+    [5]) (tagMenu);;
+    [6]) (branchMenu);;
     *) echo "exit" ;;
   esac
 }
