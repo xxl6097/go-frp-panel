@@ -1,10 +1,11 @@
-name: Release Build
+name: goreleaser
+
 on:
   push:
-    tags: # 通过标签触发（如 v1.0.0）
-      - 'v*'
-      - 'draft-*'
-
+    branches:
+      - master
+      - dev
+      - main
 
 jobs:
   goreleaser:
@@ -22,8 +23,7 @@ jobs:
 
       - name: Make All
         run: |
-          chmod +x ./package.sh
-          ./package.sh
+          ./build.sh all
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5

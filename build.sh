@@ -256,7 +256,7 @@ function buildFrpc() {
     builddir="./dist/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version"
+    #upload $builddir $appname "$version"
 }
 
 function buildFrps() {
@@ -267,15 +267,23 @@ function buildFrps() {
     builddir="./dist/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
-    upload $builddir $appname "$version"
+    #upload $builddir $appname "$version"
 }
 
 function buildFrpcAndFrpsAll() {
+  rm -rf ${builddir}
   buildFrpc 2 &
   buildFrps 2 &
   wait  # 等待所有后台进程结束
   builddir="./dist"
   echo "所有任务完成"
+}
+
+function buildFrpcAndFrpsAllForGithubRelease() {
+  buildFrpcAndFrpsAll
+  mkdir -p ./dist/packages
+  cp -f ./dist/frpc/* ./dist/packages
+  cp -f ./dist/frps/* ./dist/packages
 }
 
 function buildFrpcMenu() {
@@ -428,4 +436,11 @@ function main() {
   fi
 }
 
-main
+function bootstrap() {
+    case $1 in
+    all) (buildFrpcAndFrpsAllForGithubRelease) ;;
+      *) (main)  ;;
+    esac
+}
+
+bootstrap $1

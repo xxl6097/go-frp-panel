@@ -306,9 +306,9 @@ function test() {
   # 示例调用
   version_part="v12.98.2"
 
-    local prefix="${version_part%%[0-9.]*}"  # 提取前缀（删除数字/点后的所有内容）
-    local version="${version_part#$prefix}"  # 提取版本号（删除前缀后的剩余部分）
-    echo "--->${prefix}    ${version}"
+  local prefix="${version_part%%[0-9.]*}"  # 提取前缀（删除数字/点后的所有内容）
+  local version="${version_part#$prefix}"  # 提取版本号（删除前缀后的剩余部分）
+  echo "--->${prefix}    ${version}"
 
 }
 
