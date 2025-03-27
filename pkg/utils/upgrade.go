@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"time"
 )
 
@@ -214,6 +215,18 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 	return signFilePath, nil
 }
 
+func DynamicSelect[T any](t []T, fun func(T, chan<- T)) T {
+	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
+	for _, v := range t {
+		go fun(v, ch)
+	}
+	_, value, _ := reflect.Select([]reflect.SelectCase{{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(ch),
+	}})
+	return value.Interface().(T)
+}
+
 func CheckVersionFromGithub() []string {
 	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
@@ -223,6 +236,7 @@ func CheckVersionFromGithub() []string {
 		fmt.Printf("请求失败:%v\n", err)
 		return nil
 	}
+
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -245,6 +259,11 @@ func CheckVersionFromGithub() []string {
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
 				glog.Debug("新固件地址:", binVersionBinNameUrl)
+
+				//strs := []string{"a", "b", "c", "d", "e", "f", "g"}
+				//r := DynamicSelect[string](strs, func(s string, ch chan<- string) {
+				//	ch <- s
+				//})
 				if IsURLValidAndAccessible(binVersionBinNameUrl) {
 					return []string{binVersionBinNameUrl, releaseNote}
 				} else {
