@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg"
+	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
@@ -141,6 +142,17 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 			}
 			glog.Error("重启ok")
 		}()
+	}
+}
+
+func (this *commapi) ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
+	res, f := Response(r)
+	defer f(w)
+	args := utils2.CheckVersionFromGithub()
+	if args != nil && len(args) > 0 {
+		res.response(1, args[1], args[0])
+	} else {
+		res.Ok("已经是最新版本～")
 	}
 }
 
