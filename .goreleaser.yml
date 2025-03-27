@@ -4,7 +4,7 @@ checksum:
   name_template: '{{ .ProjectName }}_sha256_checksums.txt'
   algorithm: sha256
   extra_files:
-  - glob: ./dist/packages/*
+  - glob: ./release/packages/*
 release:
   # Same as for github
   # Note: it can only be one: either github, gitlab or gitea
@@ -19,4 +19,4 @@ release:
   # another file with the same name exists, the latest one found will be used.
   # Defaults to empty.
   extra_files:
-    - glob: ./dist/packages/*
+    - glob: ./release/packages/*

@@ -5,7 +5,7 @@ module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #appdir="./cmd/frps"
 #DisplayName="AcFrps网络代理程序"
 #Description="一款基于GO语言的网络代理服务程序"
-#builddir="./dist"
+#builddir="./release"
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 #options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
@@ -253,7 +253,7 @@ function buildFrpc() {
     appdir="./cmd/frpc"
     DisplayName="AcFrpc网络代理程序"
     Description="一款基于GO语言的网络代理服务程序"
-    builddir="./dist/frpc"
+    builddir="./release/frpc"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
     #upload $builddir $appname "$version"
@@ -264,7 +264,7 @@ function buildFrps() {
     appdir="./cmd/frps"
     DisplayName="AcFrps网络代理程序"
     Description="一款基于GO语言的网络代理服务程序"
-    builddir="./dist/frps"
+    builddir="./release/frps"
     rm -rf ${builddir}
     build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
     #upload $builddir $appname "$version"
@@ -275,15 +275,15 @@ function buildFrpcAndFrpsAll() {
   buildFrpc 2 &
   buildFrps 2 &
   wait  # 等待所有后台进程结束
-  builddir="./dist"
+  builddir="./release"
   echo "所有任务完成"
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
   buildFrpcAndFrpsAll
-  mkdir -p ./dist/packages
-  cp -f ./dist/frpc/* ./dist/packages
-  cp -f ./dist/frps/* ./dist/packages
+  mkdir -p ./release/packages
+  cp -f ./release/frpc/* ./release/packages
+  cp -f ./release/frps/* ./release/packages
 }
 
 function buildFrpcMenu() {
@@ -309,7 +309,7 @@ function github_release() {
     DESCRIPTION="基于GO语言的网络代理服务程序"  # 替换为你的发布描述
     TOKEN=$(cat .token)  # 替换为你的GitHub Token
     # 定义要扫描的目录
-    DIRECTORY="./dist"
+    DIRECTORY="./release"
     # 初始化一个空数组
     FILES=()
     # 使用find命令扫描目录，并将结果添加到数组中
@@ -405,7 +405,7 @@ function showBuildDir() {
 # shellcheck disable=SC2120
 function buildDir() {
   showBuildDir ./cmd
-  builddir="./dist/${dir}"
+  builddir="./release/${dir}"
   appname=$(basename "$dir")
   appdir=${dir}
   disname="${dir}应用程序"
