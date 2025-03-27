@@ -240,7 +240,7 @@ func CheckVersionFromGithub() []string {
 			isVersion := CompareVersions(v2, v1)
 			glog.Debug("最新版本:", v2)
 			glog.Debug("本地版本:", v1)
-			glog.Debugf("v2:%s <==> v1:%s  %d", v2, v1, isVersion)
+			glog.Debugf("CompareVersions(new[%s], old[%s])  %d", v2, v1, isVersion)
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, v2)
 				if IsURLValidAndAccessible(binVersionBinNameUrl) {
