@@ -244,11 +244,12 @@ func CheckVersionFromGithub() []string {
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
 				glog.Debug("新固件地址:", binVersionBinNameUrl)
-				if IsURLValidAndAccessible(binVersionBinNameUrl) {
-					return []string{binVersionBinNameUrl, releaseNote}
-				} else {
-					glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
-				}
+				return []string{binVersionBinNameUrl, releaseNote}
+				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
+				//	return []string{binVersionBinNameUrl, releaseNote}
+				//} else {
+				//	glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
+				//}
 			}
 		}
 	}

@@ -15,5 +15,6 @@ func test() {
 }
 func main() {
 	test()
-	fmt.Println(utils.CheckVersionFromGithub())
+	binurl := "https://github.com/xxl6097/go-frp-panel/releases/download/v0.0.47/acfrps_v0.0.47_linux_amd64"
+	fmt.Println(utils.IsURLValidAndAccessible(binurl))
 }

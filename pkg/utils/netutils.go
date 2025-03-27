@@ -32,7 +32,7 @@ func isURLFormatValid(urlStr string) bool {
 }
 func isURLAccessible(urlStr string) bool {
 	client := &http.Client{
-		Timeout: 5 * time.Second, // 超时控制
+		Timeout: 10 * time.Second, // 超时控制
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse // 禁用重定向
 		},
