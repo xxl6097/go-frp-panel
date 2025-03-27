@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/xxl6097/glog/glog"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"net"
@@ -19,10 +20,14 @@ import (
 func isURLFormatValid(urlStr string) bool {
 	// 严格解析绝对 URL
 	if _, err := url.ParseRequestURI(urlStr); err != nil {
+		glog.Errorf("isURLFormatValid: ParseRequestURI error: %v, %v", err, urlStr)
 		return false
 	}
 	// 提取协议和主机名
 	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		glog.Errorf("isURLFormatValid: Parse error: %v, %v", err, urlStr)
+	}
 	return err == nil && parsed.Scheme != "" && parsed.Host != ""
 }
 func isURLAccessible(urlStr string) bool {
@@ -34,6 +39,7 @@ func isURLAccessible(urlStr string) bool {
 	}
 	resp, err := client.Head(urlStr)
 	if err != nil || resp.StatusCode >= 400 {
+		fmt.Printf("isURLAccessible: Head response error: %v, %v", err, urlStr)
 		return false
 	}
 	defer resp.Body.Close()

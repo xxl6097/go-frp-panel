@@ -243,8 +243,11 @@ func CheckVersionFromGithub() []string {
 			glog.Debugf("CompareVersions(new[%s], old[%s])  %d", v2, v1, isVersion)
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, v2)
+				glog.Debug("新固件地址:", binVersionBinNameUrl)
 				if IsURLValidAndAccessible(binVersionBinNameUrl) {
 					return []string{binVersionBinNameUrl, releaseNote}
+				} else {
+					glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
 				}
 			}
 		}
