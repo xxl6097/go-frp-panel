@@ -231,9 +231,7 @@ function quickPushAndTag() {
 }
 
 function quickPushAndTagDeploy() {
-  git add .
-  git commit -m "DEPLOY ${version} by ${USER}"
-  git push
+  push
   git add .
   git commit -m "DEPLOY ${version}"
   git tag -a $version -m "DEPLOY ${version}"
