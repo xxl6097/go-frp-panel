@@ -1,4 +1,11 @@
 <template>
+  <el-progress
+    :percentage="globalProgress"
+    :stroke-width="2"
+    :show-text="false"
+    :color="customColors"
+    class="global-progress-bar"
+  />
   <div id="app">
     <header class="grid-content header-color">
       <div class="header-content">
@@ -61,6 +68,9 @@
                   <el-dropdown-item @click="dialogFormVisible = true"
                     >升级服务
                   </el-dropdown-item>
+                  <el-dropdown-item @click="checkVersion"
+                    >版本检测</el-dropdown-item
+                  >
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
                   <el-dropdown-item @click="showVersion"
                     >查看版本</el-dropdown-item
@@ -193,9 +203,17 @@ import {
   showWarmTips,
   showSucessTips,
   xhrPromise,
+  showInfoTips, showMessageDialog,
 } from './utils/utils.ts'
 import { ComponentSize } from 'element-plus'
-
+const customColors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 40 },
+  { color: '#5cb87a', percentage: 60 },
+  { color: '#1989fa', percentage: 80 },
+  { color: '#6f7ad3', percentage: 100 },
+]
+const globalProgress = ref(0)
 const size = ref<ComponentSize>('default')
 const versionDialogVisible = ref(false)
 const version = ref({
@@ -290,30 +308,34 @@ const fetchData = () => {
     })
 }
 
+const upgradeByUrl = (binUrl: string) => {
+  const loading = showLoading('程序升级中...')
+  dialogFormVisible.value = false
+  fetch('../api/upgrade', {
+    credentials: 'include',
+    method: 'PUT',
+    body: binUrl,
+  })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      showTips(json.code, json.msg)
+    })
+    .catch(() => {
+      showWarmTips('更新失败')
+    })
+    .finally(() => {
+      loading.close()
+      setTimeout(function () {
+        window.location.reload()
+      }, 4000)
+    })
+}
+
 const upgrade = () => {
   if (form.value.binUrl.length > 0) {
-    const loading = showLoading('程序升级中...')
-    dialogFormVisible.value = false
-    fetch('../api/upgrade', {
-      credentials: 'include',
-      method: 'PUT',
-      body: form.value.binUrl,
-    })
-      .then((res) => {
-        return res.json()
-      })
-      .then((json) => {
-        showTips(json.code, json.msg)
-      })
-      .catch(() => {
-        showWarmTips('更新失败')
-      })
-      .finally(() => {
-        loading.close()
-        setTimeout(function () {
-          window.location.reload()
-        }, 4000)
-      })
+    upgradeByUrl(form.value.binUrl)
   } else {
     showWarmTips('请正确输入url地址')
   }
@@ -357,7 +379,7 @@ const customUpload = (options: any) => {
   const formData = new FormData()
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
-
+  globalProgress.value = 0
   dialogFormVisible.value = false
   xhrPromise({
     url: '../api/upgrade',
@@ -366,6 +388,7 @@ const customUpload = (options: any) => {
     onUploadProgress: (progress: string) => {
       console.log(`上传进度：${progress}`)
       loading.setText(`程序更新中...${progress}%`)
+      globalProgress.value = parseInt(progress)
     },
   })
     .then((data: any) => {
@@ -389,13 +412,32 @@ const customUpload = (options: any) => {
     })
     .finally(() => {
       loading.close()
+      globalProgress.value = 0
       dialogFormVisible.value = false
       setTimeout(function () {
         window.location.reload()
       }, 4000)
     })
 }
+const checkVersion = () => {
+  fetch('../api/checkversion', { credentials: 'include' })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      if (json.code === 0) {
+        showInfoTips(json.msg)
+      } else if (json.code === 1) {
+        showUpdateDialog(json.msg, json.data)
+      }
+    })
+}
 
+const showUpdateDialog = (message: string, binurl: string) => {
+  showMessageDialog('升级提示', '升级', message).then(() => {
+    upgradeByUrl(binurl)
+  })
+}
 const restart = () => {
   showWarmDialog(
     `确定重启吗？`,
@@ -423,6 +465,7 @@ const restart = () => {
   )
 }
 fetchData()
+checkVersion()
 </script>
 
 <style>
@@ -483,5 +526,13 @@ html.dark .header-color {
   justify-content: flex-end;
   flex-grow: 1;
   padding-right: 40px;
+}
+
+.global-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
 }
 </style>

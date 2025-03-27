@@ -2,7 +2,7 @@ import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
-export function getTimestamp(){
+export function getTimestamp() {
   return new Date().getTime() // 输出：1632994993000
 }
 export function generateRandomKey(length: number) {
@@ -34,6 +34,69 @@ export function showErrorTips(message: string) {
     type: 'error',
   })
 }
+
+export function markdownToHtml(mdText: string) {
+  const lines = mdText.split('\n')
+  let html = ''
+  let inCodeBlock = false
+  let inList = false
+
+  for (const line of lines) {
+    // 代码块处理
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock
+      html += inCodeBlock ? '<pre><code>' : '</code></pre>\n'
+      continue
+    }
+    if (inCodeBlock) {
+      html += line + '\n'
+      continue
+    }
+
+    // 各语法规则处理
+    let processed = line
+    processed = processed
+      .replace(
+        /^(#{1,6})\s+(.+)/,
+        (_, hashes, content) =>
+          `<h${hashes.length}>${content}</h${hashes.length}>`,
+      )
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^-\s+(.+)/, (_, content) => {
+        if (!inList) {
+          inList = true
+          return '<ul>\n<li>' + content + '</li>'
+        }
+        return '<li>' + content + '</li>'
+      })
+      .replace(/^-{3,}/, '<hr>')
+
+    // 列表闭合
+    if (inList && !processed.startsWith('<li>')) {
+      processed = '</ul>\n' + processed
+      inList = false
+    }
+
+    // 段落处理
+    if (processed.trim()) {
+      html += processed.replace(/\n/g, '<br>') + '\n'
+    }
+  }
+  return html
+}
+export function showMessageDialog(
+  title: string,
+  confirmButtonText: string,
+  message: string,
+) {
+  return ElMessageBox.confirm(markdownToHtml(message), title, {
+    confirmButtonText: confirmButtonText,
+    cancelButtonText: '取消',
+    dangerouslyUseHTMLString: true,
+  })
+}
+
 export function showInfoTips(message: string) {
   ElMessage({
     showClose: true,

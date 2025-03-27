@@ -18,6 +18,7 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
+	subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
 	subRouter.HandleFunc("/api/uninstall", this.upgrade.ApiUninstall).Methods("GET")
 
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("PUT")
