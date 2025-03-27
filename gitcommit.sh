@@ -28,7 +28,7 @@ function forcepull() {
 # shellcheck disable=SC2120
 function push() {
   git add .
-  git commit -m "${version} by ${USER}"
+  git commit -m "$(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
   echo "提交代码"
   git push
 }
