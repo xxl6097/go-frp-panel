@@ -222,13 +222,13 @@ function customTag() {
     echo "标签：v$vtag"
 }
 
-function quickTagAndPush() {
+function quickPushAndTag() {
+  push
   git add .
   git commit -m "release ${version}"
-  git tag -a $version -m "release v{version}"
+  git tag -a $version -m "release v${version}"
   git push origin $version
   echo "新标签：${version}"
-  push
 }
 
 function tagMenu() {
@@ -238,7 +238,7 @@ function tagMenu() {
     read index
     clear
     case "$index" in
-    [1]) (quickTagAndPush);;
+    [1]) (quickPushAndTag);;
     [2]) (customTag);;
     *) echo "exit" ;;
   esac
@@ -255,7 +255,7 @@ function m() {
     clear
     case "$index" in
     [1]) (push);;
-    [2]) (quickTagAndPush);;
+    [2]) (quickPushAndTag);;
     [3]) (pullMenu);;
     [4]) (tagMenu);;
     [5]) (branchMenu);;
