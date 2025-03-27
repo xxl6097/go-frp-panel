@@ -26,7 +26,6 @@ jobs:
           echo "提交者：${{ github.event.head_commit.author.name }}"
           echo "消息：${{ github.event.head_commit.message }}"
           echo "时间：${{ github.event.head_commit.timestamp }}"
-          echo "时间：${{ steps.tag_message.outputs.MESSAGE }}"
           ./build.sh all ${{ github.ref_name }}
 
       - name: Run GoReleaser
