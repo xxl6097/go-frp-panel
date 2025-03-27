@@ -28,8 +28,7 @@ function forcepull() {
 # shellcheck disable=SC2120
 function push() {
   git add .
-  git commit -m "$(date '+%Y-%m-%d %H:%M:%S') by ${USER}"
-  echo "提交代码"
+  git commit -m "${version} by ${USER}"
   git push
 }
 
@@ -223,11 +222,11 @@ function customTag() {
 }
 
 function quickPushAndTag() {
-  #push
   git add .
   git commit -m "release ${version}"
   git tag -a $version -m "release v${version}"
   git push origin $version
+  push
   echo "新标签：${version}"
 }
 

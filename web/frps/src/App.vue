@@ -484,6 +484,7 @@ const showlog = () => {
 // }
 
 const upgradeByUrl = (binUrl: string) => {
+  console.log('upgradeByUrl', binUrl)
   const loading = showLoading('程序升级中...')
   dialogFormVisible.value = false
   fetch('../api/upgrade', {

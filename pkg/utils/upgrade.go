@@ -217,6 +217,7 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 func CheckVersionFromGithub() []string {
 	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
+	githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
 	resp, err := http.Get(baseUrl)
 	if err != nil {
 		fmt.Printf("请求失败:%v\n", err)
@@ -244,12 +245,19 @@ func CheckVersionFromGithub() []string {
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
 				glog.Debug("新固件地址:", binVersionBinNameUrl)
-				return []string{binVersionBinNameUrl, releaseNote}
-				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
-				//	return []string{binVersionBinNameUrl, releaseNote}
-				//} else {
-				//	glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
-				//}
+				if IsURLValidAndAccessible(binVersionBinNameUrl) {
+					return []string{binVersionBinNameUrl, releaseNote}
+				} else {
+					glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
+					for _, proxy := range githubProxys {
+						newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
+						if IsURLValidAndAccessible(newUrl) {
+							return []string{newUrl, releaseNote}
+						} else {
+							glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
+						}
+					}
+				}
 			}
 		}
 	}

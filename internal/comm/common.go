@@ -63,6 +63,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		//	glog.Warnf("%s\n", res.Msg)
 		//	return
 		//}
+		glog.Debugf("upgrade by url: %s", newFilePath)
 		break
 	case "POST", "post":
 		// 获取上传的文件
@@ -94,6 +95,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	//defer utils.Delete(newFilePath, "更新文件")
 	if newFilePath != "" {
+		glog.Debugf("开始升级 %s", newFilePath)
 		err := this.igs.Upgrade(newFilePath)
 		if err != nil {
 			res.Error(fmt.Sprintf("更新失败～%v", err))
