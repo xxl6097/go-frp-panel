@@ -223,7 +223,7 @@ function customTag() {
 }
 
 function quickPushAndTag() {
-  push
+  #push
   git add .
   git commit -m "release ${version}"
   git tag -a $version -m "release v${version}"
