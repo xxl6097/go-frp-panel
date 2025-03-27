@@ -277,7 +277,9 @@ func CheckVersionFromGithub() []string {
 				}
 
 				binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {
-					IsURLValidAndAccessible(s)
+					if !IsURLValidAndAccessible(s) {
+						time.Sleep(time.Second * 10)
+					}
 					return s
 				})
 				glog.Debug("2新固件地址:", binVersionBinNameUrl)
