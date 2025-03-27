@@ -3,6 +3,7 @@
     :percentage="globalProgress"
     :stroke-width="2"
     :show-text="false"
+    :color="customColors"
     class="global-progress-bar"
   />
   <div id="app">
@@ -238,6 +239,13 @@ const version = ref({
   gitRevision: '',
   goVersion: '',
 })
+const customColors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 40 },
+  { color: '#5cb87a', percentage: 60 },
+  { color: '#1989fa', percentage: 80 },
+  { color: '#6f7ad3', percentage: 100 },
+]
 const globalProgress = ref(0)
 const form = ref({
   binUrl: '',
@@ -259,7 +267,7 @@ const doClientsUpload = async (options: any) => {
     (progress: any) => {
       console.log(`上传进度：${progress}`)
       loading.setText(`客户端上传中：${progress}%`)
-      globalProgress.value = progress
+      globalProgress.value = parseInt(progress)
     },
     () => {
       loading.close()
@@ -305,7 +313,7 @@ const doClientsUpload = async (options: any) => {
 //       })
 // }
 
-// 自定义上传函数
+// 文件上传更新
 const handleUploadToUpgrade = (options: any) => {
   const { file } = options
   const formData = new FormData()
@@ -362,6 +370,7 @@ const handleSelect = (key: string) => {
 }
 
 const checkVersion = () => {
+  globalProgress.value = 50
   fetch('../api/checkversion', { credentials: 'include' })
     .then((res) => {
       return res.json()
@@ -660,5 +669,13 @@ html.dark .header-color {
 
 .dark-reboot {
   padding-right: 10px;
+}
+
+.global-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
 }
 </style>
