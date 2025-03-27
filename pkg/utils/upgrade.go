@@ -273,6 +273,7 @@ func CheckVersionFromGithub() []string {
 				for _, proxy := range githubProxys {
 					newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
 					newProxy = append(newProxy, newUrl)
+					glog.Debug(newUrl)
 				}
 
 				binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {

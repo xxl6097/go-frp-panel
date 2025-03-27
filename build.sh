@@ -285,6 +285,7 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
+  echo "===>version:${version}"
   buildFrpcAndFrpsAll
   mkdir -p ./release/packages
   cp -f ./release/frpc/* ./release/packages
@@ -439,7 +440,7 @@ function main() {
 #  if [ $index -le 3 ]; then
 #      gitCommit
 #  fi
-  gitCommit
+  #gitCommit
 }
 
 function bootstrap() {
