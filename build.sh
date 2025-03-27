@@ -194,11 +194,11 @@ function buildLdflags() {
   DisplayName=$2
   Description=$3
   APP_NAME=${appname}
-  BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
+  #BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
   BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S")
   GIT_REVISION=$(git rev-parse --short HEAD)
   #GIT_BRANCH=$(git name-rev --name-only HEAD)
-  GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
+  #GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
   GO_VERSION=$(go version)
   # shellcheck disable=SC2089
   local ldflags="-s -w\
@@ -206,19 +206,14 @@ function buildLdflags() {
  -X '${versionDir}.Description=${Description}'\
  -X '${versionDir}.AppName=${APP_NAME}'\
  -X '${versionDir}.AppVersion=${version}'\
- -X '${versionDir}.BuildVersion=${BUILD_VERSION}'\
+ -X '${versionDir}.BuildVersion=${version}'\
  -X '${versionDir}.BuildTime=${BUILD_TIME}'\
  -X '${versionDir}.GitRevision=${GIT_REVISION}'\
- -X '${versionDir}.GitBranch=${GIT_BRANCH}'\
+ -X '${versionDir}.GitBranch=${version}'\
  -X '${versionDir}.GoVersion=${GO_VERSION}'"
   echo "$ldflags"
 }
 
-function initCommArgs() {
-  upgradeVersion
-  #echo "version:${version}"
-  writeVersionGoFile
-}
 
 function push() {
   git add .
@@ -251,7 +246,8 @@ function upload() {
 function gitCommit() {
   if [ $? -eq 0 ]; then
       echo "编译成功，git提交代码..."
-      quickTagAndPush
+      #quickTagAndPush
+      push
   else
       echo "编译失败，错误码: $?"  # 输出错误信息（例如返回2表示文件未找到）
   fi
@@ -424,7 +420,7 @@ function buildDir() {
 }
 
 function main() {
-  initCommArgs
+  upgradeVersion
   echo "1、编译Frps"
   echo "2、编译Frpc"
   echo "3、编译全部"
@@ -440,16 +436,18 @@ function main() {
     buildDir
   fi
   #提交代码
-  if [ $index -le 3 ]; then
-      gitCommit
-  fi
+#  if [ $index -le 3 ]; then
+#      gitCommit
+#  fi
+  gitCommit
 }
 
 function bootstrap() {
-    case $1 in
-    all) (buildFrpcAndFrpsAllForGithubRelease) ;;
-      *) (main)  ;;
-    esac
+  writeVersionGoFile
+  case $1 in
+  all) (buildFrpcAndFrpsAllForGithubRelease) ;;
+    *) (main)  ;;
+  esac
 }
 
 bootstrap $1
