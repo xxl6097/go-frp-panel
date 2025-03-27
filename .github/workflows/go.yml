@@ -6,9 +6,10 @@ on:
   push:
     tags:
       - 'v[0-99]*.[0-99]*.[0-99]*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
+    commit_message:
+      includes: "[DEPLOY]"
 jobs:
   goreleaser:
-    if: contains(github.event.head_commit.message, '[DEPLOY]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,6 +24,9 @@ jobs:
 
       - name: Make All
         run: |
+          echo "提交者：${{ github.event.head_commit.author.name }}"
+          echo "消息：${{ github.event.head_commit.message }}"
+          echo "时间：${{ github.event.head_commit.timestamp }}"
           ./build.sh all ${{ github.ref_name }}
 
       - name: Run GoReleaser
