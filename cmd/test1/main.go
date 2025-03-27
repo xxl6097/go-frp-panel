@@ -7,18 +7,26 @@ import (
 	"time"
 )
 
-func DynamicSelect[T any](t []T, fun func(T, chan<- T)) T {
+func DynamicSelect[T any](t []T, fun func(T) T) T {
 	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
 	for _, v := range t {
-		go fun(v, ch)
+		go func(t T, c chan<- T) {
+			c <- fun(t)
+		}(v, ch)
 	}
-	_, value, _ := reflect.Select([]reflect.SelectCase{{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(ch),
-	}})
 
-	//fmt.Printf("返回: %v\n", value)
-	return value.Interface().(T)
+	var ret T
+	for i := 0; i < len(t); i++ {
+		_, value, ok := reflect.Select([]reflect.SelectCase{{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		}})
+		ret = value.Interface().(T)
+		if ok {
+			return ret
+		}
+	}
+	return ret
 }
 
 func dynamicSelect(channels chan any) any {
@@ -60,11 +68,11 @@ func main() {
 	//fmt.Printf("------>%v\n", v)
 
 	strs := []string{"a", "b", "c", "d", "e", "f", "g"}
-	r := DynamicSelect[string](strs, func(s string, ch chan<- string) {
+	r := DynamicSelect[string](strs, func(s string) string {
 		t := time.Duration(rand.Intn(10))*time.Second + time.Second
 		fmt.Println(s, t)
 		time.Sleep(t)
-		ch <- fmt.Sprintf("Worker-%v 完成 %v", s, t)
+		return fmt.Sprintf("Worker-%v 完成 %v", s, t)
 	})
 	fmt.Println(r)
 }

@@ -215,16 +215,26 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 	return signFilePath, nil
 }
 
-func DynamicSelect[T any](t []T, fun func(T, chan<- T)) T {
+func DynamicSelect[T any](t []T, fun func(T) T) T {
 	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
 	for _, v := range t {
-		go fun(v, ch)
+		go func(t T, c chan<- T) {
+			c <- fun(t)
+		}(v, ch)
 	}
-	_, value, _ := reflect.Select([]reflect.SelectCase{{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(ch),
-	}})
-	return value.Interface().(T)
+
+	var ret T
+	for i := 0; i < len(t); i++ {
+		_, value, ok := reflect.Select([]reflect.SelectCase{{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		}})
+		ret = value.Interface().(T)
+		if ok {
+			return ret
+		}
+	}
+	return ret
 }
 
 func CheckVersionFromGithub() []string {
@@ -258,25 +268,33 @@ func CheckVersionFromGithub() []string {
 			glog.Debugf("CompareVersions(new[%s], old[%s])  %d", v2, v1, isVersion)
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
-				glog.Debug("新固件地址:", binVersionBinNameUrl)
-
-				//strs := []string{"a", "b", "c", "d", "e", "f", "g"}
-				//r := DynamicSelect[string](strs, func(s string, ch chan<- string) {
-				//	ch <- s
-				//})
-				if IsURLValidAndAccessible(binVersionBinNameUrl) {
-					return []string{binVersionBinNameUrl, releaseNote}
-				} else {
-					glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
-					for _, proxy := range githubProxys {
-						newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
-						if IsURLValidAndAccessible(newUrl) {
-							return []string{newUrl, releaseNote}
-						} else {
-							glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
-						}
-					}
+				glog.Debug("1新固件地址:", binVersionBinNameUrl)
+				newProxy := []string{binVersionBinNameUrl}
+				for _, proxy := range githubProxys {
+					newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
+					newProxy = append(newProxy, newUrl)
 				}
+
+				binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {
+					IsURLValidAndAccessible(s)
+					return s
+				})
+				glog.Debug("2新固件地址:", binVersionBinNameUrl)
+				return []string{binVersionBinNameUrl, releaseNote}
+
+				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
+				//	return []string{binVersionBinNameUrl, releaseNote}
+				//} else {
+				//	glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
+				//	for _, proxy := range githubProxys {
+				//		newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
+				//		if IsURLValidAndAccessible(newUrl) {
+				//			return []string{newUrl, releaseNote}
+				//		} else {
+				//			glog.Debug("新固件地址检测失败:", binVersionBinNameUrl)
+				//		}
+				//	}
+				//}
 			}
 		}
 	}
