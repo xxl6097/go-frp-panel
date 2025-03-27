@@ -285,6 +285,7 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
+  upgradeVersion
   echo "===>version:${version}"
   buildFrpcAndFrpsAll
   mkdir -p ./release/packages
