@@ -1,5 +1,5 @@
 name: "Build for ${{ github.ref_name }}"
-run-name: "Triggered by ${{ github.event_name }} at ${{ now() }}"
+run-name: "Triggered by ${{ github.event_name }} by @${{ github.actor }}"
 #on:
 #  workflow_dispatch:
 on:
