@@ -222,11 +222,11 @@ function customTag() {
 }
 
 function quickPushAndTag() {
+  push
   git add .
   git commit -m "${version}"
   git tag -a $version -m "v${version}"
   git push origin $version
-  push
   echo "新标签：${version}"
 }
 
