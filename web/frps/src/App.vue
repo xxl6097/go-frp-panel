@@ -370,7 +370,6 @@ const handleSelect = (key: string) => {
 }
 
 const checkVersion = () => {
-  globalProgress.value = 50
   fetch('../api/checkversion', { credentials: 'include' })
     .then((res) => {
       return res.json()

@@ -224,6 +224,7 @@ func CheckVersionFromGithub() []string {
 	}
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
 	body, _ := io.ReadAll(resp.Body)
+	glog.Debug(string(body))
 	var result any
 	err = json.Unmarshal(body, &result)
 	if err == nil {
@@ -232,6 +233,7 @@ func CheckVersionFromGithub() []string {
 			releaseNote := m["body"].(string)
 			v1 := pkg.AppVersion
 			v2 := tagName
+			glog.Debug(tagName, v1)
 			if CompareVersions(v2, v1) > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, v2)
 				if IsURLValidAndAccessible(binVersionBinNameUrl) {
