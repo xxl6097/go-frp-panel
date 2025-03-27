@@ -10,7 +10,7 @@ release:
   # Note: it can only be one: either github, gitlab or gitea
   github:
     owner: xxl6097
-    name: acfrp
+    name: go-frp-panel
 
   draft: false
 
