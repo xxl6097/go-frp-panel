@@ -5,6 +5,8 @@ import (
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -14,6 +16,39 @@ import (
 	"time"
 )
 
+func isURLFormatValid(urlStr string) bool {
+	// 严格解析绝对 URL
+	if _, err := url.ParseRequestURI(urlStr); err != nil {
+		return false
+	}
+	// 提取协议和主机名
+	parsed, err := url.Parse(urlStr)
+	return err == nil && parsed.Scheme != "" && parsed.Host != ""
+}
+func isURLAccessible(urlStr string) bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second, // 超时控制
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // 禁用重定向
+		},
+	}
+	resp, err := client.Head(urlStr)
+	if err != nil || resp.StatusCode >= 400 {
+		return false
+	}
+	defer resp.Body.Close()
+	return true
+}
+
+// IsURLValidAndAccessible 检查 URL 是否有效并且可访问
+func IsURLValidAndAccessible(rawURL string) bool {
+	// 阶段1：格式校验
+	if !isURLFormatValid(rawURL) {
+		return false
+	}
+	// 阶段2：网络可达性检测
+	return isURLAccessible(rawURL)
+}
 func GetListeningPorts() {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {

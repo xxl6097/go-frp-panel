@@ -20,6 +20,7 @@ var (
 	Description  string // 服务描述信息
 	OsType       string // 操作系统
 	Arch         string // cpu类型
+	BinName      string // 运行文件名称，包含平台架构
 )
 // Version 版本信息
 func Version() string {
@@ -35,6 +36,7 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("Description:\t%s\n", Description))
 	sb.WriteString(fmt.Sprintf("OsType:\t%s\n", OsType))
 	sb.WriteString(fmt.Sprintf("Arch:\t%s\n", Arch))
+	sb.WriteString(fmt.Sprintf("BinName:\t%s\n", BinName))
 	fmt.Println(sb.String())
 	return sb.String()
 }

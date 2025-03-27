@@ -2,8 +2,10 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"io/ioutil"
@@ -210,4 +212,33 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 		return "", err
 	}
 	return signFilePath, nil
+}
+
+func CheckVersionFromGithub() []string {
+	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
+	resp, err := http.Get(baseUrl)
+	if err != nil {
+		fmt.Printf("请求失败:%v\n", err)
+		return nil
+	}
+	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
+	body, _ := io.ReadAll(resp.Body)
+	var result any
+	err = json.Unmarshal(body, &result)
+	if err == nil {
+		if m, ok := result.(map[string]interface{}); ok {
+			tagName := m["tag_name"].(string)
+			releaseNote := m["body"].(string)
+			v1 := pkg.AppVersion
+			v2 := tagName
+			if CompareVersions(v2, v1) > 0 {
+				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, v2)
+				if IsURLValidAndAccessible(binVersionBinNameUrl) {
+					return []string{binVersionBinNameUrl, releaseNote}
+				}
+			}
+		}
+	}
+	return nil
 }

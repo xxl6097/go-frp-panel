@@ -38,6 +38,7 @@ var (
 	Description  string // 服务描述信息
 	OsType       string // 操作系统
 	Arch         string // cpu类型
+	BinName      string // 运行文件名称，包含平台架构
 )
 // Version 版本信息
 func Version() string {
@@ -53,6 +54,7 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("Description:\t%s\n", Description))
 	sb.WriteString(fmt.Sprintf("OsType:\t%s\n", OsType))
 	sb.WriteString(fmt.Sprintf("Arch:\t%s\n", Arch))
+	sb.WriteString(fmt.Sprintf("BinName:\t%s\n", BinName))
 	fmt.Println(sb.String())
 	return sb.String()
 }
@@ -94,7 +96,9 @@ function buildMenu() {
           fi;
           echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
           #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -s -w -linkmode internal" -o ${dstFilePath} ${appdir}
+          filename=$(basename "$dstFilePath")  # 输出 "file.txt"
+          binName="-X '${versionDir}.BinName=${filename}'"
+          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
           return $?
       else
         echo "输入无效，请重新选择。"
@@ -136,7 +140,11 @@ function buildAll() {
       fi;
       echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
       #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags -linkmode internal" -o ${dstFilePath} ${appdir}
+      filename=$(basename "$dstFilePath")  # 输出 "file.txt"
+      # shellcheck disable=SC2089
+      binName="-X '${versionDir}.BinName=${filename}'"
+      echo "--->env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}"
+      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
   done
 }
 
@@ -189,7 +197,8 @@ function buildLdflags() {
   BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
   BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S")
   GIT_REVISION=$(git rev-parse --short HEAD)
-  GIT_BRANCH=$(git name-rev --name-only HEAD)
+  #GIT_BRANCH=$(git name-rev --name-only HEAD)
+  GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
   GO_VERSION=$(go version)
   # shellcheck disable=SC2089
   local ldflags="-s -w\

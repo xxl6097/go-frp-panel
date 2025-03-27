@@ -11,7 +11,9 @@ import (
 	"math"
 	"net/http"
 	"reflect"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -233,4 +235,44 @@ func IsLinux() bool {
 		return true
 	}
 	return false
+}
+
+func SplitVersion(v string) []string {
+	// 去除前缀标识（如 "v1.2.3" → "1.2.3"）
+	v = strings.TrimLeft(v, "v")
+	return strings.Split(v, ".")
+}
+
+// CompareVersions 0:相等；1：v1>v2;-1:v1<v2
+func CompareVersions(v1, v2 string) int {
+	seg1 := SplitVersion(v1)
+	seg2 := SplitVersion(v2)
+	maxLen := int(math.Max(float64(len(seg1)), float64(len(seg2))))
+
+	for i := 0; i < maxLen; i++ {
+		num1 := getSegmentValue(seg1, i)
+		num2 := getSegmentValue(seg2, i)
+
+		if num1 > num2 {
+			return 1 // v1 > v2
+		} else if num1 < num2 {
+			return -1 // v1 < v2
+		}
+	}
+	return 0 // 相等
+}
+
+func getSegmentValue(seg []string, idx int) int {
+	if idx >= len(seg) {
+		return 0 // 自动补零处理长度不一致情况
+	}
+	num, _ := strconv.Atoi(seg[idx])
+	return num
+}
+
+func ReplaceNewVersionBinName(filename, v string) string {
+	re := regexp.MustCompile(`_v\d+\.\d+\.\d+_`)
+	newName := re.ReplaceAllString(filename, fmt.Sprintf("_%s_", v)) // 替换为单个下划线
+	fmt.Println(newName)
+	return newName
 }

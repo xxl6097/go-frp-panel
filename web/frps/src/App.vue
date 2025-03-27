@@ -1,4 +1,10 @@
 <template>
+  <el-progress
+    :percentage="globalProgress"
+    :stroke-width="2"
+    :show-text="false"
+    class="global-progress-bar"
+  />
   <div id="app">
     <header class="grid-content header-color">
       <div class="header-content">
@@ -60,6 +66,9 @@
                 <el-dropdown-menu>
                   <el-dropdown-item @click="dialogFormVisible = true"
                     >升级服务</el-dropdown-item
+                  >
+                  <el-dropdown-item @click="checkVersion"
+                    >版本检测</el-dropdown-item
                   >
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
                   <el-dropdown-item @click="dialogClientsVisible = true"
@@ -141,14 +150,22 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-upload class="upload-demo" :http-request="customUpload" :limit="1">
+        <el-upload
+          class="upload-demo"
+          :http-request="handleUploadToUpgrade"
+          :limit="1"
+        >
           <template #trigger>
             <el-button type="primary" :disabled="form.binUrl.length > 0"
               >上传文件升级</el-button
             >
           </template>
           <!-- 添加额外按钮 -->
-          <el-button style="margin-left: 10px" type="danger" @click="upgrade">
+          <el-button
+            style="margin-left: 10px"
+            type="danger"
+            @click="handleUrlToUpgrade"
+          >
             文件url升级
           </el-button>
         </el-upload>
@@ -195,7 +212,9 @@ import { useDark, useToggle } from '@vueuse/core'
 import {
   piecesUpload,
   showErrorTips,
+  showInfoTips,
   showLoading,
+  showMessageDialog,
   showSucessTips,
   showTips,
   showWarmDialog,
@@ -219,6 +238,7 @@ const version = ref({
   gitRevision: '',
   goVersion: '',
 })
+const globalProgress = ref(0)
 const form = ref({
   binUrl: '',
 })
@@ -228,7 +248,7 @@ const title = ref<string>('Frps')
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
-
+  globalProgress.value = 0
   dialogFormVisible.value = false
   const loading = showLoading('客户端上传中...')
 
@@ -239,12 +259,14 @@ const doClientsUpload = async (options: any) => {
     (progress: any) => {
       console.log(`上传进度：${progress}`)
       loading.setText(`客户端上传中：${progress}%`)
+      globalProgress.value = progress
     },
     () => {
       loading.close()
       dialogClientsVisible.value = false
       console.log(`上传成功！`)
       showSucessTips('上传成功')
+      globalProgress.value = 0
     },
   )
 }
@@ -284,12 +306,13 @@ const doClientsUpload = async (options: any) => {
 // }
 
 // 自定义上传函数
-const customUpload = (options: any) => {
+const handleUploadToUpgrade = (options: any) => {
   const { file } = options
   const formData = new FormData()
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
 
+  globalProgress.value = 0
   dialogFormVisible.value = false
   xhrPromise({
     url: '../api/upgrade',
@@ -298,6 +321,7 @@ const customUpload = (options: any) => {
     onUploadProgress: (progress: string) => {
       console.log(`上传进度：${progress}`)
       loading.setText(`程序更新中...${progress}%`)
+      globalProgress.value = parseInt(progress)
     },
   })
     .then((data: any) => {
@@ -321,6 +345,7 @@ const customUpload = (options: any) => {
     })
     .finally(() => {
       loading.close()
+      globalProgress.value = 0
       dialogFormVisible.value = false
       setTimeout(function () {
         window.location.reload()
@@ -335,6 +360,27 @@ const handleSelect = (key: string) => {
   console.log('menu.key', key)
   menuIndex.value = key
 }
+
+const checkVersion = () => {
+  fetch('../api/checkversion', { credentials: 'include' })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      if (json.code === 0) {
+        showInfoTips(json.msg)
+      } else if (json.code === 1) {
+        showUpdateDialog(json.msg, json.data)
+      }
+    })
+}
+
+const showUpdateDialog = (message: string, binurl: string) => {
+  showMessageDialog('升级提示', '升级', message).then(() => {
+    upgradeByUrl(binurl)
+  })
+}
+
 const restart = () => {
   showWarmDialog(
     `确定重启吗？`,
@@ -429,31 +475,35 @@ const showlog = () => {
 //   }
 // }
 
-const upgrade = () => {
-  if (form.value.binUrl.length > 0) {
-    const loading = showLoading('程序升级中...')
-    dialogFormVisible.value = false
-    fetch('../api/upgrade', {
-      credentials: 'include',
-      method: 'PUT',
-      body: form.value.binUrl,
+const upgradeByUrl = (binUrl: string) => {
+  const loading = showLoading('程序升级中...')
+  dialogFormVisible.value = false
+  fetch('../api/upgrade', {
+    credentials: 'include',
+    method: 'PUT',
+    body: binUrl,
+  })
+    .then((res) => {
+      return res.json()
     })
-      .then((res) => {
-        return res.json()
-      })
-      .then((json) => {
-        showTips(json.code, json.msg)
-      })
-      .catch((error) => {
-        console.log('更新失败', error)
-        //showWarmTips('更新失败' + JSON.stringify(error))
-      })
-      .finally(() => {
-        loading.close()
-        setTimeout(function () {
-          window.location.reload()
-        }, 4000)
-      })
+    .then((json) => {
+      showTips(json.code, json.msg)
+    })
+    .catch((error) => {
+      console.log('更新失败', error)
+      //showWarmTips('更新失败' + JSON.stringify(error))
+    })
+    .finally(() => {
+      loading.close()
+      setTimeout(function () {
+        window.location.reload()
+      }, 4000)
+    })
+}
+
+const handleUrlToUpgrade = () => {
+  if (form.value.binUrl.length > 0) {
+    upgradeByUrl(form.value.binUrl)
   } else {
     showWarmTips('请正确输入url地址')
   }
