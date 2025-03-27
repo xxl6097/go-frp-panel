@@ -1,10 +1,10 @@
-name: goreleaser
-on:
-  workflow_dispatch:
+name: Release Workflow - ${{ github.ref_name }}
 #on:
-#  push:
-#    tags:
-#      - 'v*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
+#  workflow_dispatch:
+on:
+  push:
+    tags:
+      - 'v[0-99]*.[0-99]*.[0-99]*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
 
       - name: Make All
         run: |
-          ./build.sh all
+          ./build.sh all ${{ github.ref_name }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5

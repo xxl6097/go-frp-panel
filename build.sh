@@ -445,6 +445,10 @@ function main() {
 }
 
 function bootstrap() {
+  if [ $# -ge 2 ] && [ -n "$2" ]; then
+    version=$2
+    echo "参数有效：$2 $version"
+  fi
   writeVersionGoFile
   case $1 in
   all) (buildFrpcAndFrpsAllForGithubRelease) ;;
@@ -452,4 +456,4 @@ function bootstrap() {
   esac
 }
 
-bootstrap $1
+bootstrap $1 $2
