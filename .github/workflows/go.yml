@@ -2,11 +2,8 @@ name: goreleaser
 
 on:
   push:
-    branches:
-      - master
-      - dev
-      - main
-
+    tags:
+      - 'v*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
