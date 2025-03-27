@@ -285,7 +285,6 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
-  sleep 3
   echo "===>version:${version}"
   buildFrpcAndFrpsAll
   mkdir -p ./release/packages
@@ -447,7 +446,6 @@ function main() {
 function bootstrap() {
   if [ $# -ge 2 ] && [ -n "$2" ]; then
     version=$2
-    echo "参数有效：$2 $version"
   fi
   writeVersionGoFile
   case $1 in
