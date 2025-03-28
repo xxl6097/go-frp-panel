@@ -596,8 +596,8 @@ const fetchVersionData = () => {
     .then((json) => {
       if (json) {
         version.value = json
-        // title.value = `Frps服务端 ${json.appVersion}`
-        // document.title = title.value
+        title.value = `Frps ${json.appVersion}`
+        document.title = title.value
       }
     })
 }

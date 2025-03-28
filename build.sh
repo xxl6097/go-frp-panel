@@ -443,6 +443,10 @@ function main() {
   #gitCommit
 }
 
+function buildWeb() {
+  chmod +x ./web/build.sh
+  ./web/build.sh
+}
 function bootstrap() {
   if [ $# -ge 2 ] && [ -n "$2" ]; then
     version=$2

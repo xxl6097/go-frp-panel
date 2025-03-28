@@ -302,8 +302,8 @@ const fetchData = () => {
     .then((json) => {
       if (json) {
         version.value = json
-        // title.value = `Frpc客户端 ${json.appVersion}`
-        // document.title = title.value
+        title.value = `Frpc ${json.appVersion}`
+        document.title = title.value
       }
     })
 }

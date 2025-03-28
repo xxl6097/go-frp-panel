@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
+	"github.com/xxl6097/glog/glog"
 	"reflect"
-	"time"
 )
 
 func DynamicSelect[T any](t []T, fun func(T) T) T {
@@ -14,9 +12,8 @@ func DynamicSelect[T any](t []T, fun func(T) T) T {
 			c <- fun(t)
 		}(v, ch)
 	}
-
 	var ret T
-	for i := 0; i < len(t); i++ {
+	for range ch {
 		_, value, ok := reflect.Select([]reflect.SelectCase{{
 			Dir:  reflect.SelectRecv,
 			Chan: reflect.ValueOf(ch),
@@ -26,53 +23,46 @@ func DynamicSelect[T any](t []T, fun func(T) T) T {
 			return ret
 		}
 	}
+
+	//for i := 0; i < len(t); i++ {
+	//	_, value, ok := reflect.Select([]reflect.SelectCase{{
+	//		Dir:  reflect.SelectRecv,
+	//		Chan: reflect.ValueOf(ch),
+	//	}})
+	//	ret = value.Interface().(T)
+	//	if ok {
+	//		return ret
+	//	}
+	//}
 	return ret
 }
 
-func dynamicSelect(channels chan any) any {
-	//cases := make([]reflect.SelectCase, len(channels))
-	//for i, ch := range channels {
-	//	cases[i] = reflect.SelectCase{
-	//		Dir:  reflect.SelectRecv,
-	//		Chan: reflect.ValueOf(ch),
-	//	}
-	//}
-	for {
-		chosen, value, ok := reflect.Select([]reflect.SelectCase{{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(channels),
-		}})
-		fmt.Printf("ok:%v,通道 %d 返回: %v\n", ok, chosen, value)
-		if ok {
-			//return value
-		}
+func sender(ch chan int) {
+	for i := 0; i < 5; i++ {
+		ch <- i
+		glog.Printf("Sent %d to the channel\n", i)
 	}
-
+	close(ch)
 }
 
-func worker(id int, result chan<- any) {
-	// 模拟耗时计算
-	t := time.Duration(rand.Intn(4))*time.Second + time.Second
-	time.Sleep(t)
-	result <- fmt.Sprintf("Worker%d 完成 %v", id, t)
-}
+func test1() {
+	ch := make(chan int, 1)
+	go sender(ch)
 
+	for num := range ch {
+		glog.Printf("Received %d from the channel\n", num)
+	}
+	glog.Println("Channel is closed")
+}
 func main() {
-	//resultChan := make(chan any, 5) // 缓冲大小等于协程数量
-	//// 启动多个计算协程
-	//for i := 0; i < 5; i++ {
-	//	go worker(i, resultChan)
-	//}
-	//fmt.Println("resultChan.size", len(resultChan))
-	//v := dynamicSelect(resultChan)
-	//fmt.Printf("------>%v\n", v)
+	test1()
 
-	strs := []string{"a", "b", "c", "d", "e", "f", "g"}
-	r := DynamicSelect[string](strs, func(s string) string {
-		t := time.Duration(rand.Intn(10))*time.Second + time.Second
-		fmt.Println(s, t)
-		time.Sleep(t)
-		return fmt.Sprintf("Worker-%v 完成 %v", s, t)
-	})
-	fmt.Println(r)
+	//strs := []string{"a", "b", "c", "d", "e", "f", "g"}
+	//r := DynamicSelect[string](strs, func(s string) string {
+	//	t := time.Duration(rand.Intn(10))*time.Second + time.Second
+	//	fmt.Println(s, t)
+	//	time.Sleep(t)
+	//	return fmt.Sprintf("Worker-%v 完成 %v", s, t)
+	//})
+	//fmt.Println(r)
 }
