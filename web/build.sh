@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function buildFrpc() {
-  cd ./web/frpc && sudo npm run build
+  cd ./web/frpc && npm install --force &&  sudo npm run build
   echo "frpc编译完成"
   pwd
   ls -lh
 }
 
 function buildFrps() {
-  cd ./web/frpc && sudo npm run build
+  cd ./web/frps && npm install --force &&  sudo npm run build
   echo "frps编译完成"
   pwd
   ls -lh
@@ -59,6 +59,8 @@ function buildFrpcAndFrpsAll() {
   #echo "打印npm list npm-run-all"
   #npm list npm-run-all  # 本地依赖
 
+  npm cache clean --force
+  rm -rf /root/.npm/_logs/*  # 删除错误日志
   buildFrpc &
   #buildFrps &
   wait  # 等待所有后台进程结束
