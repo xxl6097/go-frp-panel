@@ -72,9 +72,9 @@ function buildFrpcAndFrpsAll1() {
 
 
 function buildFrpcAndFrpsAll() {
-#  buildFrpc &
-#  buildFrps &
-#  wait  # 等待所有后台进程结束
+  buildFrpc &
+  buildFrps &
+  wait  # 等待所有后台进程结束
   echo "所有任务完成"
 }
 

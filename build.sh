@@ -280,7 +280,6 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
-  buildWeb
   echo "===>version:${version}"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
