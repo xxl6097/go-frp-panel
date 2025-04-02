@@ -1,24 +1,22 @@
 #!/bin/bash
 
 function buildFrpc() {
-  make -f ./web/frpc/Makefile install
-  make -f ./web/frpc/Makefile build
+  cd ./web/frpc && npm run install && npm run build
   echo "frpc编译完成"
   pwd
   ls -lh
 }
 
 function buildFrps() {
-  make -f ./web/frps/Makefile install
-  make -f ./web/frps/Makefile build
+  cd ./web/frpc && npm run install && npm run build
   echo "frps编译完成"
   pwd
   ls -lh
 }
 
 function buildFrpcAndFrpsAll() {
-  sudo apt update && sudo apt install make
-  make --version
+#  sudo apt update && sudo apt install make
+#  make --version
   # 下载并解压Node.js
   wget https://nodejs.org/dist/v18.12.0/node-v18.12.0-linux-x64.tar.xz
   tar xvf node-v18.12.0-linux-x64.tar.xz
