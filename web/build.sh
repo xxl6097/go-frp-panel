@@ -37,7 +37,8 @@ function buildFrpcAndFrpsAll() {
   sudo ln -s ./node/bin/node /usr/bin/node
   sudo ln -s ./node/bin/npm /usr/bin/npm
   source ~/.bashrc
-  nvm use 18.12.0
+  npm install -g n
+  n 18.11.12
   echo "打印 node"
   node -v  # 应输出如v16.20.0
   echo "打印 npm"
