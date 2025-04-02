@@ -28,6 +28,7 @@ function forcepull() {
 # shellcheck disable=SC2120
 function push() {
   git add .
+  echo "git commit -m "${version} by ${USER}""
   git commit -m "${version} by ${USER}"
   git push
 }
@@ -236,8 +237,10 @@ function quickPushAndTag() {
 function quickPushAndTagDeploy() {
   push
   git add .
+  echo "git commit -m "DEPLOY ${version}""
   git commit -m "DEPLOY ${version}"
   git tag -a $version -m "DEPLOY ${version}"
+  echo "git tag -a $version -m "DEPLOY ${version}""
   git push origin $version
   echo "新标签：${version}"
 }
