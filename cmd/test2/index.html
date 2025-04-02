@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurrent File Chunk Upload</title>
+</head>
+
+<body>
+<input type="file" id="fileInput">
+<button onclick="uploadFile()">Upload</button>
+<div id="progressBar" style="width: 300px; height: 20px; border: 1px solid #ccc;"></div>
+<div id="progressText"></div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // 生成文件哈希（简化版）
+    async function generateFileHash(file) {
+        return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(
+                btoa(String.fromCharCode(...new Uint8Array(reader.result)))
+                    .substring(0, 32)
+            );
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    // 计算文件MD5
+    async function calcFileHash(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                const buffer = e.target.result
+                const hash = md5(buffer)
+                resolve(hash)
+            }
+            reader.readAsArrayBuffer(file)
+        })
+    }
+
+    async function uploadFile() {
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Please select a file.');
+            return;
+        }
+
+        const chunkSize = 1024 * 1024;
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const fileId = Date.now().toString();
+
+        let uploadedChunks = 0;
+        const chunkPromises = [];
+        let start = new Date().getTime(); // 获取开始时间
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(start + chunkSize, file.size);
+            const chunk = file.slice(start, end);
+
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+            formData.append('fileId', fileId);
+            formData.append('chunkIndex', i);
+            formData.append('originalFileName', file.name);
+
+            console.log(new Date().toLocaleString(),'upload.chunkIndex:',i,fileId, file.name)
+            const promise = fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    uploadedChunks++;
+                    const progress = (uploadedChunks / totalChunks) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    progressText.textContent = `${Math.round(progress)}%`;
+                    console.log('ok:',i,progress)
+                } else {
+                    throw new Error('Error uploading chunk');
+                }
+            });
+
+            chunkPromises.push(promise);
+        }
+
+        try {
+            await Promise.all(chunkPromises);
+
+            console.log('upload.ok:',chunkPromises)
+            const mergeData = new FormData();
+            mergeData.append('fileId', fileId);
+            mergeData.append('totalChunks', totalChunks);
+            mergeData.append('originalFileName', file.name);
+
+            const mergeResponse = await fetch('/merge', {
+                method: 'POST',
+                body: mergeData
+            });
+
+            let end = new Date().getTime(); // 获取结束时间
+            console.log("耗时：", end - start, "毫秒");
+            if (mergeResponse.ok) {
+                const msg = "耗时："+(end - start)+ "毫秒"
+                alert('File uploaded and merged successfully' + msg);
+            } else {
+                alert('Error merging file');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+</script>
+</body>
+
+</html>    

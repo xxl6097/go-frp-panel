@@ -1,0 +1,40 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": {
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 1
+    },
+    "ProductVersion": {
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 1
+    },
+    "FileFlagsMask": "3f",
+    "FileFlags": "00",
+    "FileOS": "040004",
+    "FileType": "01",
+    "FileSubType": "00"
+  },
+  "StringFileInfo": {
+    "Comments": "acfrpc",
+    "CompanyName": "uuxia tech Co., Ltd",
+    "FileDescription": "基于Go语言的服务程序框架",
+    "FileVersion": "v0.58.1",
+    "InternalName": "acfrpc.exe",
+    "LegalCopyright": "© uuxia.cn 2024.06.20",
+    "LegalTrademarks": "",
+    "OriginalFilename": "acfrpc.exe",
+    "PrivateBuild": "",
+    "ProductName": "acfrpc",
+    "ProductVersion": "v0.0.1",
+    "SpecialBuild": "v0.0.1"
+  },
+  "VarFileInfo": {
+    "Translation": {
+      "LangID": "0804",
+      "CharsetID": "04B0"
+    }
+  },
+  "IconPath": "icon.ico"
+}
