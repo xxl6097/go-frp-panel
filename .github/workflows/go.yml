@@ -8,7 +8,7 @@ on:
       - 'v[0-99]*.[0-99]*.[0-99]*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
 jobs:
   goreleaser:
-    #if: contains(github.event.head_commit.message, 'DEPLOY')
+    #if: contains(github.event.head_commit.message, 'DEPLOY')  echo echo"github：${{ toJson(github) }}"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,7 +23,6 @@ jobs:
 
       - name: Make All
         run: |
-#          echo "github：${{ toJson(github) }}"
           chmod +x ./build.sh
           ./build.sh all ${{ github.ref_name }}
 
