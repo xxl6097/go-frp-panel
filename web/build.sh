@@ -62,6 +62,7 @@ function buildFrpcAndFrpsAll() {
   sudo npm cache clean --force
   sudo rm -rf /root/.npm/_logs/*  # 删除错误日志
   sudo npm audit fix
+  sudo chown -R 1001:118 "/root/.npm"
   buildFrpc &
   #buildFrps &
   wait  # 等待所有后台进程结束
