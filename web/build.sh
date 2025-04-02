@@ -22,12 +22,14 @@ function buildFrpcAndFrpsAll() {
 #  tar xvf node-v18.12.0-linux-x64.tar.xz
 
   ver=18.12.0
-  wget https://nodejs.org/dist/v${ver}/node-v${ver}-linux-x64.tar.xz
+  wget -q https://nodejs.org/dist/v${ver}/node-v${ver}-linux-x64.tar.xz
   tar xf node-v${ver}-linux-x64.tar.xz
 
+  ls -lh ./node-v${ver}-linux-x64/bin
 
   rm -r /usr/local/bin/node
   rm -r /usr/local/bin/npm
+
   # 创建软链接到系统路径
   sudo ln -s ./node-v${ver}-linux-x64/bin/node /usr/local/bin/node
   sudo ln -s ./node-v${ver}-linux-x64/bin/npm /usr/local/bin/npm
