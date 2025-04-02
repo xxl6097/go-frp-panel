@@ -213,8 +213,10 @@ function branchMenu() {
 function customTag() {
     read -p "请输入提交信息: " commit
     commit="$commit by ${USER}"
-    #vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
     read -p "请输入标签: " vtag
+    if [ -z "$vtag" ]; then
+        vtag="$(date '+%Y.%m.%d.%H.%M.%S')"
+    fi
     git add .
     git commit -m "${commit}"
     git tag -a $vtag -m "${commit}"
