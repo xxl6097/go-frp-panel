@@ -65,7 +65,6 @@ function buildgo() {
   arch=$6
   extra=$7
   ldflags=$8
-  echo "--->$1,$2,$3,$4,$5,$6,$7,$8"
   dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
   flags='';
   if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
@@ -112,12 +111,11 @@ function buildMenu() {
   disname=$5
   describe=$6
   ldflags=$(buildLdflags $appname $disname $describe)
-  echo "--->${ldflags}"
   PS3="请选择需要编译的平台："
   select arch in "${options[@]}"; do
       if [[ -n "$arch" ]]; then
         IFS=":" read -r os arch extra <<< "$arch"
-        buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
+        buildgo $builddir $appname $version $appdir $os $arch $extra "${ldflags}"
         return $?
       else
         echo "输入无效，请重新选择。"
@@ -139,10 +137,9 @@ function buildAll() {
   disname=$5
   describe=$6
   ldflags=$(buildLdflags $appname $disname $describe)
-  echo "--->${ldflags}"
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
-      buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
+      buildgo $builddir $appname $version $appdir $os $arch $extra "${ldflags}"
   done
 }
 
