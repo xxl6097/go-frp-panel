@@ -116,30 +116,7 @@ function buildMenu() {
       if [[ -n "$arch" ]]; then
         IFS=":" read -r os arch extra <<< "$arch"
         buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
-#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-#          flags='';
-#          if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-#            if [ "${extra}" = "7" ]; then
-#              flags=GOARM=7;
-#              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
-#            elif [ "${extra}" = "5" ]; then
-#              flags=GOARM=5;
-#              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-#            fi;
-#          elif [ "${os}" = "windows" ] ; then
-#            dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
-#            if [ "${arch}" = "amd64" ]; then
-#                go generate ${appdir}
-#            fi
-#          elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-#            flags=GOMIPS=${extra};
-#          fi;
-#          echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-#          #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-#          filename=$(basename "$dstFilePath")  # 输出 "file.txt"
-#          binName="-X '${versionDir}.BinName=${filename}'"
-#          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
-          return $?
+        return $?
       else
         echo "输入无效，请重新选择。"
       fi
@@ -162,32 +139,6 @@ function buildAll() {
   ldflags=$(buildLdflags $appname $disname $describe)
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
-      #echo "OS: $os | Arch: $arch | extra: ${extra}"
-#      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-#      flags='';
-#      if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-#        if [ "${extra}" = "7" ]; then
-#          flags=GOARM=7;
-#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
-#        elif [ "${extra}" = "5" ]; then
-#          flags=GOARM=5;
-#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-#        fi;
-#      elif [ "${os}" = "windows" ] ; then
-#        dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
-#        if [ "${arch}" = "amd64" ]; then
-#            go generate ${appdir}
-#        fi
-#      elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-#        flags=GOMIPS=${extra};
-#      fi;
-#      echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-#      #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-#      filename=$(basename "$dstFilePath")  # 输出 "file.txt"
-#      # shellcheck disable=SC2089
-#      binName="-X '${versionDir}.BinName=${filename}'"
-#      #echo "--->env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}"
-#      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
       buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
   done
 }
@@ -329,6 +280,7 @@ function buildFrpcAndFrpsAll() {
 }
 
 function buildFrpcAndFrpsAllForGithubRelease() {
+  buildWeb
   echo "===>version:${version}"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
@@ -490,6 +442,11 @@ function main() {
 }
 
 function buildWeb() {
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+  source ~/.bashrc  # 或 source ~/.zshrc
+  nvm install 18.11.12
+  node -v  # 输出 v16.20.0
+  npm -v   # 自动匹配对应版本（如 npm 8.19.4）
   chmod +x ./web/build.sh
   ./web/build.sh
 }
