@@ -64,7 +64,7 @@ function buildFrpcAndFrpsAll() {
   sudo npm audit fix
   sudo chown -R 1001:118 "/root/.npm"
   buildFrpc &
-  #buildFrps &
+  buildFrps &
   wait  # 等待所有后台进程结束
   echo "所有任务完成"
 }
