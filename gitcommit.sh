@@ -217,9 +217,9 @@ function customTag() {
     read -p "请输入标签: " vtag
     git add .
     git commit -m "${commit}"
-    git tag -a v$vtag -m "${commit}"
-    git push origin v$vtag
-    echo "标签：v$vtag"
+    git tag -a $vtag -m "${commit}"
+    git push origin $vtag
+    echo "标签：$vtag"
 }
 
 function quickPushAndTag() {
