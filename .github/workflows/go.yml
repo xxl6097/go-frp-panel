@@ -35,7 +35,7 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Make All
+      - name: Make Go
         run: |
           chmod +x ./build.sh
           ./build.sh all ${{ github.ref_name }}
