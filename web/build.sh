@@ -14,7 +14,7 @@ function buildFrps() {
   ls -lh
 }
 
-function buildFrpcAndFrpsAll() {
+function buildFrpcAndFrpsAll1() {
 #  sudo apt update && sudo apt install make
 #  make --version
   # 下载并解压Node.js
@@ -69,5 +69,13 @@ function buildFrpcAndFrpsAll() {
   echo "所有任务完成"
 }
 
+
+
+function buildFrpcAndFrpsAll() {
+#  buildFrpc &
+#  buildFrps &
+#  wait  # 等待所有后台进程结束
+  echo "所有任务完成"
+}
 
 buildFrpcAndFrpsAll
