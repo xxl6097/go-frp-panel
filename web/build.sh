@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function buildFrpc() {
-  cd ./web/frpc && make build
+  cd ./web/frpc && make install && make build
   echo "frpc编译完成"
   pwd
   ls -lh
 }
 
 function buildFrps() {
-  cd ./web/frps && make build
+  cd ./web/frps && make install && make build
   echo "frps编译完成"
   pwd
   ls -lh
@@ -32,8 +32,8 @@ function buildFrpcAndFrpsAll() {
   npm install -g npm-run-all
   echo "打印run-p版本"
   run-p --version      # 全局安装时使用
-  echo "打印npm list npm-run-all"
-  npm list npm-run-all  # 本地依赖
+  #echo "打印npm list npm-run-all"
+  #npm list npm-run-all  # 本地依赖
 
   buildFrpc &
   buildFrps &
