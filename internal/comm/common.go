@@ -1,6 +1,7 @@
 package comm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/fatedier/frp/pkg/util/version"
@@ -42,7 +43,9 @@ func (this *commapi) GetBuffer() *sync.Pool {
 func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	ctx := r.Context()
+	//ctx := r.Context()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	var newFilePath string
 	switch r.Method {
 	case "PUT", "put":
