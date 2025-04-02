@@ -1,7 +1,6 @@
 package comm
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/fatedier/frp/pkg/util/version"
@@ -43,9 +42,9 @@ func (this *commapi) GetBuffer() *sync.Pool {
 func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	//ctx := r.Context()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := r.Context()
+	//ctx, cancel := context.WithCancel(context.Background())
+	//defer cancel()
 	var newFilePath string
 	switch r.Method {
 	case "PUT", "put":
@@ -114,19 +113,20 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		//	res.Error(fmt.Sprintf("更新失败～%v", err))
 		//	return
 		//}
+		//res.Ok("升级成功～")
 		select {
 		case <-ctx.Done():
 			glog.Error("请求断开", newFilePath)
 			break
 		case err := <-ch:
+			glog.Error("升级成功", err, newFilePath)
 			if err != nil {
-				res.Error(err.Error())
+				res.Error(fmt.Sprintf("更新失败～%v", err))
+				return
 			} else {
 				res.Ok("升级成功～")
 			}
-			glog.Error("升级成功", newFilePath)
 		}
-		//res.Ok("升级成功～")
 	}
 	//下载和接收的最新文件 名称为上传文件的原始名称
 	//newBufferBytes, err := ukey.GenConfig(this.obj, false)
