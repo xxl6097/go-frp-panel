@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function buildFrpc() {
-  cd ./web/frpc && npm run install && npm run build
+  cd ./web/frpc && npm run build
   echo "frpc编译完成"
   pwd
   ls -lh
 }
 
 function buildFrps() {
-  cd ./web/frpc && npm run install && npm run build
+  cd ./web/frpc && npm run build
   echo "frps编译完成"
   pwd
   ls -lh
@@ -43,7 +43,7 @@ function buildFrpcAndFrpsAll() {
   #npm list npm-run-all  # 本地依赖
 
   buildFrpc &
-  buildFrps &
+  #buildFrps &
   wait  # 等待所有后台进程结束
   echo "所有任务完成"
 }
