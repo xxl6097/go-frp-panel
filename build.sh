@@ -1,11 +1,5 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
-#appname=$(basename $module)
-#appname="acfrps"
-#appdir="./cmd/frps"
-#DisplayName="AcFrps网络代理程序"
-#Description="一款基于GO语言的网络代理服务程序"
-#builddir="./release"
 options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 #options=("windows:amd64" "linux:amd64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
