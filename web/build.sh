@@ -36,7 +36,6 @@ function buildFrpcAndFrpsAll() {
   # 创建软链接到系统路径
   sudo ln -s ./node/bin/node /usr/bin/node
   sudo ln -s ./node/bin/npm /usr/bin/npm
-  ls -lh /usr/bin
   source ~/.bashrc
   nvm use 18.12.0
   echo "打印 node"
