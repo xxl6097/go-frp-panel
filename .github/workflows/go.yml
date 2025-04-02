@@ -19,11 +19,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - name: Install & Build
+      - name: Install & Build & frps
         run: |
           cd ./web/frps
           npm install
           npm run build
+      - name: Install & Build & frpc
+        run: |
+          cd ./web/frpc
+          npm install
+          npm run build
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
