@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function buildFrpc() {
-  cd frpc && make build
+  cd ./web/frpc && make build
   echo "frpc编译完成"
   pwd
   ls -lh
 }
 
 function buildFrps() {
-  cd frps && make build
+  cd ./web/frps && make build
   echo "frps编译完成"
   pwd
   ls -lh
