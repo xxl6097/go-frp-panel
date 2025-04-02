@@ -39,6 +39,14 @@ function buildFrpcAndFrpsAll() {
   npm install -g npm-run-all
   echo "打印run-p版本"
   run-p --version      # 全局安装时使用
+  echo "全局安装 vite"
+  npm install -g vite
+  echo "打印 vite"
+  vite --version  # 全局安装
+  echo "全局安装 vue-tsc"
+  npm install -g vue-tsc
+  echo "打印 vue-tsc"
+  vue-tsc --version
   #echo "打印npm list npm-run-all"
   #npm list npm-run-all  # 本地依赖
 
