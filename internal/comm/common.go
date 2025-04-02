@@ -40,6 +40,19 @@ func (this *commapi) GetBuffer() *sync.Pool {
 }
 
 func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	select {
+	case <-time.After(20 * time.Second):
+		fmt.Println("Operation completed")
+		w.Write([]byte("Operation completed"))
+	case <-ctx.Done():
+		// 客户端断开或超时
+		//if ctx.Err() == context.Canceled {
+		//}
+		fmt.Println("Client disconnected", ctx.Err())
+	}
+}
+func (this *commapi) ApiUpdate1(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	ctx := r.Context()
@@ -99,35 +112,36 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	//defer utils.Delete(newFilePath, "更新文件")
 	if newFilePath != "" {
 		glog.Debugf("开始升级 %s", newFilePath)
-		//var ch chan error
-		//go func(ch chan<- error) {
-		//	err := this.igs.Upgrade(ctx, newFilePath)
-		//	ch <- err
-		//	if err != nil {
-		//		res.Error(fmt.Sprintf("更新失败～%v", err))
-		//		return
-		//	}
-		//}(ch)
-		//select {
-		//case <-ctx.Done():
-		//	glog.Error("请求断开", newFilePath)
-		//	break
-		//case err := <-ch:
-		//	glog.Error("升级成功", err, newFilePath)
-		//	if err != nil {
-		//		res.Error(fmt.Sprintf("更新失败～%v", err))
-		//		return
-		//	} else {
-		//		res.Ok("升级成功～")
-		//	}
-		//}
+		var ch chan error
+		go func(ch chan<- error) {
+			err := this.igs.Upgrade(ctx, newFilePath)
+			ch <- err
+			if err != nil {
+				res.Error(fmt.Sprintf("更新失败～%v", err))
+				return
+			}
+		}(ch)
 
-		err := this.igs.Upgrade(ctx, newFilePath)
-		if err != nil {
-			res.Error(fmt.Sprintf("更新失败～%v", err))
-			return
+		select {
+		case <-ctx.Done():
+			glog.Error("请求断开", newFilePath)
+			break
+		case err := <-ch:
+			glog.Error("升级成功", err, newFilePath)
+			if err != nil {
+				res.Error(fmt.Sprintf("更新失败～%v", err))
+				return
+			} else {
+				res.Ok("升级成功～")
+			}
 		}
-		res.Ok("升级成功～")
+
+		//err := this.igs.Upgrade(ctx, newFilePath)
+		//if err != nil {
+		//	res.Error(fmt.Sprintf("更新失败～%v", err))
+		//	return
+		//}
+		//res.Ok("升级成功～")
 	}
 	//下载和接收的最新文件 名称为上传文件的原始名称
 	//newBufferBytes, err := ukey.GenConfig(this.obj, false)
