@@ -64,8 +64,6 @@ function buildgo() {
   os=$5
   arch=$6
   extra=$7
-  ldflags="${8}"
-  echo "==>$ldflags"
   dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
   flags='';
   if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
@@ -116,7 +114,7 @@ function buildMenu() {
   select arch in "${options[@]}"; do
       if [[ -n "$arch" ]]; then
         IFS=":" read -r os arch extra <<< "$arch"
-        buildgo $builddir $appname $version $appdir $os $arch $extra "${ldflags}"
+        buildgo $builddir $appname $version $appdir $os $arch $extra
         return $?
       else
         echo "输入无效，请重新选择。"
@@ -140,7 +138,7 @@ function buildAll() {
   ldflags=$(buildLdflags $appname $disname $describe)
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
-      buildgo $builddir $appname $version $appdir $os $arch $extra "${ldflags}"
+      buildgo $builddir $appname $version $appdir $os $arch $extra
   done
 }
 
