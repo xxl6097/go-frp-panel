@@ -55,6 +55,48 @@ func Version() string {
 EOF
 }
 
+# shellcheck disable=SC2120
+function buildgo() {
+  builddir=$1
+  appname=$2
+  version=$3
+  appdir=$4
+  os=$5
+  arch=$6
+  extra=$7
+  ldflags=$8
+  dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+  flags='';
+  if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+    if [ "${extra}" = "7" ]; then
+      flags=GOARM=7;
+      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
+    elif [ "${extra}" = "5" ]; then
+      flags=GOARM=5;
+      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+    fi;
+  elif [ "${os}" = "windows" ] ; then
+    dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+    if [ "${arch}" = "amd64" ]; then
+        go generate ${appdir}
+    fi
+  elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+    flags=GOMIPS=${extra};
+  fi;
+  #echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==> ${dstFilePath}"
+  printf "build：GOOS=%-7s GOARCH=%-8s ==> %s\n" ${os} ${arch} ${dstFilePath}
+
+  filename=$(basename "$dstFilePath")
+  binName="-X '${versionDir}.BinName=${filename}'"
+  #echo "--->env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}"
+  env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
+  if [ "${os}" = "windows" ] ; then
+    if [ "${arch}" = "amd64" ]; then
+        rm -rf ${appdir}/resource.syso
+    fi
+  fi;
+}
+
 # builddir：输出目录
 # appname：应用名称
 # version：应用版本
@@ -73,27 +115,30 @@ function buildMenu() {
   select arch in "${options[@]}"; do
       if [[ -n "$arch" ]]; then
         IFS=":" read -r os arch extra <<< "$arch"
-          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-          flags='';
-          if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-            if [ "${extra}" = "7" ]; then
-              flags=GOARM=7;
-              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
-            elif [ "${extra}" = "5" ]; then
-              flags=GOARM=5;
-              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-            fi;
-          elif [ "${os}" = "windows" ] ; then
-            dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
-            go generate ${appdir}
-          elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-            flags=GOMIPS=${extra};
-          fi;
-          echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-          #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-          filename=$(basename "$dstFilePath")  # 输出 "file.txt"
-          binName="-X '${versionDir}.BinName=${filename}'"
-          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
+        buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
+#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+#          flags='';
+#          if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+#            if [ "${extra}" = "7" ]; then
+#              flags=GOARM=7;
+#              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
+#            elif [ "${extra}" = "5" ]; then
+#              flags=GOARM=5;
+#              dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+#            fi;
+#          elif [ "${os}" = "windows" ] ; then
+#            dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+#            if [ "${arch}" = "amd64" ]; then
+#                go generate ${appdir}
+#            fi
+#          elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+#            flags=GOMIPS=${extra};
+#          fi;
+#          echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
+#          #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
+#          filename=$(basename "$dstFilePath")  # 输出 "file.txt"
+#          binName="-X '${versionDir}.BinName=${filename}'"
+#          env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
           return $?
       else
         echo "输入无效，请重新选择。"
@@ -118,29 +163,32 @@ function buildAll() {
   for arch in "${options[@]}"; do
       IFS=":" read -r os arch extra <<< "$arch"
       #echo "OS: $os | Arch: $arch | extra: ${extra}"
-      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-      flags='';
-      if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
-        if [ "${extra}" = "7" ]; then
-          flags=GOARM=7;
-          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
-        elif [ "${extra}" = "5" ]; then
-          flags=GOARM=5;
-          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
-        fi;
-      elif [ "${os}" = "windows" ] ; then
-        dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
-        go generate ${appdir}
-      elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
-        flags=GOMIPS=${extra};
-      fi;
-      echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
-      #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
-      filename=$(basename "$dstFilePath")  # 输出 "file.txt"
-      # shellcheck disable=SC2089
-      binName="-X '${versionDir}.BinName=${filename}'"
-      #echo "--->env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}"
-      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
+#      dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+#      flags='';
+#      if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
+#        if [ "${extra}" = "7" ]; then
+#          flags=GOARM=7;
+#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}hf
+#        elif [ "${extra}" = "5" ]; then
+#          flags=GOARM=5;
+#          dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
+#        fi;
+#      elif [ "${os}" = "windows" ] ; then
+#        dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+#        if [ "${arch}" = "amd64" ]; then
+#            go generate ${appdir}
+#        fi
+#      elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
+#        flags=GOMIPS=${extra};
+#      fi;
+#      echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==>${dstFilePath}"
+#      #echo "env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build"
+#      filename=$(basename "$dstFilePath")  # 输出 "file.txt"
+#      # shellcheck disable=SC2089
+#      binName="-X '${versionDir}.BinName=${filename}'"
+#      #echo "--->env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}"
+#      env CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} ${flags} go build -trimpath -ldflags "$ldflags $binName -linkmode internal" -o ${dstFilePath} ${appdir}
+      buildgo $builddir $appname $version $appdir $os $arch $extra $ldflags
   done
 }
 
@@ -446,6 +494,7 @@ function buildWeb() {
   ./web/build.sh
 }
 function bootstrap() {
+  #printf "\033[1;31m%-10s\033[0m\n" "Error"  # 红色加粗文本
   if [ $# -ge 2 ] && [ -n "$2" ]; then
     version=$2
   fi
