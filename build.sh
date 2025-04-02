@@ -37,18 +37,18 @@ var (
 // Version 版本信息
 func Version() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("App Name:\t%s\n", AppName))
-	sb.WriteString(fmt.Sprintf("App Version:\t%s\n", AppVersion))
-	sb.WriteString(fmt.Sprintf("Build version:\t%s\n", BuildVersion))
-	sb.WriteString(fmt.Sprintf("Build time:\t%s\n", BuildTime))
-	sb.WriteString(fmt.Sprintf("Git revision:\t%s\n", GitRevision))
-	sb.WriteString(fmt.Sprintf("Git branch:\t%s\n", GitBranch))
-	sb.WriteString(fmt.Sprintf("Golang Version: %s\n", GoVersion))
-	sb.WriteString(fmt.Sprintf("DisplayName:\t%s\n", DisplayName))
-	sb.WriteString(fmt.Sprintf("Description:\t%s\n", Description))
-	sb.WriteString(fmt.Sprintf("OsType:\t%s\n", OsType))
-	sb.WriteString(fmt.Sprintf("Arch:\t%s\n", Arch))
-	sb.WriteString(fmt.Sprintf("BinName:\t%s\n", BinName))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "App Name", AppName))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "App Version", AppVersion))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Build version", BuildVersion))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Build time", BuildTime))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Git revision", GitRevision))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Git branch", GitBranch))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Golang Version", GoVersion))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "DisplayName", DisplayName))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Description", Description))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "OsType", OsType))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Arch", Arch))
+	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "BinName", BinName))
 	fmt.Println(sb.String())
 	return sb.String()
 }
@@ -85,6 +85,7 @@ function buildMenu() {
             fi;
           elif [ "${os}" = "windows" ] ; then
             dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+            go generate ${appdir}
           elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
             flags=GOMIPS=${extra};
           fi;
@@ -129,6 +130,7 @@ function buildAll() {
         fi;
       elif [ "${os}" = "windows" ] ; then
         dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}.exe
+        go generate ${appdir}
       elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
         flags=GOMIPS=${extra};
       fi;
@@ -280,6 +282,8 @@ function buildFrpcAndFrpsAll() {
 
 function buildFrpcAndFrpsAllForGithubRelease() {
   echo "===>version:${version}"
+  go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   buildFrpcAndFrpsAll
   mkdir -p ./release/packages
   cp -f ./release/frpc/* ./release/packages

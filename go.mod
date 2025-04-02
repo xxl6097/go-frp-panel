@@ -10,13 +10,14 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
 	github.com/xxl6097/glog v0.1.20
-	github.com/xxl6097/go-service v0.4.18
+	github.com/xxl6097/go-service v0.4.20
 	golang.org/x/net v0.35.0
 	golang.org/x/text v0.22.0
 )
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
+	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -29,6 +30,7 @@ require (
 	github.com/google/pprof v0.0.0-20241206021119-61a79c692802 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/josephspurrier/goversioninfo v1.4.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.22.0 // indirect
