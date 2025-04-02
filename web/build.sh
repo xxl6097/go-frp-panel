@@ -28,10 +28,8 @@ function buildFrpcAndFrpsAll() {
   node -v  # 应输出如v16.20.0
   npm -v   # 应输出如8.19.4
 
-  echo "安装npm-run-all"
-  npm install npm-run-all --save-dev
-  echo "打印npx版本"
-  npx run-p --version  # 本地安装时使用
+  echo "全局安装npm-run-all"
+  npm install -g npm-run-all
   echo "打印run-p版本"
   run-p --version      # 全局安装时使用
   echo "打印npm list npm-run-all"
