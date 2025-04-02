@@ -61,7 +61,7 @@ func GetFilenameFromHeader(header http.Header) string {
 	return ""
 }
 
-func DownLoad(url string, args ...string) (string, error) {
+func DownLoadBAK(url string, args ...string) (string, error) {
 	// 要下载的文件的 URL
 	// 发送 HTTP GET 请求
 	resp, err := http.Get(url)

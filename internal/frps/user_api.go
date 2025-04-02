@@ -2,6 +2,7 @@ package frps
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -176,6 +177,8 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	//}
 	//fmt.Println(string(body1))
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	body, err := utils.GetDataByJson[struct {
 		BinPath string `json:"binPath"`
 		BinUrl  string `json:"binUrl"`
@@ -194,7 +197,8 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	glog.Debugf("body:%+v\n", body)
 	if utils2.IsURL(body.BinUrl) {
-		dstPath, err := utils.DownLoad(body.BinUrl)
+		//dstPath, err := utils.DownLoad(body.BinUrl)
+		dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
 		if err != nil {
 			msg := fmt.Errorf("下载文件失败～%v", err)
 			glog.Error(msg)
@@ -416,6 +420,9 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	res := &comm.GeneralResponse{Code: 0}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	body, err := utils.GetDataByJson[struct {
 		BinPath string `json:"binPath"`
 		BinUrl  string `json:"binUrl"`
@@ -434,7 +441,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
-		dstPath, err1 := utils.DownLoad(body.BinUrl)
+		dstPath, err1 := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
 		if err1 == nil {
 			body.BinPath = dstPath
 		}
