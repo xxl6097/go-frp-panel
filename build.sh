@@ -64,7 +64,8 @@ function buildgo() {
   os=$5
   arch=$6
   extra=$7
-  ldflags=$8
+  ldflags="${8}"
+  echo "==>$ldflags"
   dstFilePath=${builddir}/${appname}_${version}_${os}_${arch}
   flags='';
   if [ "${os}" = "linux" ] && [ "${arch}" = "arm" ] && [ "${extra}" != "" ] ; then
