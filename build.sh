@@ -442,6 +442,7 @@ function main() {
 }
 
 function buildWeb() {
+  sudo apt update && sudo apt install make
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
   source ~/.bashrc  # 或 source ~/.zshrc
   nvm install 18.11.12
