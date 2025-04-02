@@ -26,8 +26,8 @@ function buildFrpcAndFrpsAll() {
   tar xf node-v${ver}-linux-x64.tar.xz
 
 
-#  rm -r /usr/local/bin/node
-#  rm -r /usr/local/bin/npm
+  rm -r /usr/local/bin/node
+  rm -r /usr/local/bin/npm
   # 创建软链接到系统路径
   sudo ln -s ./node-v${ver}-linux-x64/bin/node /usr/local/bin/node
   sudo ln -s ./node-v${ver}-linux-x64/bin/npm /usr/local/bin/npm
