@@ -5,7 +5,7 @@
 <div align="center">基于Frp开源代码打造的自定义配置管理📺、无需配置文件、自定义配置、在线自动升级、frpc多客户端运行管理，免去了配置文件的复杂操作，可实现『✨秒妙极安装体验🚀』</div>
 <br>
 <p align="center">
-  <a href="https://github.com/xxl6097/go-frp-panel/releases/latest">
+  <a href="https://github.com/xxl6[pkg](pkg)097/go-frp-panel/releases/latest">
     <img src="https://img.shields.io/github/v/release/xxl6097/go-frp-panel" />
   </a>
   <a href="https://github.com/xxl6097/go-frp-panel/releases/latest">

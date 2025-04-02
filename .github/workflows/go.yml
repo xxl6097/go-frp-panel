@@ -24,6 +24,7 @@ jobs:
       - name: Make All
         run: |
           echo "head_commit：${{ github.event.head_commit }}"
+          chmod +x ./build.sh
           ./build.sh all ${{ github.ref_name }}
 
       - name: Run GoReleaser
