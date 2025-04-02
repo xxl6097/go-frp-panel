@@ -62,7 +62,7 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 			data = res.Raw
 			glog.Infof("Http response [%s %s]: raw: %s", r.Method, r.URL.Path, string(res.Raw))
 		} else {
-			glog.Infof("Http response [%s %s]: res: %v", r.Method, r.URL.Path, res)
+			//glog.Infof("Http response [%s %s]: res: %v", r.Method, r.URL.Path, res)
 			bb, err := json.Marshal(res)
 			if err != nil {
 				glog.Errorf("marshal result error: %v", err)
