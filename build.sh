@@ -442,13 +442,6 @@ function main() {
 }
 
 function buildWeb() {
-  sudo apt update && sudo apt install make
-  make --version
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-  source ~/.bashrc  # 或 source ~/.zshrc
-  nvm install 18.11.12
-  node -v  # 输出 v16.20.0
-  npm -v   # 自动匹配对应版本（如 npm 8.19.4）
   chmod +x ./web/build.sh
   ./web/build.sh
 }
