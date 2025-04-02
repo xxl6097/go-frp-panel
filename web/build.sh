@@ -25,16 +25,16 @@ function buildFrpcAndFrpsAll() {
   wget -q https://nodejs.org/dist/v${ver}/node-v${ver}-linux-x64.tar.xz
   tar xf node-v${ver}-linux-x64.tar.xz
 
-  ls -lh ./node-v${ver}-linux-x64/bin
-  ls -lh /usr/local/bin
+  mv -r node-v${ver}-linux-x64 node
+
+  ls -lh ./node/bin
 
   sudo rm -r /usr/local/bin/node
   sudo rm -r /usr/local/bin/npm
-  ls -lh /usr/local/bin
 
   # 创建软链接到系统路径
-  sudo ln -s ./node-v${ver}-linux-x64/bin/node /usr/local/bin/node
-  sudo ln -s ./node-v${ver}-linux-x64/bin/npm /usr/local/bin/npm
+  sudo ln -s ./node/bin/node /usr/local/bin/node
+  sudo ln -s ./node/bin/npm /usr/local/bin/npm
   echo "打印 node"
   node -v  # 应输出如v16.20.0
   echo "打印 npm"
