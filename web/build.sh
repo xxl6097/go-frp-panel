@@ -30,13 +30,13 @@ function buildFrpcAndFrpsAll() {
 
   ls -lh ./node/bin
 
-  sudo rm -r /usr/local/bin/node
-  sudo rm -r /usr/local/bin/npm
+  sudo rm -r /usr/bin/node
+  sudo rm -r /usr/bin/npm
 
   # 创建软链接到系统路径
-  sudo ln -s ./node/bin/node /usr/local/bin/node
-  sudo ln -s ./node/bin/npm /usr/local/bin/npm
-  ls -lh /usr/local/bin
+  sudo ln -s ./node/bin/node /usr/bin/node
+  sudo ln -s ./node/bin/npm /usr/bin/npm
+  ls -lh /usr/bin
   echo "打印 node"
   node -v  # 应输出如v16.20.0
   echo "打印 npm"
