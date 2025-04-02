@@ -25,7 +25,7 @@ function buildFrpcAndFrpsAll() {
   wget -q https://nodejs.org/dist/v${ver}/node-v${ver}-linux-x64.tar.xz
   tar xf node-v${ver}-linux-x64.tar.xz
 
-  mv -r node-v${ver}-linux-x64 node
+  mv -f node-v${ver}-linux-x64 node
 
   ls -lh ./node/bin
 
