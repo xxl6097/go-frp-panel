@@ -282,12 +282,12 @@ function buildFrpcAndFrpsAll() {
 function buildFrpcAndFrpsAllForGithubRelease() {
   buildWeb
   echo "===>version:${version}"
-  go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-  buildFrpcAndFrpsAll
-  mkdir -p ./release/packages
-  cp -f ./release/frpc/* ./release/packages
-  cp -f ./release/frps/* ./release/packages
+#  go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+#  go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+#  buildFrpcAndFrpsAll
+#  mkdir -p ./release/packages
+#  cp -f ./release/frpc/* ./release/packages
+#  cp -f ./release/frps/* ./release/packages
 }
 
 function buildFrpcMenu() {
