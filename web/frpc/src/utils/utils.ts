@@ -35,55 +35,83 @@ export function showErrorTips(message: string) {
   })
 }
 
-export function markdownToHtml(mdText: string) {
-  const lines = mdText.split('\n')
-  let html = ''
-  let inCodeBlock = false
-  let inList = false
+export function markdownToHtml(markdown: string): string {
+  let lines: string[] = markdown.split('\n');
+  let html: string = '';
+  let inList: boolean = false;
+  let listItems: string[] = [];
+  let inCodeBlock: boolean = false;
+  let codeBlockContent: string = '';
 
-  for (const line of lines) {
-    // 代码块处理
-    if (line.trim().startsWith('```')) {
-      inCodeBlock = !inCodeBlock
-      html += inCodeBlock ? '<pre><code>' : '</code></pre>\n'
-      continue
+  for (let i = 0; i < lines.length; i++) {
+    let line: string = lines[i].trim();
+
+    // 处理代码块开始
+    if (line.startsWith('```')) {
+      if (inCodeBlock) {
+        html += `<pre><code>${codeBlockContent}</code></pre>`;
+        inCodeBlock = false;
+        codeBlockContent = '';
+      } else {
+        inCodeBlock = true;
+      }
+      continue;
     }
+
     if (inCodeBlock) {
-      html += line + '\n'
-      continue
+      codeBlockContent += line + '\n';
+      continue;
     }
 
-    // 各语法规则处理
-    let processed = line
-    processed = processed
-      .replace(
-        /^(#{1,6})\s+(.+)/,
-        (_, hashes, content) =>
-          `<h${hashes.length}>${content}</h${hashes.length}>`,
-      )
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^-\s+(.+)/, (_, content) => {
-        if (!inList) {
-          inList = true
-          return '<ul>\n<li>' + content + '</li>'
-        }
-        return '<li>' + content + '</li>'
-      })
-      .replace(/^-{3,}/, '<hr>')
-
-    // 列表闭合
-    if (inList && !processed.startsWith('<li>')) {
-      processed = '</ul>\n' + processed
-      inList = false
+    // 处理标题
+    if (/^(#+) (.*)$/.test(line)) {
+      let [, hashes, content] = line.match(/^(#+) (.*)$/)!;
+      let level: number = hashes.length;
+      if (inList) {
+        html += `<ul>${listItems.join('')}</ul>`;
+        inList = false;
+        listItems = [];
+      }
+      html += `<h${level}>${content}</h${level}>`;
     }
-
-    // 段落处理
-    if (processed.trim()) {
-      html += processed.replace(/\n/g, '<br>') + '\n'
+    // 处理无序列表
+    else if (/^([*-]) (.*)$/.test(line)) {
+      let [, , content] = line.match(/^([*-]) (.*)$/)!;
+      if (!inList) {
+        inList = true;
+      }
+      listItems.push(`<li>${content}</li>`);
+    }
+    // 处理段落
+    else {
+      if (inList) {
+        html += `<ul>${listItems.join('')}</ul>`;
+        inList = false;
+        listItems = [];
+      }
+      if (line) {
+        html += `<p>${line}</p>`;
+      }
     }
   }
-  return html
+
+  // 如果最后处于列表状态，闭合列表
+  if (inList) {
+    html += `<ul>${listItems.join('')}</ul>`;
+  }
+
+  // 如果最后处于代码块状态，闭合代码块
+  if (inCodeBlock) {
+    html += `<pre><code>${codeBlockContent}</code></pre>`;
+  }
+
+  // 处理加粗
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // 处理斜体
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  return html;
 }
 export function showMessageDialog(
   title: string,

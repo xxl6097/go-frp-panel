@@ -680,4 +680,21 @@ html.dark .header-color {
   z-index: 9999;
   width: 100%;
 }
+
+pre code {
+  background: #f4f4f4;
+  padding: 1rem;
+  border-radius: 4px;
+  display: block;
+  overflow-x: auto;
+}
+hr {
+  border: 0;
+  height: 1px;
+  background: #ddd;
+}
+ul {
+  padding-left: 2em;
+  list-style: square;
+}
 </style>

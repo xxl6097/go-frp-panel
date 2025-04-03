@@ -243,7 +243,7 @@ func CheckVersionFromGithub() []string {
 	githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
 	resp, err := http.Get(baseUrl)
 	if err != nil {
-		fmt.Printf("请求失败:%v\n", err)
+		glog.Errorf("请求失败:%v\n", err)
 		return nil
 	}
 

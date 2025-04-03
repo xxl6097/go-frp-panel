@@ -39,7 +39,7 @@ func (this *commapi) GetBuffer() *sync.Pool {
 	return this.pool
 }
 
-func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
+func (this *commapi) ApiUpdate1(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	select {
 	case <-time.After(20 * time.Second):
@@ -52,7 +52,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Client disconnected", ctx.Err())
 	}
 }
-func (this *commapi) ApiUpdate1(w http.ResponseWriter, r *http.Request) {
+func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
 	ctx := r.Context()
