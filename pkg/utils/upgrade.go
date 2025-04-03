@@ -240,12 +240,12 @@ func ExtractCodeBlocks(markdown string) []string {
 	return codeBlocks
 }
 
-func DynamicSelect[T any](t []T, fun func(T) T) T {
+func DynamicSelect[T any](t []T, fun func(int, T) T) T {
 	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
-	for _, v := range t {
-		go func(t T, c chan<- T) {
-			c <- fun(t)
-		}(v, ch)
+	for i, v := range t {
+		go func(index int, t T, c chan<- T) {
+			c <- fun(index, t)
+		}(i, v, ch)
 	}
 
 	var ret T
@@ -305,7 +305,6 @@ func CheckVersionFromGithub() []string {
 			glog.Debugf("CompareVersions(new[%s], old[%s])  %d", v2, v1, isVersion)
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
-				glog.Debug("1新固件地址:", binVersionBinNameUrl)
 				githubProxys := parseMarkdownCodeToStringArray(releaseNote)
 				newProxy := []string{}
 				for _, proxy := range githubProxys {
@@ -314,19 +313,18 @@ func CheckVersionFromGithub() []string {
 					//glog.Debug(newUrl)
 				}
 				newProxy = append(newProxy, binVersionBinNameUrl)
-				binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {
-					if !IsURLValidAndAccessible(s) {
-						time.Sleep(time.Second * 10)
-					}
-					return s
-				})
-				glog.Debug("2新固件地址:", binVersionBinNameUrl)
+				//binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {
+				//	if !IsURLValidAndAccessible(s) {
+				//		time.Sleep(time.Second * 10)
+				//	}
+				//	return s
+				//})
 
 				index := strings.Index(releaseNote, "---")
 				if index > 0 {
 					releaseNote = releaseNote[:index]
 				}
-				return []string{binVersionBinNameUrl, fmt.Sprintf("### ✅ 新版本\r\n%s\r\n%s", tagName, releaseNote)}
+				return []string{strings.Join(newProxy, ","), fmt.Sprintf("### ✅ 新版本\r\n%s\r\n%s", tagName, releaseNote)}
 
 				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
 				//	return []string{binVersionBinNameUrl, releaseNote}

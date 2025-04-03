@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -80,6 +81,9 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		//	return
 		//}
 		glog.Debugf("upgrade by url: %s", newFilePath)
+		urls := strings.Split(newFilePath, ",")
+		newUrl := utils.DownloadFileWithCancelByUrls(urls)
+		newFilePath = newUrl
 		break
 	case "POST", "post":
 		// 获取上传的文件
