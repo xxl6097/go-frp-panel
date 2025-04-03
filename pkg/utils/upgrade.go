@@ -326,8 +326,7 @@ func CheckVersionFromGithub() []string {
 				if index > 0 {
 					releaseNote = releaseNote[:index]
 				}
-
-				return []string{binVersionBinNameUrl, releaseNote}
+				return []string{binVersionBinNameUrl, fmt.Sprintf("### ✅ 新版本\r\n%s\r\n%s", tagName, releaseNote)}
 
 				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
 				//	return []string{binVersionBinNameUrl, releaseNote}
