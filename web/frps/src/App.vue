@@ -1,7 +1,7 @@
 <template>
   <el-progress
     :percentage="globalProgress"
-    :disabled="globalProgress === 0 || globalProgress >= 100"
+    :disabled="globalProgress > 0 && globalProgress < 100"
     :stroke-width="2"
     :show-text="false"
     :color="customColors"
