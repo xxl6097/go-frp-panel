@@ -9,6 +9,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
@@ -82,6 +83,18 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		//}
 		glog.Debugf("upgrade by url: %s", newFilePath)
 		urls := strings.Split(newFilePath, ",")
+
+		updir := utils.GetUpgradeDir()
+		total, used, free, err := util.GetDiskUsage(updir)
+		fmt.Printf("Current Working Directory: %s\n", updir)
+		fmt.Printf("Total space: %d bytes %v\n", total, float64(total)/1024/1024/1024)
+		fmt.Printf("Used space: %d bytes %v\n\n", used, float64(used)/1024/1024/1024)
+		fmt.Printf("Free space: %d bytes %v\n\n", free, float64(free)/1024/1024/1024)
+
+		if free < utils2.GetSelfSize()*2 {
+			urls = []string{urls[0]}
+		}
+
 		newUrl := utils.DownloadFileWithCancelByUrls(urls)
 		newFilePath = newUrl
 		break

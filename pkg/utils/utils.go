@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -275,4 +276,24 @@ func ReplaceNewVersionBinName(filename, v string) string {
 	newName := re.ReplaceAllString(filename, fmt.Sprintf("_%s_", v)) // 替换为单个下划线
 	fmt.Println(newName)
 	return newName
+}
+
+func GetSelfSize() uint64 {
+	// 获取当前可执行文件的路径
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Printf("获取可执行文件路径时出错: %v\n", err)
+		return 0
+	}
+	// 获取文件信息
+	fileInfo, err := os.Stat(exePath)
+	if err != nil {
+		fmt.Printf("获取文件信息时出错: %v\n", err)
+		return 0
+	}
+
+	// 获取文件大小
+	fileSize := fileInfo.Size()
+	fmt.Printf("本程序自身大小为: %d 字节\n", fileSize)
+	return uint64(fileSize)
 }
