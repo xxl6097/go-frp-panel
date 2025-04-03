@@ -12,7 +12,7 @@
 ### ⚙️ 问题修复
 
 * Properly release resources in service.Close() to prevent resource leaks when used as a library.
-
+---
 ### 🚀 github加速
 
 ```

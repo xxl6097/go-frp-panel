@@ -42,12 +42,14 @@ func main() {
 	b, _ := io.ReadAll(r.Body)
 	var res map[string]interface{}
 	json.Unmarshal(b, &res)
-	//fmt.Println(res["body"])
+	str := res["body"].(string)
+	index := strings.Index(str, "---")
 
-	codeBlocks := extractCodeBlocks(res["body"].(string))
-	for _, block := range codeBlocks {
-		var r []string
-		json.Unmarshal([]byte(block), &r)
-		fmt.Println(r)
-	}
+	fmt.Println(index, str)
+	//codeBlocks := extractCodeBlocks(res["body"].(string))
+	//for _, block := range codeBlocks {
+	//	var r []string
+	//	json.Unmarshal([]byte(block), &r)
+	//	fmt.Println(r)
+	//}
 }
