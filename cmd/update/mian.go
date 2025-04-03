@@ -44,8 +44,7 @@ func main() {
 	json.Unmarshal(b, &res)
 	str := res["body"].(string)
 	index := strings.Index(str, "---")
-
-	fmt.Println(index, str)
+	fmt.Println(index, str[:index])
 	//codeBlocks := extractCodeBlocks(res["body"].(string))
 	//for _, block := range codeBlocks {
 	//	var r []string

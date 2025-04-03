@@ -311,7 +311,7 @@ func CheckVersionFromGithub() []string {
 				for _, proxy := range githubProxys {
 					newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
 					newProxy = append(newProxy, newUrl)
-					glog.Debug(newUrl)
+					//glog.Debug(newUrl)
 				}
 				newProxy = append(newProxy, binVersionBinNameUrl)
 				binVersionBinNameUrl = DynamicSelect[string](newProxy, func(s string) string {
@@ -321,6 +321,12 @@ func CheckVersionFromGithub() []string {
 					return s
 				})
 				glog.Debug("2新固件地址:", binVersionBinNameUrl)
+
+				index := strings.Index(releaseNote, "---")
+				if index > 0 {
+					releaseNote = releaseNote[:index]
+				}
+
 				return []string{binVersionBinNameUrl, releaseNote}
 
 				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
