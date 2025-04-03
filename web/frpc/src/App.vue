@@ -1,7 +1,7 @@
 <template>
   <el-progress
+     v-if="globalProgress > 0 && globalProgress < 100"
     :percentage="globalProgress"
-    :disabled="globalProgress === 0 || globalProgress >= 100"
     :stroke-width="2"
     :show-text="false"
     :color="customColors"
