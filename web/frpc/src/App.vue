@@ -537,4 +537,25 @@ html.dark .header-color {
   z-index: 9999;
   width: 100%;
 }
+/* 代码块样式 */
+pre {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+code {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  color: #c7254e;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #333;
+}
 </style>

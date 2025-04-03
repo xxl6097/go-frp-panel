@@ -680,21 +680,25 @@ html.dark .header-color {
   z-index: 9999;
   width: 100%;
 }
-
-pre code {
-  background: #f4f4f4;
-  padding: 1rem;
+/* 代码块样式 */
+pre {
+  border: 1px solid #ddd;
   border-radius: 4px;
-  display: block;
+  padding: 10px;
   overflow-x: auto;
 }
-hr {
-  border: 0;
-  height: 1px;
-  background: #ddd;
+
+code {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  color: #c7254e;
+  padding: 2px 4px;
+  border-radius: 4px;
 }
-ul {
-  padding-left: 2em;
-  list-style: square;
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #333;
 }
 </style>

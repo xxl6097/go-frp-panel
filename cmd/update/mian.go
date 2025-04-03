@@ -1,20 +1,53 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"regexp"
+	"github.com/xxl6097/glog/glog"
+	"io"
+	"net/http"
+	"strings"
 )
 
-func test() {
-	filename := "acfrps_v1.34.0_windows_amd64.exe"
-	// 匹配 v 开头 + 数字组合（支持多级版本号）
-	re := regexp.MustCompile(`_v\d+\.\d+\.\d+_`)
-	newName := re.ReplaceAllString(filename, "_v0.0.0_") // 替换为单个下划线
-	fmt.Println(newName)                                 // 输出 acfrps_windows_amd64.exe
+func extractCodeBlocks(markdown string) []string {
+	var codeBlocks []string
+	inCodeBlock := false
+	var currentCodeBlock strings.Builder
+
+	scanner := bufio.NewScanner(strings.NewReader(markdown))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "```") {
+			if inCodeBlock {
+				codeBlocks = append(codeBlocks, currentCodeBlock.String())
+				currentCodeBlock.Reset()
+			}
+			inCodeBlock = !inCodeBlock
+		} else if inCodeBlock {
+			currentCodeBlock.WriteString(line)
+			currentCodeBlock.WriteRune('\n')
+		}
+	}
+
+	return codeBlocks
 }
 func main() {
-	test()
-	binurl := "https://github.com/xxl6097/go-frp-panel/releases/download/v0.0.47/acfrps_v0.0.47_linux_amd64"
-	fmt.Println(utils.IsURLValidAndAccessible(binurl))
+
+	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+	r, err := http.Get(baseUrl)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	b, _ := io.ReadAll(r.Body)
+	var res map[string]interface{}
+	json.Unmarshal(b, &res)
+	//fmt.Println(res["body"])
+
+	codeBlocks := extractCodeBlocks(res["body"].(string))
+	for _, block := range codeBlocks {
+		var r []string
+		json.Unmarshal([]byte(block), &r)
+		fmt.Println(r)
+	}
 }

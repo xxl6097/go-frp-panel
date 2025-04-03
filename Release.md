@@ -1,4 +1,4 @@
-### ✅ Features
+### ✅ 新特性
 
 * 程序以服务形式安装并运行，支持跨平台windows、linux、macos平台；
 * 新增重启功能，用户可管理后台操作重启；
@@ -9,7 +9,7 @@
 * frpc客户端可运行多客户端
 * 新增frpc用户配置导入导出
 
-### ⚙️ Fixes
+### ⚙️ 问题修复
 
 * Properly release resources in service.Close() to prevent resource leaks when used as a library.
 

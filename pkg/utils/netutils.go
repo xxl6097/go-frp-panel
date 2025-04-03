@@ -39,7 +39,7 @@ func isURLAccessible(urlStr string) bool {
 	}
 	resp, err := client.Head(urlStr)
 	if err != nil || resp.StatusCode >= 400 {
-		fmt.Printf("isURLAccessible: Head response error: %v, %v", err, urlStr)
+		//fmt.Printf("isURLAccessible: Head response error: %v, %v", err, urlStr)
 		return false
 	}
 	defer resp.Body.Close()

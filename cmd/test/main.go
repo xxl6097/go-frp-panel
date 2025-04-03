@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"io"
@@ -28,6 +29,7 @@ import (
 //		_, _, err := conn.ReadFrom(reply)
 //		return err == nil
 //	}
+
 func main() {
 	//rawURL := "C://test.txt"
 	//
@@ -51,10 +53,14 @@ func main() {
 	//}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
 	//fmt.Println("-->", e)
 
-	r, err := http.Get("https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.52/github_proxy.json")
+	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+	r, err := http.Get(baseUrl)
 	if err != nil {
 		glog.Fatal(err)
 	}
 	b, _ := io.ReadAll(r.Body)
 	fmt.Println(string(b))
+	var res map[string]interface{}
+	json.Unmarshal(b, &res)
+	fmt.Println(res["body"])
 }

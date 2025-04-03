@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -215,6 +217,29 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 	return signFilePath, nil
 }
 
+func ExtractCodeBlocks(markdown string) []string {
+	var codeBlocks []string
+	inCodeBlock := false
+	var currentCodeBlock strings.Builder
+
+	scanner := bufio.NewScanner(strings.NewReader(markdown))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "```") {
+			if inCodeBlock {
+				codeBlocks = append(codeBlocks, currentCodeBlock.String())
+				currentCodeBlock.Reset()
+			}
+			inCodeBlock = !inCodeBlock
+		} else if inCodeBlock {
+			currentCodeBlock.WriteString(line)
+			currentCodeBlock.WriteRune('\n')
+		}
+	}
+
+	return codeBlocks
+}
+
 func DynamicSelect[T any](t []T, fun func(T) T) T {
 	ch := make(chan T, len(t)) // 缓冲大小等于协程数量
 	for _, v := range t {
@@ -237,16 +262,28 @@ func DynamicSelect[T any](t []T, fun func(T) T) T {
 	return ret
 }
 
+func parseMarkdownCodeToStringArray(body string) []string {
+	codeBlocks := ExtractCodeBlocks(body)
+	if len(codeBlocks) == 0 {
+		return []string{}
+	}
+	var r []string
+	err := json.Unmarshal([]byte(codeBlocks[0]), &r)
+	if err != nil {
+		return []string{}
+	}
+	return r
+}
+
 func CheckVersionFromGithub() []string {
 	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
-	githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
+	//githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
 	resp, err := http.Get(baseUrl)
 	if err != nil {
 		glog.Errorf("请求失败:%v\n", err)
 		return nil
 	}
-
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -269,6 +306,7 @@ func CheckVersionFromGithub() []string {
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
 				glog.Debug("1新固件地址:", binVersionBinNameUrl)
+				githubProxys := parseMarkdownCodeToStringArray(releaseNote)
 				newProxy := []string{}
 				for _, proxy := range githubProxys {
 					newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
