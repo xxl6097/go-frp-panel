@@ -286,6 +286,8 @@ function buildFrpcAndFrpsAllForGithubRelease() {
   mkdir -p ./release/packages
   cp -f ./release/frpc/* ./release/packages
   cp -f ./release/frps/* ./release/packages
+  cp -f ./test.sh ./release/packages
+  cp -f ./index.html ./release/packages
 }
 
 function buildFrpcMenu() {
