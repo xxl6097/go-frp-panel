@@ -140,6 +140,7 @@ function buildAll() {
       IFS=":" read -r os arch extra <<< "$arch"
       buildgo $builddir $appname $version $appdir $os $arch $extra
   done
+  #wait
 }
 
 function build() {
