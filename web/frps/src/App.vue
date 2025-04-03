@@ -701,4 +701,31 @@ pre code {
   padding: 0;
   color: #333;
 }
+
+/* 无序列表样式 */
+ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 1px;
+  transition: all 0.3s ease;
+}
+/* marker 样式 */
+li::marker {
+  content: '•';
+  color: #007BFF;
+  padding: 2px 4px;
+  font-size: 1.4em;
+  margin-right: 20px;
+  transition: color 0.3s ease;
+}
+
+li:hover {
+  transform: translateX(5px);
+}
+
+li:hover::marker {
+  color: #FF6347;
+}
 </style>
