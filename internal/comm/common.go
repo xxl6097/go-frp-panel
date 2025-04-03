@@ -91,7 +91,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		glog.Printf("Used space: %d bytes %v\n\n", used, float64(used)/1024/1024/1024)
 		glog.Printf("Free space: %d bytes %v\n\n", free, float64(free)/1024/1024/1024)
 
-		if free < utils2.GetSelfSize()*2 {
+		if free < utils2.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
 			urls = []string{urls[0]}
 		}
 
