@@ -12,3 +12,13 @@
 ### ⚙️ Fixes
 
 * Properly release resources in service.Close() to prevent resource leaks when used as a library.
+
+### 🚀 github加速
+
+```
+[
+  "https://ghfast.top/",
+  "https://gh-proxy.com/",
+  "https://ghproxy.1888866.xyz/"
+]
+```

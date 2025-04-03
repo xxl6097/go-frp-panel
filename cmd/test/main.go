@@ -1,11 +1,10 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"github.com/avast/retry-go/v4"
 	"github.com/xxl6097/glog/glog"
-	"time"
+	"io"
+	"net/http"
 )
 
 //	func PingRaw(ip string) bool {
@@ -43,12 +42,19 @@ func main() {
 	//	fmt.Println(i)
 	//}
 
-	e := retry.Do(func() error {
-		for i := 0; i < 5; i++ {
-			glog.Println("wahaha", i)
-			time.Sleep(time.Second)
-		}
-		return errors.New("error")
-	}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
-	fmt.Println("-->", e)
+	//e := retry.Do(func() error {
+	//	for i := 0; i < 5; i++ {
+	//		glog.Println("wahaha", i)
+	//		time.Sleep(time.Second)
+	//	}
+	//	return errors.New("error")
+	//}, retry.DelayType(retry.FixedDelay), retry.Delay(time.Second*2), retry.Attempts(5))
+	//fmt.Println("-->", e)
+
+	r, err := http.Get("https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.52/github_proxy.json")
+	if err != nil {
+		glog.Fatal(err)
+	}
+	b, _ := io.ReadAll(r.Body)
+	fmt.Println(string(b))
 }
