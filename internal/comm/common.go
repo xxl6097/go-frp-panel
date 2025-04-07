@@ -267,7 +267,7 @@ func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 	}
 	res.Raw = jsonBytes
-	glog.Println("操作系统:", runtime.GOOS)   // 如 "linux", "windows"
+	glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
 	glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
 	glog.Println("CPU 核心数:", runtime.NumCPU())
 }
