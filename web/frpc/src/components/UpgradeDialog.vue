@@ -128,6 +128,7 @@ checkVersion()
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999; /* 设置较高的 z-index 值，确保在最顶部 */
 }
 
 .upgrade-popup {

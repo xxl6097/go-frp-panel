@@ -412,7 +412,7 @@ const customUpload = (options: any) => {
     .catch((error) => {
       console.error('请求失败', error)
       // 上传失败的回调
-      showErrorTips('上传失败的回调')
+      //showErrorTips('上传失败的回调')
     })
     .finally(() => {
       loading.close()
