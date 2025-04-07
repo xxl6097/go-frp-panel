@@ -3,7 +3,7 @@
     <el-page-header :icon="null" style="width: 100%; margin-bottom: 20px">
       <template #title>
         <el-select
-          v-model="value"
+          v-model="select_value"
           @change="handleSelectChange"
           placeholder="多客户端状态"
           clearable
@@ -89,7 +89,7 @@ interface Option {
   label: string
 }
 const status = ref<any[]>([])
-const value = ref('')
+const select_value = ref('')
 const options = ref<Option[]>([])
 const loading = ref<boolean>(false)
 
@@ -104,7 +104,8 @@ const handleSelectChange = (value: string) => {
 
 const refresh = () => {
   loading.value = true
-  if (value.value === '') {
+  console.log('refresh---->', select_value.value)
+  if (select_value.value === undefined || select_value.value === '') {
     fetchData()
   } else {
     fetchStatus()
@@ -124,13 +125,14 @@ const fetchListData = () => {
 }
 
 const fetchStatus = () => {
-  const name = value.value
+  const name = select_value.value
   fetch(`../api/client/status?name=${name}`, { credentials: 'include' })
     .then((res) => {
       return res.json()
     })
     .then((json) => {
-      status.value = new Array()
+      //status.value = new Array()
+      status.value = []
       for (let key in json) {
         for (let ps of json[key]) {
           console.log(ps)
@@ -156,7 +158,8 @@ const fetchData = () => {
       return res.json()
     })
     .then((json) => {
-      status.value = new Array()
+      //status.value = new Array()
+      status.value = []
       for (let key in json) {
         for (let ps of json[key]) {
           console.log(ps)

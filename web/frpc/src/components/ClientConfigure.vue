@@ -605,7 +605,7 @@ const fetchUpload = () => {
 }
 const refresh = () => {
   loading.value = true
-  if (selectValue.value === '') {
+  if (selectValue.value === undefined || selectValue.value === '') {
     fetchData()
   } else {
     fetchConfig()
