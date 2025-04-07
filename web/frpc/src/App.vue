@@ -330,8 +330,8 @@ const upgradeByUrl = (binUrl: string) => {
       showWarmTips('更新失败')
     })
     .finally(() => {
-      loading.close()
       setTimeout(function () {
+        loading.close()
         window.location.reload()
       }, 4000)
     })
@@ -415,10 +415,10 @@ const customUpload = (options: any) => {
       //showErrorTips('上传失败的回调')
     })
     .finally(() => {
-      loading.close()
-      globalProgress.value = 0
-      dialogFormVisible.value = false
       setTimeout(function () {
+        loading.close()
+        globalProgress.value = 0
+        dialogFormVisible.value = false
         window.location.reload()
       }, 4000)
     })

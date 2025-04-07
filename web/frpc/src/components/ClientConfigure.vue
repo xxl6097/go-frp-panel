@@ -35,7 +35,7 @@
             >新建客户端</el-button
           >
           <div
-            v-if="selectValue !== ''"
+            v-if="selectValue !== '' && selectValue !== undefined"
             style="margin-left: 10px; margin-right: 10px"
           >
             <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
@@ -544,10 +544,9 @@ const uploadToml = (options: any) => {
     })
 }
 
-////
 const handleSelectChange = (value: string) => {
-  console.log('---->', value)
-  if (value === '') {
+  console.log('handleSelectChange---->', value)
+  if (value === '' || value === undefined) {
     fetchData()
     return
   }
@@ -614,7 +613,7 @@ const refresh = () => {
 }
 
 const deleteClient = () => {
-  if (selectValue.value !== '') {
+  if (selectValue.value !== '' && selectValue.value !== undefined) {
     loading.value = true
     fetch(`../api/client/delete?name=${selectValue.value}`, {
       credentials: 'include',

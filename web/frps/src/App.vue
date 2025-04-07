@@ -291,7 +291,6 @@ const doClientsUpload = async (options: any) => {
   )
 }
 
-
 // 文件上传更新
 const handleUploadToUpgrade = (options: any) => {
   const { file } = options
@@ -333,10 +332,10 @@ const handleUploadToUpgrade = (options: any) => {
       ok.value = false
     })
     .finally(() => {
-      loading.close()
-      globalProgress.value = 0
-      dialogFormVisible.value = false
       setTimeout(function () {
+        loading.close()
+        globalProgress.value = 0
+        dialogFormVisible.value = false
         if (ok.value) {
           window.location.reload()
         }
@@ -482,8 +481,8 @@ const upgradeByUrl = (binUrl: string) => {
       //showWarmTips('更新失败' + JSON.stringify(error))
     })
     .finally(() => {
-      loading.close()
       setTimeout(function () {
+        loading.close()
         window.location.reload()
       }, 4000)
     })
