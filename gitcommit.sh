@@ -261,20 +261,18 @@ function tagMenu() {
 function m() {
     echo "1. 快速提交"
     echo "2. 发布版本"
-    echo "3. 快速标签+提交"
-    echo "4. 项目更新"
-    echo "5. 项目标签"
-    echo "6. 分支管理"
+    echo "3. 项目更新"
+    echo "4. 项目标签"
+    echo "5. 分支管理"
     echo "请输入编号:"
     read index
     clear
     case "$index" in
     [1]) (push);;
     [2]) (quickPushAndTagDeploy);;
-    [3]) (quickPushAndTag);;
-    [4]) (pullMenu);;
-    [5]) (tagMenu);;
-    [6]) (branchMenu);;
+    [3]) (pullMenu);;
+    [4]) (tagMenu);;
+    [5]) (branchMenu);;
     *) echo "exit" ;;
   esac
 }
