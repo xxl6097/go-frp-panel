@@ -53,6 +53,7 @@ declare module 'vue' {
     ServerConfig: typeof import('./src/components/ServerConfig.vue')['default']
     ServerOverview: typeof import('./src/components/ServerOverview.vue')['default']
     Traffic: typeof import('./src/components/Traffic.vue')['default']
+    UpgradeDialog: typeof import('./src/components/UpgradeDialog.vue')['default']
     UserConfig: typeof import('./src/components/UserConfig.vue')['default']
   }
 }

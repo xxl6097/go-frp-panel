@@ -1,6 +1,6 @@
 <template>
   <el-progress
-     v-if="globalProgress > 0 && globalProgress < 100"
+    v-if="globalProgress > 0 && globalProgress < 100"
     :percentage="globalProgress"
     :stroke-width="2"
     :show-text="false"
@@ -138,6 +138,8 @@
     <footer></footer>
   </div>
 
+  <UpgradeDialog ref="upgradeRef" />
+
   <el-dialog
     v-model="dialogFormVisible"
     align-center
@@ -149,7 +151,6 @@
       autocomplete="off"
       placeholder="请输入程序Url地址～"
     />
-
     <template #footer>
       <div class="dialog-footer">
         <el-upload
@@ -209,14 +210,14 @@
 </template>
 
 <script lang="ts" setup>
+import UpgradeDialog from './components/UpgradeDialog.vue'
+
 import { onMounted, ref } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
   piecesUpload,
   showErrorTips,
-  showInfoTips,
   showLoading,
-  showMessageDialog,
   showSucessTips,
   showTips,
   showWarmDialog,
@@ -240,6 +241,16 @@ const version = ref({
   gitRevision: '',
   goVersion: '',
 })
+
+// const upgradeRef = ref(null)// 明确指定 ref 的类型
+const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
+
+const showUpgradeDialog = () => {
+  if (upgradeRef.value) {
+    upgradeRef.value.openUpgradeDialog()
+  }
+}
+
 const customColors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
@@ -280,39 +291,6 @@ const doClientsUpload = async (options: any) => {
   )
 }
 
-// const doClientsUpload1 = async (options: any) => {
-//   const { file } = options
-//   const formData = new FormData()
-//   formData.append('file', file)
-//   dialogFormVisible.value = false
-//   const loading = showLoading('客户端上传中...')
-//
-//   xhrPromise({
-//     url: '../api/client/upload',
-//     method: 'POST',
-//     data: formData,
-//     onUploadProgress: (progress: string) => {
-//       console.log(`上传进度：${progress}`)
-//       loading.setText(`客户端上传中：${progress}%`)
-//     },
-//   })
-//       .then((data: any) => {
-//         console.log('请求成功', data)
-//         const json = JSON.parse(data.data)
-//         if (json.code === 0) {
-//           showSucessTips(json.msg)
-//         } else {
-//           showWarmTips(json.msg)
-//         }
-//       })
-//       .catch((error) => {
-//         console.error('请求失败', error)
-//       })
-//       .finally(() => {
-//         loading.close()
-//         dialogClientsVisible.value = false
-//       })
-// }
 
 // 文件上传更新
 const handleUploadToUpgrade = (options: any) => {
@@ -323,6 +301,7 @@ const handleUploadToUpgrade = (options: any) => {
 
   globalProgress.value = 0
   dialogFormVisible.value = false
+  const ok = ref<boolean>(false)
   xhrPromise({
     url: '../api/upgrade',
     method: 'POST',
@@ -350,14 +329,17 @@ const handleUploadToUpgrade = (options: any) => {
     .catch((error) => {
       console.error('请求失败', error)
       // 上传失败的回调
-      showErrorTips('上传失败的回调')
+      //showErrorTips('上传失败的回调')
+      ok.value = false
     })
     .finally(() => {
       loading.close()
       globalProgress.value = 0
       dialogFormVisible.value = false
       setTimeout(function () {
-        window.location.reload()
+        if (ok.value) {
+          window.location.reload()
+        }
       }, 4000)
     })
 }
@@ -371,23 +353,19 @@ const handleSelect = (key: string) => {
 }
 
 const checkVersion = () => {
-  fetch('../api/checkversion', { credentials: 'include' })
-    .then((res) => {
-      return res.json()
-    })
-    .then((json) => {
-      if (json.code === 0) {
-        showInfoTips(json.msg)
-      } else if (json.code === 1) {
-        showUpdateDialog(json.msg, json.data)
-      }
-    })
-}
+  // fetch('../api/checkversion', { credentials: 'include' })
+  //   .then((res) => {
+  //     return res.json()
+  //   })
+  //   .then((json) => {
+  //     if (json.code === 0) {
+  //       showInfoTips(json.msg)
+  //     } else if (json.code === 1) {
+  //       showUpdateDialog(json.msg, json.data)
+  //     }
+  //   })
 
-const showUpdateDialog = (message: string, binurl: string) => {
-  showMessageDialog('升级提示', '升级', message).then(() => {
-    upgradeByUrl(binurl)
-  })
+  showUpgradeDialog()
 }
 
 const restart = () => {
@@ -679,53 +657,5 @@ html.dark .header-color {
   left: 0;
   z-index: 9999;
   width: 100%;
-}
-/* 代码块样式 */
-pre {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px;
-  overflow-x: auto;
-}
-
-code {
-  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-  font-size: 0.9em;
-  color: #c7254e;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-pre code {
-  background-color: transparent;
-  padding: 0;
-  color: #333;
-}
-
-/* 无序列表样式 */
-ul {
-  list-style-type: none;
-  padding-left: 20px;
-}
-li {
-  margin-bottom: 1px;
-  transition: all 0.3s ease;
-}
-/* marker 样式 */
-li::marker {
-  content: '•';
-  color: #007BFF;
-  padding: 2px 4px;
-  font-size: 1.4em;
-  margin-right: 20px;
-  transition: color 0.3s ease;
-}
-
-li:hover {
-  transform: translateX(5px);
-}
-
-li:hover::marker {
-  color: #FF6347;
 }
 </style>

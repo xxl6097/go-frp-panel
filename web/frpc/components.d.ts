@@ -41,5 +41,6 @@ declare module 'vue' {
     Overview: typeof import('./src/components/Overview.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    UpgradeDialog: typeof import('./src/components/UpgradeDialog.vue')['default']
   }
 }

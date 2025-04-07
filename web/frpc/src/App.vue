@@ -1,6 +1,6 @@
 <template>
   <el-progress
-     v-if="globalProgress > 0 && globalProgress < 100"
+    v-if="globalProgress > 0 && globalProgress < 100"
     :percentage="globalProgress"
     :stroke-width="2"
     :show-text="false"
@@ -123,6 +123,8 @@
     <footer></footer>
   </div>
 
+  <UpgradeDialog ref="upgradeRef" />
+
   <!--  客户端程序升级-->
   <el-dialog v-model="dialogFormVisible" align-center width="500">
     <template #header><span>程序升级</span></template>
@@ -204,9 +206,9 @@ import {
   showWarmTips,
   showSucessTips,
   xhrPromise,
-  showInfoTips, showMessageDialog,
 } from './utils/utils.ts'
 import { ComponentSize } from 'element-plus'
+import UpgradeDialog from './components/UpgradeDialog.vue'
 const customColors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
@@ -421,25 +423,36 @@ const customUpload = (options: any) => {
       }, 4000)
     })
 }
-const checkVersion = () => {
-  fetch('../api/checkversion', { credentials: 'include' })
-    .then((res) => {
-      return res.json()
-    })
-    .then((json) => {
-      if (json.code === 0) {
-        showInfoTips(json.msg)
-      } else if (json.code === 1) {
-        showUpdateDialog(json.msg, json.data)
-      }
-    })
+
+const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
+
+const showUpgradeDialog = () => {
+  if (upgradeRef.value) {
+    upgradeRef.value.openUpgradeDialog()
+  }
 }
 
-const showUpdateDialog = (message: string, binurl: string) => {
-  showMessageDialog('升级提示', '升级', message).then(() => {
-    upgradeByUrl(binurl)
-  })
+const checkVersion = () => {
+  // fetch('../api/checkversion', { credentials: 'include' })
+  //   .then((res) => {
+  //     return res.json()
+  //   })
+  //   .then((json) => {
+  //     if (json.code === 0) {
+  //       showInfoTips(json.msg)
+  //     } else if (json.code === 1) {
+  //       showUpdateDialog(json.msg, json.data)
+  //     }
+  //   })
+
+  showUpgradeDialog()
 }
+
+// const showUpdateDialog = (message: string, binurl: string) => {
+//   showMessageDialog('升级提示', '升级', message).then(() => {
+//     upgradeByUrl(binurl)
+//   })
+// }
 const restart = () => {
   showWarmDialog(
     `确定重启吗？`,
@@ -570,7 +583,7 @@ li {
 /* marker 样式 */
 li::marker {
   content: '•';
-  color: #007BFF;
+  color: #007bff;
   padding: 2px 4px;
   font-size: 1.4em;
   margin-right: 20px;
@@ -582,6 +595,6 @@ li:hover {
 }
 
 li:hover::marker {
-  color: #FF6347;
+  color: #ff6347;
 }
 </style>

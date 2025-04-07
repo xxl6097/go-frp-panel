@@ -132,6 +132,14 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		var ch chan error
 		go func(ch chan<- error) {
 			err := this.igs.Upgrade(ctx, newFilePath)
+			glog.Debug("---->升级", err)
+			if err == nil {
+				res.Ok("升级成功～")
+			} else {
+				res.Error(fmt.Sprintf("更新失败～%v", err))
+			}
+			f(w)
+			time.Sleep(time.Second)
 			ch <- err
 			if err != nil {
 				res.Error(fmt.Sprintf("更新失败～%v", err))
@@ -259,7 +267,7 @@ func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 	}
 	res.Raw = jsonBytes
-	glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
+	glog.Println("操作系统:", runtime.GOOS)   // 如 "linux", "windows"
 	glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
 	glog.Println("CPU 核心数:", runtime.NumCPU())
 }
