@@ -47,7 +47,7 @@ func (s Service) OnVersion() string {
 
 func (this Service) OnRun(i gore.IGService) error {
 	frps.Assert()
-	glog.Printf("启动frps_%s\n", pkg.AppVersion)
+	glog.Printf("启动 %s %s\n", pkg.AppName, pkg.AppVersion)
 	cfg := frps.GetCfgModel()
 	if cfg == nil {
 		return fmt.Errorf("程序配置文件未初始化")
@@ -60,9 +60,7 @@ func (this Service) OnRun(i gore.IGService) error {
 	}
 	svv, err := frps.NewFrps(content, i)
 	if err != nil {
-		glog.Error("启动frps失败", err)
-		glog.Printf("启动frps_%s失败\n", pkg.AppVersion)
-		glog.Println(conf)
+		glog.Printf("启动 %s %s 失败:%v\n%v", pkg.AppName, pkg.AppVersion, err, conf)
 		return err
 	}
 	this.ifrps = svv
