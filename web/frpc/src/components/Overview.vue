@@ -95,7 +95,7 @@ const loading = ref<boolean>(false)
 
 const handleSelectChange = (value: string) => {
   console.log('---->', value)
-  if (value === '') {
+  if (value === undefined || value === '') {
     fetchData()
   } else {
     fetchStatus()
@@ -131,16 +131,18 @@ const fetchStatus = () => {
       return res.json()
     })
     .then((json) => {
+      console.log('fetchStatus', json)
       //status.value = new Array()
       status.value = []
       for (let key in json) {
         for (let ps of json[key]) {
-          console.log(ps)
+          //console.log(ps)
           status.value.push(ps)
         }
       }
     })
     .catch((err) => {
+      console.error('fetchStatus', err)
       ElMessage({
         showClose: true,
         message: 'Get status info from frpc failed!' + err,
@@ -158,16 +160,18 @@ const fetchData = () => {
       return res.json()
     })
     .then((json) => {
+      console.log('fetchData', json)
       //status.value = new Array()
       status.value = []
       for (let key in json) {
         for (let ps of json[key]) {
-          console.log(ps)
+          //console.log(ps)
           status.value.push(ps)
         }
       }
     })
     .catch((err) => {
+      console.error('fetchData', err)
       ElMessage({
         showClose: true,
         message: 'Get status info from frpc failed!' + err,

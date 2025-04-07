@@ -643,7 +643,7 @@ const deleteClient = () => {
 }
 const upload = () => {
   uploading.value = true
-  if (selectValue.value === '') {
+  if (selectValue.value === undefined || selectValue.value === '') {
     uploadConfig()
   } else {
     fetchUpload()
