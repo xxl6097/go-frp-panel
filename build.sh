@@ -11,44 +11,60 @@ function writeVersionGoFile() {
   fi
 cat <<EOF > ./pkg/version.go
 package pkg
+
 import (
 	"fmt"
-	"strings"
 	"runtime"
+	"strings"
 )
+
 func init() {
 	OsType = runtime.GOOS
 	Arch = runtime.GOARCH
+	GoVersion = runtime.Version()
+	Compiler = runtime.Compiler
 }
+
 var (
-	AppName      string // 应用名称
-	AppVersion   string // 应用版本
-	BuildVersion string // 编译版本
-	BuildTime    string // 编译时间
-	GitRevision  string // Git版本
-	GitBranch    string // Git分支
-	GoVersion    string // Golang信息
-	DisplayName  string // 服务显示名
-	Description  string // 服务描述信息
-	OsType       string // 操作系统
-	Arch         string // cpu类型
-	BinName      string // 运行文件名称，包含平台架构
+	AppName          string // 应用名称
+	AppVersion       string // 应用版本
+	BuildVersion     string // 编译版本
+	BuildTime        string // 编译时间
+	GoVersion        string // Golang信息
+	DisplayName      string // 服务显示名
+	Description      string // 服务描述信息
+	OsType           string // 操作系统
+	Arch             string // cpu类型
+	Compiler         string // 编译器信息
+	GitRevision      string // Git版本
+	GitBranch        string // Git分支
+	GitTreeState     string // state of git tree, either "clean" or "dirty"
+	GitCommit        string // sha1 from git, output of 4a2ea0514582c5bdf629ad348341970c5ea8fdc6
+	GitVersion       string // semantic version, derived by build scripts
+	GitReleaseCommit string
+	BinName          string // 运行文件名称，包含平台架构
 )
+
 // Version 版本信息
 func Version() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "App Name", AppName))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "App Version", AppVersion))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Build version", BuildVersion))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Build time", BuildTime))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Git revision", GitRevision))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Git branch", GitBranch))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Golang Version", GoVersion))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "DisplayName", DisplayName))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Description", Description))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "OsType", OsType))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "Arch", Arch))
-	sb.WriteString(fmt.Sprintf("%-15s: %-5s\n", "BinName", BinName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "App Name", AppName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "App Version", AppVersion))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "DisplayName", DisplayName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Description", Description))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Build version", BuildVersion))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Build time", BuildTime))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Golang Version", GoVersion))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "OsType", OsType))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Arch", Arch))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Compiler", Compiler))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Git revision", GitRevision))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "Git branch", GitBranch))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitTreeState", GitTreeState))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitCommit", GitCommit))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitVersion", GitVersion))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitReleaseCommit", GitReleaseCommit))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "BinName", BinName))
 	fmt.Println(sb.String())
 	return sb.String()
 }
@@ -208,7 +224,106 @@ function increment_version() {
     echo "${prefix}${major}.${minor}.${patch}"
 }
 
+
+version::get_version_vars() {
+    # shellcheck disable=SC1083
+    GIT_COMMIT="$(git rev-parse HEAD^{commit})"
+
+    if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
+        GIT_TREE_STATE="clean"
+    else
+        GIT_TREE_STATE="dirty"
+    fi
+
+    # stolen from k8s.io/hack/lib/version.sh
+    # Use git describe to find the version based on annotated tags.
+    if [[ -n ${GIT_VERSION-} ]] || GIT_VERSION=$(git describe --tags --abbrev=14 --match "v[0-9]*" "${GIT_COMMIT}" 2>/dev/null); then
+        # This translates the "git describe" to an actual semver.org
+        # compatible semantic version that looks something like this:
+        #   v1.1.0-alpha.0.6+84c76d1142ea4d
+        #
+        # TODO: We continue calling this "git version" because so many
+        # downstream consumers are expecting it there.
+        # shellcheck disable=SC2001
+        DASHES_IN_VERSION=$(echo "${GIT_VERSION}" | sed "s/[^-]//g")
+        if [[ "${DASHES_IN_VERSION}" == "---" ]] ; then
+            # We have distance to subversion (v1.1.0-subversion-1-gCommitHash)
+            # shellcheck disable=SC2001
+            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-\([0-9]\{1,\}\)-g\([0-9a-f]\{14\}\)$/.\1\-\2/")
+        elif [[ "${DASHES_IN_VERSION}" == "--" ]] ; then
+            # We have distance to base tag (v1.1.0-1-gCommitHash)
+            # shellcheck disable=SC2001
+            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-g\([0-9a-f]\{14\}\)$/-\1/")
+        fi
+        if [[ "${GIT_TREE_STATE}" == "dirty" ]]; then
+            # git describe --dirty only considers changes to existing files, but
+            # that is problematic since new untracked .go files affect the build,
+            # so use our idea of "dirty" from git status instead.
+            GIT_VERSION+="-dirty"
+        fi
+
+
+        # Try to match the "git describe" output to a regex to try to extract
+        # the "major" and "minor" versions and whether this is the exact tagged
+        # version or whether the tree is between two tagged versions.
+        if [[ "${GIT_VERSION}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?([-].*)?([+].*)?$ ]]; then
+            GIT_MAJOR=${BASH_REMATCH[1]}
+            GIT_MINOR=${BASH_REMATCH[2]}
+            GIT_MINRR=${BASH_REMATCH[3]}
+        fi
+
+        # If GIT_VERSION is not a valid Semantic Version, then refuse to build.
+        if ! [[ "${GIT_VERSION}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "GIT_VERSION should be a valid Semantic Version. Current value: ${GIT_VERSION}"
+            echo "Please see more details here: https://semver.org"
+            exit 1
+        fi
+    fi
+
+    GIT_RELEASE_TAG=$(git describe --abbrev=0 --tags)
+    GIT_RELEASE_COMMIT=$(git rev-list -n 1  "${GIT_RELEASE_TAG}")
+}
+
 function buildLdflags() {
+  local ldflags
+  ldflags="-s -w"
+  # shellcheck disable=SC2317
+  function add_ldflag() {
+      local key=${1}
+      local val=${2}
+      ldflags+=(
+          "-X '${versionDir}.${key}=${val}'"
+      )
+  }
+  #os_name=$(uname -s)
+  #echo "os type $os_name"
+  appname=$1
+  DisplayName=$2
+  Description=$3
+  APP_NAME=${appname}
+  BUILD_VERSION=$(if [ "$(git describe --tags --abbrev=0 2>/dev/null)" != "" ]; then git describe --tags --abbrev=0; else git log --pretty=format:'%h' -n 1; fi)
+  BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S")
+  GIT_REVISION=$(git rev-parse --short HEAD)
+  GIT_BRANCH=$(git name-rev --name-only HEAD)
+  #GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
+  # shellcheck disable=SC2089
+  version::get_version_vars
+  add_ldflag "DisplayName" "${DisplayName}_${version}"
+  add_ldflag "Description" "${Description}"
+  add_ldflag "AppName" "${APP_NAME}"
+  add_ldflag "AppVersion" "${version}"
+  add_ldflag "BuildVersion" "${BUILD_VERSION}"
+  add_ldflag "BuildTime" "${BUILD_TIME}"
+  add_ldflag "GitRevision" "${GIT_REVISION}"
+  add_ldflag "GitBranch" "${GIT_BRANCH}"
+  add_ldflag "GitCommit" "${GIT_COMMIT}"
+  add_ldflag "GitTreeState" "${GIT_TREE_STATE}"
+  add_ldflag "GitVersion" "${GIT_VERSION}"
+  add_ldflag "GitReleaseCommit" "${GIT_RELEASE_COMMIT}"
+  echo "${ldflags[*]-}"
+}
+
+function buildLdflags1() {
   #os_name=$(uname -s)
   #echo "os type $os_name"
   appname=$1
