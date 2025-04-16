@@ -92,7 +92,7 @@ func (this *frps) check() {
 	}
 	glog.Error("开始检测客户端...")
 	this.checkFrpc()
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop() // 必须关闭防止资源泄漏
 	for {
 		select {
