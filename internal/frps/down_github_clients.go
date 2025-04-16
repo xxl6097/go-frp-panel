@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -33,7 +34,9 @@ func (this *frps) hasNewVersion(newVersion, clientsDir string) bool {
 	return true
 }
 
-func (this *frps) downloadFrpc(urls []string, dstDir string) {
+func (this *frps) downloadFrpc(urls []string, dstDir string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	wg.Add(1)
 	srcFilePath := utils2.DownloadFileWithCancelByUrls(urls)
 	//glog.Println("下载完成", srcFilePath, dstDir)
 	err := utils.MoveFileToDir(srcFilePath, dstDir)
@@ -64,6 +67,7 @@ func (this *frps) checkFrpc() {
 	if err == nil {
 		if this.hasNewVersion(result.TagName, clientsDir) {
 			githubProxys := utils.ParseMarkdownCodeToStringArray(result.Body)
+			var wg sync.WaitGroup
 			for _, asset := range result.Assets {
 				if strings.Contains(asset.Name, "frpc") {
 					newProxy := []string{}
@@ -72,11 +76,12 @@ func (this *frps) checkFrpc() {
 						newProxy = append(newProxy, newUrl)
 					}
 					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
-					go this.downloadFrpc(newProxy, clientsDir)
+					go this.downloadFrpc(newProxy, clientsDir, &wg)
 				} else {
 					glog.Info("没有找到匹配的frpc客户端链接...")
 				}
 			}
+			wg.Wait()
 		} else {
 			glog.Info("客户端无需升级...")
 		}
