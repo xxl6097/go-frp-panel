@@ -38,7 +38,7 @@ func (this *frps) downloadFrpc(urls []string, dstDir string) {
 	//glog.Println("下载完成", srcFilePath, dstDir)
 	err := utils.MoveFileToDir(srcFilePath, dstDir)
 	if err != nil {
-		glog.Error("文件移动失败", err)
+		glog.Error("移动失败", err)
 	} else {
 		glog.Println("移动成功", srcFilePath, dstDir)
 	}
@@ -91,16 +91,9 @@ func (this *frps) check() {
 		return
 	}
 	glog.Error("开始检测客户端...")
-	this.checkFrpc()
-	ticker := time.NewTicker(time.Hour)
-	defer ticker.Stop() // 必须关闭防止资源泄漏
 	for {
-		select {
-		case t := <-ticker.C:
-			fmt.Printf("定时任务执行于: %v\n", t.Format("2006-01-02 15:04:05"))
-			// 业务逻辑（如数据同步、日志清理）
-			this.checkFrpc()
-		}
+		this.checkFrpc()
+		time.Sleep(time.Hour)
 	}
 }
 
