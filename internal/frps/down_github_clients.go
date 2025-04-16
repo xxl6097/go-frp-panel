@@ -52,7 +52,7 @@ func (this *frps) checkFrpc() {
 		glog.Error("github请求失败", err)
 		return
 	}
-	glog.Debug("github请求成功")
+	glog.Debug("checkFrpc请求成功")
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	clientsDir := filepath.Join(this.binDir, "clients")
@@ -68,17 +68,24 @@ func (this *frps) checkFrpc() {
 					}
 					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 					go this.downloadFrpc(newProxy, clientsDir)
+				} else {
+					glog.Info("没有找到匹配的frpc客户端链接...")
 				}
-
 			}
+		} else {
+			glog.Info("客户端无需升级...")
 		}
+	} else {
+		glog.Error(err)
 	}
 }
 
 func (this *frps) check() {
 	if !utils.HasDiskSpace() {
+		glog.Error("本地磁盘空间不足...")
 		return
 	}
+	glog.Error("开始检测客户端...")
 	this.checkFrpc()
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop() // 必须关闭防止资源泄漏
