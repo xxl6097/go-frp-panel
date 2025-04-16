@@ -75,13 +75,13 @@ func (this *frps) checkFrpc() {
 	}
 }
 
-func (this *frps) CheckClients() {
+func (this *frps) check() {
 	if !utils.HasDiskSpace() {
 		return
 	}
-	ticker := time.NewTicker(time.Hour)
+	this.checkFrpc()
+	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop() // 必须关闭防止资源泄漏
-	go this.checkFrpc()
 	for {
 		select {
 		case t := <-ticker.C:
@@ -90,4 +90,8 @@ func (this *frps) CheckClients() {
 			this.checkFrpc()
 		}
 	}
+}
+
+func (this *frps) CheckClients() {
+	go this.check()
 }

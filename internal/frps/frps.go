@@ -67,7 +67,7 @@ func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)
 	webServer.RouteRegister(f.userHandlers)
-	go f.CheckClients()
+	f.CheckClients()
 	return f, nil
 }
 
