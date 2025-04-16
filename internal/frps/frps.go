@@ -28,7 +28,7 @@ type frps struct {
 	install   gore.IGService
 	upgrade   iface.IComm
 	binDir    string
-	clients   map[string]string
+	urls      []string
 }
 
 func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {

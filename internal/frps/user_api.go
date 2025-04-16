@@ -148,7 +148,11 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	configDir := filepath.Dir(binPath)
 	configPath := filepath.Join(configDir, "clients")
 	glog.Infof("扫描路径:%s", configPath)
-	res.Data = utils.GetNodes(configPath)
+	nodes := utils.GetNodes(configPath)
+	if nodes == nil || len(nodes) == 0 {
+		nodes = utils.ToTree("", this.urls)
+	}
+	res.Data = nodes
 	glog.Infof("扫描结果:%v", res.Data)
 }
 

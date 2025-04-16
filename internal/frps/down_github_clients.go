@@ -68,19 +68,26 @@ func (this *frps) checkFrpc() {
 		if this.hasNewVersion(result.TagName, clientsDir) {
 			githubProxys := utils.ParseMarkdownCodeToStringArray(result.Body)
 			var wg sync.WaitGroup
+			urls := make([]string, 0)
+			hasSpace := utils.HasDiskSpace()
 			for _, asset := range result.Assets {
 				if strings.Contains(asset.Name, "frpc") {
+					urls = append(urls, asset.BrowserDownloadUrl)
 					newProxy := []string{}
 					for _, proxy := range githubProxys {
 						newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
 						newProxy = append(newProxy, newUrl)
 					}
 					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
-					go this.downloadFrpc(newProxy, clientsDir, &wg)
+					if hasSpace {
+						go this.downloadFrpc(newProxy, clientsDir, &wg)
+					}
+					//go this.downloadFrpc(newProxy, clientsDir, &wg)
 				} else {
 					glog.Info("没有找到匹配的frpc客户端链接...")
 				}
 			}
+			this.urls = urls
 			wg.Wait()
 		} else {
 			glog.Info("客户端无需升级...")
@@ -91,10 +98,6 @@ func (this *frps) checkFrpc() {
 }
 
 func (this *frps) check() {
-	if !utils.HasDiskSpace() {
-		glog.Error("本地磁盘空间不足...")
-		return
-	}
 	glog.Error("开始检测客户端...")
 	for {
 		this.checkFrpc()
