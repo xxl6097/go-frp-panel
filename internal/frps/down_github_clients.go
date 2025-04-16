@@ -75,6 +75,9 @@ func (this *frps) checkFrpc() {
 }
 
 func (this *frps) CheckClients() {
+	if !utils.HasDiskSpace() {
+		return
+	}
 	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop() // 必须关闭防止资源泄漏
 	go this.checkFrpc()
