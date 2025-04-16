@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-service/gservice/gore/util"
 	"github.com/xxl6097/go-service/gservice/utils"
+	"os"
+	"path/filepath"
 )
 
 func ShowUpDirSize() {
@@ -28,4 +31,24 @@ func HasDiskSpace() bool {
 		return true
 	}
 	return false
+}
+
+func ClearDir(tmpPath string) error {
+	entries, err := os.ReadDir(tmpPath)
+	if err != nil {
+		return fmt.Errorf("读取目录失败: %v", err)
+	}
+
+	for _, entry := range entries {
+		fullPath := filepath.Join(tmpPath, entry.Name())
+		err = os.RemoveAll(fullPath)
+		if err != nil {
+			return fmt.Errorf("删除 %s 失败: %v", fullPath, err)
+		}
+	}
+	return nil
+}
+
+func ClearTmpDir() error {
+	return ClearDir("/tmp")
 }

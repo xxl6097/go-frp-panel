@@ -93,6 +93,11 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 
 		if free < utils2.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
 			urls = []string{urls[0]}
+			if err := utils2.ClearTmpDir(); err != nil {
+				fmt.Println("/tmp清空失败:", err)
+			} else {
+				fmt.Println("/tmp清空完成")
+			}
 		}
 
 		newUrl := utils.DownloadFileWithCancelByUrls(urls)
