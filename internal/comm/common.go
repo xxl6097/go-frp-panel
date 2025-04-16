@@ -87,9 +87,9 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		updir := utils.GetUpgradeDir()
 		total, used, free, err := util.GetDiskUsage(updir)
 		glog.Printf("Current Working Directory: %s\n", updir)
-		glog.Printf("Total space: %d bytes %v\n", total, float64(total)/1024/1024/1024)
-		glog.Printf("Used space: %d bytes %v\n\n", used, float64(used)/1024/1024/1024)
-		glog.Printf("Free space: %d bytes %v\n\n", free, float64(free)/1024/1024/1024)
+		glog.Printf("Total space: %d bytes %v\n", total, utils2.ByteCountIEC(total))
+		glog.Printf("Used space: %d bytes %v\n\n", used, utils2.ByteCountIEC(used))
+		glog.Printf("Free space: %d bytes %v\n\n", free, utils2.ByteCountIEC(free))
 
 		if free < utils2.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
 			urls = []string{urls[0]}

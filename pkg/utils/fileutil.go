@@ -112,7 +112,7 @@ func CheckDir(dirPath string) bool {
 }
 
 func MoveFileToDir(src string, dstDir string) error {
-	if err := EnsureDir(dstDir); err != nil {
+	if err := MakeDir(dstDir); err != nil {
 		return err
 	}
 	// 获取源文件的文件名
@@ -131,6 +131,17 @@ func EnsureDir(path string) error {
 			return err
 		}
 		return os.MkdirAll(path, 0755)
+	} else if !os.IsNotExist(err) {
+		// 其他错误
+		return err
+	}
+	// 不存在，创建
+	return os.MkdirAll(path, 0755)
+}
+
+func MakeDir(path string) error {
+	if _, err := os.Stat(path); err == nil {
+		return nil
 	} else if !os.IsNotExist(err) {
 		// 其他错误
 		return err
