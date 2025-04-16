@@ -101,6 +101,27 @@ func DirCheck(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 
+func CheckDir(dirPath string) bool {
+	// 检查目录是否存在
+	if _, err := os.Stat(dirPath); err == nil {
+		return true
+	} else {
+		_ = os.MkdirAll(dirPath, 0755)
+		return false
+	}
+}
+
+func MoveFileToDir(src string, dstDir string) error {
+	if err := EnsureDir(dstDir); err != nil {
+		return err
+	}
+	// 获取源文件的文件名
+	fileName := filepath.Base(src)
+	// 拼接目标文件的完整路径
+	dst := filepath.Join(dstDir, fileName)
+	return os.Rename(src, dst)
+}
+
 func EnsureDir(path string) error {
 	// 检查目录是否存在
 	if _, err := os.Stat(path); err == nil {

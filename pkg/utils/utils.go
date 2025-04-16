@@ -271,6 +271,12 @@ func getSegmentValue(seg []string, idx int) int {
 	return num
 }
 
+func GetVersionByFileName(filename string) string {
+	re := regexp.MustCompile(`v\d+\.\d+\.\d+`)
+	//fmt.Println(re.FindStringSubmatch(filename))
+	return re.FindString(filename)
+}
+
 func ReplaceNewVersionBinName(filename, v string) string {
 	re := regexp.MustCompile(`_v\d+\.\d+\.\d+_`)
 	newName := re.ReplaceAllString(filename, fmt.Sprintf("_%s_", v)) // 替换为单个下划线

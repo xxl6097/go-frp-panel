@@ -262,7 +262,7 @@ func DynamicSelect[T any](t []T, fun func(int, T) T) T {
 	return ret
 }
 
-func parseMarkdownCodeToStringArray(body string) []string {
+func ParseMarkdownCodeToStringArray(body string) []string {
 	codeBlocks := ExtractCodeBlocks(body)
 	if len(codeBlocks) == 0 {
 		return []string{}
@@ -305,7 +305,7 @@ func CheckVersionFromGithub() []string {
 			glog.Debugf("CompareVersions(new[%s], old[%s])  %d", v2, v1, isVersion)
 			if isVersion > 0 {
 				binVersionBinNameUrl = fmt.Sprintf(binVersionBinNameUrl, v2, ReplaceNewVersionBinName(pkg.BinName, v2))
-				githubProxys := parseMarkdownCodeToStringArray(releaseNote)
+				githubProxys := ParseMarkdownCodeToStringArray(releaseNote)
 				newProxy := []string{}
 				for _, proxy := range githubProxys {
 					newUrl := fmt.Sprintf("%s%s", proxy, binVersionBinNameUrl)
