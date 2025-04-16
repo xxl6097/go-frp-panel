@@ -200,6 +200,17 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Debugf("body:%+v\n", body)
+	if utils2.IsURL(body.BinPath) {
+		//dstPath, err := utils.DownLoad(body.BinUrl)
+		dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinPath)
+		if err != nil {
+			msg := fmt.Errorf("下载文件失败～%v", err)
+			glog.Error(msg)
+			http.Error(w, msg.Error(), http.StatusNotImplemented)
+			return
+		}
+		body.BinPath = dstPath
+	}
 	if utils2.IsURL(body.BinUrl) {
 		//dstPath, err := utils.DownLoad(body.BinUrl)
 		dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
@@ -294,7 +305,7 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 
 	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
 	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
-	utils2.EnsureDir(tempDir)
+	_ = utils2.EnsureDir(tempDir)
 	zipFilePath := filepath.Join(tempDir, fileName)
 	err = utils.Zip(userDir, zipFilePath)
 
