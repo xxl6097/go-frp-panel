@@ -35,7 +35,7 @@ func (this *frps) hasNewVersion(newVersion, clientsDir string) bool {
 
 func (this *frps) downloadFrpc(urls []string, dstDir string) {
 	srcFilePath := utils2.DownloadFileWithCancelByUrls(urls)
-	glog.Println("下载完成", srcFilePath)
+	glog.Println("下载完成", srcFilePath, dstDir)
 	_ = utils.MoveFileToDir(srcFilePath, dstDir)
 }
 
