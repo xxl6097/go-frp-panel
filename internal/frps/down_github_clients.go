@@ -66,6 +66,7 @@ func (this *frps) checkFrpc() {
 						newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
 						newProxy = append(newProxy, newUrl)
 					}
+					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 					go this.downloadFrpc(newProxy, clientsDir)
 				}
 
