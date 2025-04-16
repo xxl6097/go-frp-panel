@@ -28,6 +28,7 @@ type frps struct {
 	install   gore.IGService
 	upgrade   iface.IComm
 	binDir    string
+	clients   map[string]string
 }
 
 func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {
@@ -63,6 +64,7 @@ func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {
 		install:   install,
 		upgrade:   comm.NewCommApi(install, GetCfgModel()),
 		binDir:    filepath.Dir(binPath),
+		clients:   make(map[string]string),
 	}
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)

@@ -19,12 +19,11 @@ type Option struct {
 	Children []Node `json:"children"`
 }
 
-func splitLastTwoByUnderscore(s string) []string {
+func SplitLastTwoByUnderscore(s string) []string {
 	// 过滤空元素
 	parts := strings.FieldsFunc(s, func(r rune) bool {
 		return r == '_'
 	})
-
 	if len(parts) < 2 {
 		return []string{}
 	}
@@ -41,7 +40,7 @@ func GetNodes(dir string) []Option {
 	entries, _ := os.ReadDir(dir) // 读取当前目录
 	for _, entry := range entries {
 		name := entry.Name()
-		result := splitLastTwoByUnderscore(name)
+		result := SplitLastTwoByUnderscore(name)
 		fmt.Printf("%-30s => %v\n", name, result)
 		if len(result) == 2 {
 			nodeArray := maps[result[0]]
