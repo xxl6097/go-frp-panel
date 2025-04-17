@@ -22,13 +22,14 @@ import (
 )
 
 type frps struct {
-	svr       *server.Service
-	webServer *httppkg.Server
-	cfg       *v1.ServerConfig
-	install   gore.IGService
-	upgrade   iface.IComm
-	binDir    string
-	urls      []string
+	svr          *server.Service
+	webServer    *httppkg.Server
+	cfg          *v1.ServerConfig
+	install      gore.IGService
+	upgrade      iface.IComm
+	binDir       string
+	urls         []string
+	githubProxys []string
 }
 
 func NewFrps(content []byte, install gore.IGService) (iface.IFrps, error) {

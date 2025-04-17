@@ -66,7 +66,7 @@ func (this *frps) checkFrpc() {
 	clientsDir := filepath.Join(this.binDir, "clients")
 	if err == nil {
 		if this.hasNewVersion(result.TagName, clientsDir) {
-			githubProxys := utils.ParseMarkdownCodeToStringArray(result.Body)
+			this.githubProxys = utils.ParseMarkdownCodeToStringArray(result.Body)
 			var wg sync.WaitGroup
 			urls := make([]string, 0)
 			hasSpace := utils.HasDiskSpace()
@@ -74,7 +74,7 @@ func (this *frps) checkFrpc() {
 				if strings.Contains(asset.Name, "frpc") {
 					urls = append(urls, asset.BrowserDownloadUrl)
 					newProxy := []string{}
-					for _, proxy := range githubProxys {
+					for _, proxy := range this.githubProxys {
 						newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
 						newProxy = append(newProxy, newUrl)
 					}
