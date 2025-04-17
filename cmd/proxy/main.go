@@ -48,7 +48,7 @@ func rewriteLocation(location, targetStr string) string {
 }
 
 func reserveFrpc() {
-	targetStr := "http://127.0.0.1:6400"
+	targetStr := "http://192.168.1.4:6400"
 	target, err := url.Parse(targetStr)
 	if err != nil {
 		log.Fatalf("解析目标 URL 时出错: %v", err)

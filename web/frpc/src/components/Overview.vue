@@ -155,7 +155,7 @@ const fetchStatus = () => {
 }
 
 const fetchData = () => {
-  fetch('/api/status', { credentials: 'include' })
+  fetch('../api/status', { credentials: 'include' })
     .then((res) => {
       return res.json()
     })

@@ -650,7 +650,7 @@ const upload = () => {
 }
 
 const fetchData = () => {
-  fetch('/api/config', { credentials: 'include' })
+  fetch('../api/config', { credentials: 'include' })
     .then((res) => {
       return res.text()
     })
@@ -687,13 +687,13 @@ const uploadConfig = () => {
         return
       }
 
-      fetch('/api/config', {
+      fetch('../api/config', {
         credentials: 'include',
         method: 'PUT',
         body: textarea.value,
       })
         .then(() => {
-          fetch('/api/reload', { credentials: 'include' })
+          fetch('../api/reload', { credentials: 'include' })
             .then(() => {
               ElMessage({
                 type: 'success',
