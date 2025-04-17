@@ -96,9 +96,9 @@ func (this *Service) menu() *frpc.CfgModel {
 	c := frpc.GetCfgModel()
 	//glog.Error(err)
 	if err != nil || c == nil {
-		bindAddr = utils2.InputString("请输入Frps服务器地址：")
-		bindPort = utils2.InputInt("请输入Frps服务器绑定端口：")
-		userName = utils2.InputString("请输入用户名：")
+		bindAddr = utils2.InputString("Frps服务器地址:")
+		bindPort = utils2.InputInt("Frps服务器绑定端口:")
+		userName = utils2.InputStringEmpty("请输入用户名(admin):", "admin")
 		password = utils2.InputString("请输入密钥：")
 	} else {
 		bindAddr = c.Frpc.ServerAddr
@@ -106,9 +106,9 @@ func (this *Service) menu() *frpc.CfgModel {
 		userName = c.Frpc.User
 		password = c.Frpc.Metadatas["token"]
 	}
-	adminPort := utils2.InputInt("请输入管理后台端口：")
-	adminUser := utils2.InputString("请输入管理后台用户名：")
-	adminPass := utils2.InputString("请输入管理后台密码：")
+	adminPort := utils2.InputIntDefault("管理后台端口(6400)", 6400)
+	adminUser := utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
+	adminPass := utils2.InputString("管理后台密码：")
 	temp := glog.GetCrossPlatformDataDir("frpc", "log")
 	fCfg := v1.ClientCommonConfig{
 		ServerAddr: bindAddr,
