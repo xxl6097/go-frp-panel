@@ -11,4 +11,13 @@ func main() {
 	result := utils.SplitLastTwoByUnderscore(name)
 	fmt.Printf("%-30s => %v\n", name, result)
 	fmt.Printf("%s\n", utils.CleanExt(result[1]))
+
+	proxys := []string{"a", "b", "c", "d", "e", "f"}
+	var urls []string
+	url := "http://uuxia.cn/file/goodname.ios"
+	for _, proxy := range proxys {
+		newUrl := fmt.Sprintf("%s%s", proxy, url)
+		urls = append(urls, newUrl)
+	}
+	fmt.Printf("%-30s => %v\n", name, urls)
 }

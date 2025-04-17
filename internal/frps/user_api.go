@@ -202,7 +202,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	glog.Debugf("body:%+v\n", body)
 	if utils2.IsURL(body.BinPath) {
 		if this.githubProxys != nil {
-			urls := []string{}
+			var urls []string
 			for _, proxy := range this.githubProxys {
 				newUrl := fmt.Sprintf("%s%s", proxy, body.BinPath)
 				urls = append(urls, newUrl)
@@ -222,7 +222,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	if utils2.IsURL(body.BinUrl) {
 		if this.githubProxys != nil {
-			urls := []string{}
+			var urls []string
 			for _, proxy := range this.githubProxys {
 				newUrl := fmt.Sprintf("%s%s", proxy, body.BinUrl)
 				urls = append(urls, newUrl)
