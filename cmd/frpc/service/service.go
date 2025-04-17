@@ -132,5 +132,9 @@ func (this *Service) menu() *frpc.CfgModel {
 	cfg := &frpc.CfgModel{
 		Frpc: fCfg,
 	}
+
+	//proxy := v1.TypedProxyConfig{
+	//	Type: "tcp",
+	//}
 	return cfg
 }

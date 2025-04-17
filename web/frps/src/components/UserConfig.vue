@@ -56,9 +56,9 @@
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
         <el-table-column type="selection" width="55" />
+        <el-table-column prop="comment" label="备注" />
         <el-table-column prop="user" label="用户名" />
         <el-table-column prop="token" label="凭证" />
-        <el-table-column prop="comment" label="备注" />
         <el-table-column prop="ports" label="允许端口" />
         <el-table-column prop="domains" label="允许域名" />
         <el-table-column prop="subdomains" label="允许子域名" />
