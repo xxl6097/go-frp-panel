@@ -78,13 +78,13 @@ func (this *frps) checkFrpc() {
 						newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
 						newProxy = append(newProxy, newUrl)
 					}
-					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 					if hasSpace {
+						glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 						go this.downloadFrpc(newProxy, clientsDir, &wg)
+					} else {
+						glog.Debug("没有足够磁盘空间下载", asset.BrowserDownloadUrl)
 					}
 					//go this.downloadFrpc(newProxy, clientsDir, &wg)
-				} else {
-					glog.Info("没有找到匹配的frpc客户端链接...")
 				}
 			}
 			this.urls = urls

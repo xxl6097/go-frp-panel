@@ -145,11 +145,11 @@ func (this Service) GetAny(binDir string) any {
 //}
 
 func (this *Service) menu() *frps.CfgModel {
-	bindPort := utils2.InputInt("请输入Frps服务器绑定端口：")
-	adminPort := utils2.InputInt("请输入管理后台端口：")
-	addr := utils2.InputStringEmpty("请输入管理后台地址(默认0.0.0.0)：", "0.0.0.0")
-	username := utils2.InputStringEmpty("请输入管理后台用户名(admin)：", "admin")
-	password := utils2.InputString("请输入管理后台密码：")
+	bindPort := utils2.InputIntDefault("Frps绑定端口(默认:6000):", 6000)
+	adminPort := utils2.InputIntDefault("管理后台端口(默认:6500):", 6500)
+	addr := utils2.InputStringEmpty("管理后台地址(默认:0.0.0.0)：", "0.0.0.0")
+	username := utils2.InputStringEmpty("管理后台用户名(默认:admin)：", "admin")
+	password := utils2.InputString("管理后台密码：")
 	temp := glog.GetCrossPlatformDataDir("frps", "log")
 	cfg := &frps.CfgModel{
 		Frps: v1.ServerConfig{

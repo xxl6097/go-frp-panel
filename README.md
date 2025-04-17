@@ -123,6 +123,12 @@ frpc创建多客户端：
   <img src="./static/images/create-frpc.png" alt="create-panel"/>
 </div>
 
+
+## 依赖库
+
+```shell
+go get -u github.com/xxl6097/go-service@v0.4.52
+```
 ## 赞赏
 
 <div>开发维护不易，请我喝杯咖啡☕️吧~</div>
