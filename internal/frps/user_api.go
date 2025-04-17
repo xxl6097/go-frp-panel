@@ -201,26 +201,44 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	glog.Debugf("body:%+v\n", body)
 	if utils2.IsURL(body.BinPath) {
-		//dstPath, err := utils.DownLoad(body.BinUrl)
-		dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinPath)
-		if err != nil {
-			msg := fmt.Errorf("下载文件失败～%v", err)
-			glog.Error(msg)
-			http.Error(w, msg.Error(), http.StatusNotImplemented)
-			return
+		if this.githubProxys != nil {
+			urls := []string{}
+			for _, proxy := range this.githubProxys {
+				newUrl := fmt.Sprintf("%s%s", proxy, body.BinPath)
+				urls = append(urls, newUrl)
+			}
+			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
+			body.BinPath = dstPath
+		} else {
+			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinPath)
+			if err != nil {
+				msg := fmt.Errorf("下载文件失败～%v", err)
+				glog.Error(msg)
+				http.Error(w, msg.Error(), http.StatusNotImplemented)
+				return
+			}
+			body.BinPath = dstPath
 		}
-		body.BinPath = dstPath
 	}
 	if utils2.IsURL(body.BinUrl) {
-		//dstPath, err := utils.DownLoad(body.BinUrl)
-		dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
-		if err != nil {
-			msg := fmt.Errorf("下载文件失败～%v", err)
-			glog.Error(msg)
-			http.Error(w, msg.Error(), http.StatusNotImplemented)
-			return
+		if this.githubProxys != nil {
+			urls := []string{}
+			for _, proxy := range this.githubProxys {
+				newUrl := fmt.Sprintf("%s%s", proxy, body.BinUrl)
+				urls = append(urls, newUrl)
+			}
+			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
+			body.BinPath = dstPath
+		} else {
+			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
+			if err != nil {
+				msg := fmt.Errorf("下载文件失败～%v", err)
+				glog.Error(msg)
+				http.Error(w, msg.Error(), http.StatusNotImplemented)
+				return
+			}
+			body.BinPath = dstPath
 		}
-		body.BinPath = dstPath
 	}
 	if body.User.User == "" {
 		msg := fmt.Errorf("用户名空")

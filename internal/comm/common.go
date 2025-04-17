@@ -100,13 +100,6 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		//newProxy := []string{}
-		//for _, proxy := range this.githubProxys {
-		//	newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
-		//	newProxy = append(newProxy, newUrl)
-		//}
-		//utils.DownloadFileWithCancelByUrls(urls)
-
 		newUrl := utils.DownloadFileWithCancelByUrls(urls)
 		newFilePath = newUrl
 		break
