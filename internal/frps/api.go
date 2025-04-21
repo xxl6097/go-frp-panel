@@ -10,8 +10,8 @@ import (
 	"github.com/fatedier/frp/pkg/util/system"
 	"github.com/fatedier/frp/server"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/internal/comm"
-	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm"
+	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"log"
@@ -24,14 +24,14 @@ type frps struct {
 	webServer    *httppkg.Server
 	cfg          *v1.ServerConfig
 	install      gore.IGService
-	upgrade      iface.IComm
+	upgrade      iface2.IComm
 	binDir       string
 	cfgFilePath  string
 	urls         []string
 	githubProxys []string
 }
 
-func New(cfg *v1.ServerConfig, install gore.IGService) (iface.IFrps, error) {
+func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 	binPath, err := os.Executable()
 	if err != nil {
 		glog.Error(fmt.Sprintf("获取当前可执行文件路径出错: %v\n", err))

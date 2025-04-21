@@ -8,8 +8,8 @@ import (
 	"fmt"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/internal/comm"
-	"github.com/xxl6097/go-frp-panel/internal/comm/upload"
+	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/upload"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -40,7 +40,7 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 }
 
 func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	//body, err := io.ReadAll(r.Body)
 	//if err != nil {
@@ -69,7 +69,7 @@ func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	users, err := utils.GetDataByJson[[]struct {
 		User string `json:"user"`
@@ -95,7 +95,7 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	u, err := utils.GetDataByJson[User](r)
 	if err != nil {
@@ -124,7 +124,7 @@ func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("结果：%+v\n", a)
 }
 func (this *frps) apiUserAll(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	datas, err := GetUserAll()
 	if err != nil {
@@ -137,7 +137,7 @@ func (this *frps) apiUserAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	binPath, err := os.Executable()
 	if err != nil {
@@ -271,7 +271,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
 	//cfgBuffer := ukey.GetBuffer()
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
-	cfg := comm.BufferConfig{
+	cfg := comm2.BufferConfig{
 		Addr:       body.Addr,
 		Port:       GetCfgModel().Frps.BindPort,
 		User:       body.User.User,
@@ -312,7 +312,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
-	res := &comm.GeneralResponse{Code: 0}
+	res := &comm2.GeneralResponse{Code: 0}
 	binpath, err := os.Executable()
 	if err != nil {
 		res.Err(err)
@@ -374,7 +374,7 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
-	res := &comm.GeneralResponse{Code: 0}
+	res := &comm2.GeneralResponse{Code: 0}
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		res.Error("body can't be empty")
@@ -451,7 +451,7 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
-	res := &comm.GeneralResponse{Code: 0}
+	res := &comm2.GeneralResponse{Code: 0}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -503,7 +503,7 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 		glog.Error(err)
 		return
 	}
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	glog.Println("客户端路径", clientsDir)
 	glog.Println("文件上传成功", dstFilePath)
@@ -519,7 +519,7 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) apiClientUpload1(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
+	res, f := comm2.Response(r)
 	defer f(w)
 	//err := r.ParseMultipartForm(32 << 20)
 	//if err != nil {

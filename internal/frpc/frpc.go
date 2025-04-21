@@ -13,8 +13,8 @@ import (
 	"github.com/fatedier/frp/pkg/util/system"
 	"github.com/xxl6097/glog/glog"
 	_ "github.com/xxl6097/go-frp-panel/assets/frpc"
-	"github.com/xxl6097/go-frp-panel/internal/comm"
-	"github.com/xxl6097/go-frp-panel/internal/comm/iface"
+	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -36,7 +36,7 @@ type frpc struct {
 	install   gore.IGService
 	upgrade   iface.IComm
 	cls       *frpClient
-	cfgBuffer *comm.BufferConfig
+	cfgBuffer *comm2.BufferConfig
 	svrs      map[string]*frpClient
 }
 
@@ -84,7 +84,7 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	this := &frpc{
 		install: i,
 		svrs:    make(map[string]*frpClient),
-		upgrade: comm.NewCommApi(i, cfgModel),
+		upgrade: comm2.NewCommApi(i, cfgModel),
 		cls: &frpClient{
 			svr:            svr,
 			configFilePath: cfgFilePath,
