@@ -45,6 +45,9 @@ func load() error {
 func GetCfgModel() *CfgModel {
 	return cfgData
 }
+func SetCfgModel(temp *CfgModel) {
+	cfgData = temp
+}
 
 func PrintCfg() {
 	if cfgBytes != nil {

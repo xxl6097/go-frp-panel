@@ -106,5 +106,9 @@ func (this *frps) check() {
 }
 
 func (this *frps) CheckClients() {
+	checks := os.Getenv("CHECK_CLIENTS")
+	if checks != "" {
+		return
+	}
 	go this.check()
 }

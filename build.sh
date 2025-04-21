@@ -411,10 +411,22 @@ function buildFrps() {
     #upload $builddir $appname "$version"
 }
 
+function buildFrpServer() {
+    appname="frps"
+    appdir="./cmd/server"
+    DisplayName="Frps网络代理程序"
+    Description="一款基于GO语言的网络代理服务程序"
+    builddir="./release/frps"
+    rm -rf ${builddir}
+    build $builddir $appname "$version" $appdir $DisplayName $Description "$1"
+    #upload $builddir $appname "$version"
+}
+
 function buildFrpcAndFrpsAll() {
   rm -rf ${builddir}
   buildFrpc 2 &
   buildFrps 2 &
+  buildFrpServer 2 &
   wait  # 等待所有后台进程结束
   builddir="./release"
   echo "所有任务完成"

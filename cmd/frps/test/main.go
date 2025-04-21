@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/cmd"
@@ -42,8 +41,8 @@ func main() {
 		frps.Test(&frps.CfgModel{
 			Frps: *cfg,
 		})
-		content, _ := json.Marshal(cfg)
-		svv, err := frps.NewFrps(content, nil)
+		//content, _ := json.Marshal(cfg)
+		svv, err := frps.NewFrps(cfg, nil)
 		if err != nil {
 			return err
 		}

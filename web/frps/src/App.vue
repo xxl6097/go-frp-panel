@@ -587,7 +587,7 @@ onMounted(() => {
   menuIndex.value = result
 })
 fetchVersionData()
-checkVersion()
+// checkVersion()
 </script>
 
 <style>

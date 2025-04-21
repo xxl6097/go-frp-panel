@@ -91,7 +91,16 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 		res.Error(fmt.Sprintf("读取body失败%v", err))
 		return
 	}
-	glog.Println(tomlBytes)
+	if utils2.IsPathExist(this.cfgFilePath) {
+		err = utils.Write(this.cfgFilePath, tomlBytes)
+		if err != nil {
+			res.Error(err.Error())
+		} else {
+			res.Ok("配置更新成功～")
+		}
+		return
+	}
+	//glog.Println(tomlBytes)
 	frpsCfg := v1.ServerConfig{}
 	err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
 	if err != nil {
@@ -117,12 +126,15 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 		res.Error(err.Error())
 	} else {
 		//defer utils.Delete(signFilePath, "签名文件")
-		err = this.install.Upgrade(r.Context(), signFilePath, "override")
-		if err != nil {
-			res.Error(fmt.Sprintf("更新失败～%v", err))
-			return
+		if this.install != nil {
+			err = this.install.Upgrade(r.Context(), signFilePath, "override")
+			if err != nil {
+				res.Error(fmt.Sprintf("更新失败～%v", err))
+				return
+			}
+			res.Ok("配置更新成功～")
 		}
-		res.Ok("配置更新成功～")
+
 	}
 }
 
@@ -162,6 +174,15 @@ func (this *frps) apiPanelinfo(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiServerConfigGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
+	if utils2.IsPathExist(this.cfgFilePath) {
+		content, err := utils.Read(this.cfgFilePath)
+		if err != nil {
+			res.Error(err.Error())
+		} else {
+			res.Raw = content
+		}
+		return
+	}
 	frpsToml := GetCfgModel().Frps
 	glog.Println("获取Frps配置:", frpsToml)
 	res.Raw = utils.ObjectToTomlText(frpsToml)

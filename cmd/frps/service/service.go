@@ -58,7 +58,14 @@ func (this Service) OnRun(i gore.IGService) error {
 		glog.Error(err)
 		return err
 	}
-	svv, err := frps.NewFrps(content, i)
+	cfgConfig := &v1.ServerConfig{}
+	err = json.Unmarshal(content, cfgConfig)
+	if err != nil {
+		glog.Error(err)
+		return err
+	}
+
+	svv, err := frps.NewFrps(cfgConfig, i)
 	if err != nil {
 		glog.Printf("启动 %s %s 失败:%v\n%v", pkg.AppName, pkg.AppVersion, err, conf)
 		return err
@@ -154,14 +161,6 @@ func (this *Service) menu() *frps.CfgModel {
 	cfg := &frps.CfgModel{
 		Frps: v1.ServerConfig{
 			BindPort: bindPort,
-			HTTPPlugins: []v1.HTTPPluginOptions{
-				{
-					Name: "frps-panel",
-					Addr: fmt.Sprintf("%s:%d", addr, adminPort),
-					Path: "/handler",
-					Ops:  []string{"Login", "NewWorkConn", "NewUserConn", "NewProxy", "Ping"},
-				},
-			},
 			WebServer: v1.WebServerConfig{
 				User:     username,
 				Password: password,

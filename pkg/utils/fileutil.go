@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"golang.org/x/text/encoding/simplifiedchinese"
@@ -331,10 +332,25 @@ func writeFile(f *zip.File, destPath string) error {
 	return err
 }
 
-// 根据后缀判断文件类型（仅后缀匹配）
+// IsZipOrJson 根据后缀判断文件类型（仅后缀匹配）
 func IsZipOrJson(filename string) (isZip, isJSON bool) {
 	ext := strings.ToLower(filepath.Ext(filename)) // 统一转为小写
 	isZip = ext == ".zip"
 	isJSON = ext == ".json"
 	return isZip, isJSON
+}
+
+func IsExist(filePath string) bool {
+	_, err := os.Stat(filePath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) { // 优先使用 errors.Is 处理包裹错误[2](@ref)
+			fmt.Println("文件不存在")
+		} else {
+			fmt.Println("发生未知错误:", err)
+		}
+	} else {
+		fmt.Println("文件存在")
+		return true
+	}
+	return false
 }

@@ -116,7 +116,7 @@ const handleClose = () => {
   console.log('handleClose', showUpgradeDialog.value)
 }
 
-checkVersion()
+// checkVersion()
 </script>
 <style scoped>
 .upgrade-popup-overlay {

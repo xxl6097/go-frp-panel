@@ -6,6 +6,7 @@ require (
 	github.com/avast/retry-go/v4 v4.6.1
 	github.com/fatedier/frp v0.61.2
 	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/websocket v1.5.3
 	github.com/kardianos/service v1.2.2
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0

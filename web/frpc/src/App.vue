@@ -480,7 +480,7 @@ const restart = () => {
   )
 }
 fetchData()
-checkVersion()
+// checkVersion()
 </script>
 
 <style>

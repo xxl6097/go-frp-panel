@@ -1,0 +1,7 @@
+bindPort = 6000
+
+[webServer]
+addr = '0.0.0.0'
+password = 'het002402'
+port = 6500
+user = 'admin'

@@ -316,3 +316,18 @@ func ByteCountIEC(b uint64) string {
 	}
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }
+
+// GetFirstPathSegment 获取路径第一个有效段（优化实现）
+func GetFirstPathSegment(path string) string {
+	// 清理路径并分割
+	trimmed := strings.Trim(path, "/")
+	if len(trimmed) == 0 {
+		return ""
+	}
+
+	// 分割并返回第一个非空段
+	if idx := strings.IndexByte(trimmed, '/'); idx >= 0 {
+		return trimmed[:idx]
+	}
+	return trimmed
+}
