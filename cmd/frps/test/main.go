@@ -5,6 +5,7 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/cmd"
 	"github.com/xxl6097/go-frp-panel/internal/frps"
+	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
 	"os"
 	"path/filepath"
 )
@@ -42,7 +43,7 @@ func main() {
 			Frps: *cfg,
 		})
 		//content, _ := json.Marshal(cfg)
-		svv, err := frps.NewFrps(cfg, nil)
+		svv, err := frps2.NewFrps(cfg, nil)
 		if err != nil {
 			return err
 		}

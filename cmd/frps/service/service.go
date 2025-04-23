@@ -10,6 +10,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/frps"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -65,7 +66,7 @@ func (this Service) OnRun(i gore.IGService) error {
 		return err
 	}
 
-	svv, err := frps.NewFrps(cfgConfig, i)
+	svv, err := frps2.NewFrps(cfgConfig, i)
 	if err != nil {
 		glog.Printf("启动 %s %s 失败:%v\n%v", pkg.AppName, pkg.AppVersion, err, conf)
 		return err

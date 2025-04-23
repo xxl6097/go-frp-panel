@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/xxl6097/go-frp-panel/internal/frps"
+	"github.com/xxl6097/go-frp-panel/pkg/frp/frps"
 	"os"
 
 	"github.com/spf13/cobra"
