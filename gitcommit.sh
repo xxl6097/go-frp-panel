@@ -30,7 +30,7 @@ function push() {
   timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
   git add .
   echo "git commit -m "${version} by ${USER}""
-  git commit -m "${timestamp} ${version} by ${USER}"
+  git commit -m "【${version}】by ${USER} ${timestamp}"
   git push
 }
 
