@@ -19,6 +19,7 @@
 [
   "https://ghfast.top/",
   "https://gh-proxy.com/",
-  "https://ghproxy.1888866.xyz/"
+  "https://ghproxy.1888866.xyz/",
+  "https://github.moeyy.xyz/"
 ]
 ```

@@ -144,5 +144,5 @@ go get -u github.com/xxl6097/go-service@v0.4.52
 本项目仅供学习交流用途，核心功能来源于[fatedier/frp](https://github.com/fatedier/frp)，如有侵权，请联系删除
 
 ## 许可证
-
+https://www.7ed.net/gitmirror/hub.html
 [MIT](./LICENSE) License &copy; 2024-PRESENT [xxl6097](https://github.com/xxl6097)
