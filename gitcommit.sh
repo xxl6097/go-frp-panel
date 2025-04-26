@@ -40,6 +40,7 @@ function main_pre() {
 }
 
 
+
 function forceBranch() {
     # 获取所有分支列表（包含远程分支）
     git fetch origin > /dev/null 2>&1

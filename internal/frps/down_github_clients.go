@@ -7,8 +7,6 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,18 +46,19 @@ func (this *frps) downloadFrpc(urls []string, dstDir string, wg *sync.WaitGroup)
 }
 
 func (this *frps) checkFrpc() {
-	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
-	resp, err := http.Get(baseUrl)
-	if err != nil {
-		glog.Errorf("请求失败:%v\n", err)
-		return
-	}
-	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		glog.Error("github请求失败", err)
-		return
-	}
+	//var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+	//resp, err := http.Get(baseUrl)
+	//if err != nil {
+	//	glog.Errorf("请求失败:%v\n", err)
+	//	return
+	//}
+	//defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
+	//body, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	glog.Error("github请求失败", err)
+	//	return
+	//}
+	body, err := utils.GithubApiReqest()
 	glog.Debug("checkFrpc请求成功")
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)

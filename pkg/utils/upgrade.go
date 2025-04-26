@@ -276,20 +276,21 @@ func ParseMarkdownCodeToStringArray(body string) []string {
 }
 
 func CheckVersionFromGithub() []string {
-	var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
+	//var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
 	//githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
-	resp, err := http.Get(baseUrl)
-	if err != nil {
-		glog.Errorf("请求失败:%v\n", err)
-		return nil
-	}
-	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		glog.Error("github请求失败", err)
-		return nil
-	}
+	//resp, err := http.Get(baseUrl)
+	//if err != nil {
+	//	glog.Errorf("请求失败:%v\n", err)
+	//	return nil
+	//}
+	//defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
+	//body, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	glog.Error("github请求失败", err)
+	//	return nil
+	//}
+	body, err := GithubApiReqest()
 	glog.Debug("github请求成功")
 	var result any
 	err = json.Unmarshal(body, &result)
