@@ -58,8 +58,9 @@ func (this *frps) checkFrpc() {
 	//	glog.Error("github请求失败", err)
 	//	return
 	//}
+
+	glog.Debug("checkFrpc请求")
 	body, err := utils.GithubApiReqest()
-	glog.Debug("checkFrpc请求成功")
 	var result model.GitHubModel
 	err = json.Unmarshal(body, &result)
 	clientsDir := filepath.Join(this.binDir, "clients")

@@ -13,6 +13,7 @@ var indexCount = 0
 var GithuApi = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 
 func reqestGithubApi(baseUrl string) ([]byte, error) {
+	glog.Debug("reqestGithubApi", baseUrl)
 	resp, err := http.Get(baseUrl)
 	if err != nil {
 		glog.Errorf("请求失败:%v\n", err)
@@ -33,5 +34,11 @@ func reqestGithubApi(baseUrl string) ([]byte, error) {
 }
 
 func GithubApiReqest() ([]byte, error) {
+	//indexCount = (indexCount + 1) % len(githubProxys) // 当 counter 达到 3 时，加 1 后取模结果为 0
+	//if indexCount == 0 {
+	//	return nil, nil
+	//}
+	//proxy := githubProxys[indexCount]
+	//return reqestGithubApi(fmt.Sprintf("%s%s", proxy, GithuApi))
 	return reqestGithubApi(GithuApi)
 }
