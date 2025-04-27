@@ -9,16 +9,16 @@
             class="server_info"
           >
             <el-form-item label="Frps版本号">
-              <span>{{ data.version }}</span>
+              <span>{{ version?.frpcVersion }}</span>
             </el-form-item>
             <el-form-item label="Panel版本">
-              <span>{{ data.appVersion }}</span>
+              <span>{{ version?.appVersion }}</span>
             </el-form-item>
             <el-form-item label="编译日期">
-              <span class="single-line">{{ data.buildTime }}</span>
+              <span class="single-line">{{ version?.buildTime }}</span>
             </el-form-item>
             <el-form-item label="编译环境">
-              <span class="single-line">{{ data.goVersion }}</span>
+              <span class="single-line">{{ version?.goVersion }}</span>
             </el-form-item>
             <el-form-item label="TCP绑定端口" v-if="data.bindPort != 0">
               <span>{{ data.bindPort }}</span>
@@ -86,10 +86,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject, Ref } from 'vue'
 import { DrawTrafficChart, DrawProxyChart } from '../utils/chart'
 import LongSpan from './LongSpan.vue'
 import { showErrorTips } from '../utils/utils.ts'
+import { Version } from "../utils/type.ts";
+
+const version = inject<Ref<Version>>('version')
 
 let data = ref({
   version: '',
@@ -175,24 +178,24 @@ const fetchData = () => {
     })
 }
 
-const fetchPanelData = () => {
-  fetch('../api/panelinfo', { credentials: 'include' })
-    .then((res) => res.json())
-    .then((json) => {
-      data.value.appVersion = json.data.appVersion
-      data.value.buildVersion = json.data.buildVersion
-      data.value.buildTime = json.data.buildTime
-      data.value.gitRevision = json.data.gitRevision
-      data.value.gitBranch = json.data.gitBranch
-      data.value.goVersion = json.data.goVersion
-      console.log('--->', json)
-      // draw chart
-    })
-    .catch(() => {
-      showErrorTips('获取配置失败')
-    })
-}
-fetchPanelData()
+// const fetchPanelData = () => {
+//   fetch('../api/panelinfo', { credentials: 'include' })
+//     .then((res) => res.json())
+//     .then((json) => {
+//       data.value.appVersion = json.data.appVersion
+//       data.value.buildVersion = json.data.buildVersion
+//       data.value.buildTime = json.data.buildTime
+//       data.value.gitRevision = json.data.gitRevision
+//       data.value.gitBranch = json.data.gitBranch
+//       data.value.goVersion = json.data.goVersion
+//       console.log('--->', json)
+//       // draw chart
+//     })
+//     .catch(() => {
+//       showErrorTips('获取配置失败')
+//     })
+// }
+// fetchPanelData()
 fetchData()
 </script>
 

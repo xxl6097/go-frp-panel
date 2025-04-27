@@ -20,7 +20,7 @@
                   align="center"
                   width="150px"
                 >
-                  <el-tag size="small">{{ version.frpcVersion }}</el-tag>
+                  <el-tag size="small">{{ version?.frpcVersion }}</el-tag>
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -28,7 +28,7 @@
                   label-align="left"
                   align="center"
                 >
-                  <el-tag size="small">{{ version.appVersion }}</el-tag>
+                  <el-tag size="small">{{ version?.appVersion }}</el-tag>
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -37,7 +37,7 @@
                   align="center"
                   width="200px"
                 >
-                  {{ version.buildTime }}
+                  {{ version?.buildTime }}
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -45,7 +45,7 @@
                   label-align="left"
                   align="center"
                 >
-                  {{ version.osType }}
+                  {{ version?.osType }}
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -53,7 +53,7 @@
                   label-align="left"
                   align="center"
                 >
-                  {{ version.arch }}
+                  {{ version?.arch }}
                 </el-descriptions-item>
               </el-descriptions>
             </template>
@@ -212,7 +212,7 @@
 <script lang="ts" setup>
 import UpgradeDialog from './components/UpgradeDialog.vue'
 
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, provide } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
   piecesUpload,
@@ -224,23 +224,27 @@ import {
   showWarmTips,
   xhrPromise,
 } from './utils/utils.ts'
+import { Version } from "./utils/type.ts";
 //https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
 const isDark = useDark()
 const darkmodeSwitch = ref(isDark)
 const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
-const version = ref({
-  description: '', //应用描述
-  frpcVersion: '', //frpc版本号
-  buildTime: '', //编译时间
-  appVersion: '', //app版本号
-  appName: '', //app名称
-  osType: '', //操作系统
-  arch: '', //cpuType
-  gitRevision: '',
-  goVersion: '',
-})
+// const version = ref({
+//   description: '', //应用描述
+//   frpcVersion: '', //frpc版本号
+//   buildTime: '', //编译时间
+//   appVersion: '', //app版本号
+//   appName: '', //app名称
+//   osType: '', //操作系统
+//   arch: '', //cpuType
+//   gitRevision: '',
+//   goVersion: '',
+// })
+
+const version = ref<Version>()
+provide('version', version)
 
 // const upgradeRef = ref(null)// 明确指定 ref 的类型
 const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
@@ -573,7 +577,11 @@ const fetchVersionData = () => {
     })
     .then((json) => {
       if (json) {
-        version.value = json
+        //version.value = json
+        const vv = json.data as Version // 类型断言
+        version.value = vv
+        console.log('vv', vv)
+        console.log('version', version.value)
         title.value = `Frps ${json.appVersion}`
         document.title = title.value
       }
