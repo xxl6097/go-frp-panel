@@ -109,6 +109,7 @@
           >
             <el-menu-item index="/">客户端信息</el-menu-item>
             <el-menu-item index="/configure">配置</el-menu-item>
+            <el-menu-item index="/log">日志</el-menu-item>
             <el-menu-item index="">帮助</el-menu-item>
           </el-menu>
         </el-col>

@@ -9,6 +9,7 @@ import ProxiesSTCP from '../components/ProxiesSTCP.vue'
 import ProxiesSUDP from '../components/ProxiesSUDP.vue'
 import ServerConfig from '../components/ServerConfig.vue'
 import UserConfig from '../components/UserConfig.vue'
+import LogView from "../components/LogView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/user',
       name: 'UserConfig',
       component: UserConfig,
+    },
+    {
+      path: '/log',
+      name: 'LogView',
+      component: LogView,
     },
     {
       path: '/proxies/tcp',

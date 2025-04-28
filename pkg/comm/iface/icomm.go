@@ -6,6 +6,7 @@ import (
 )
 
 type IComm interface {
+	ApiFiles(w http.ResponseWriter, r *http.Request)
 	ApiUpdate(w http.ResponseWriter, r *http.Request)
 	ApiRestart(w http.ResponseWriter, r *http.Request)
 	ApiCheckVersion(w http.ResponseWriter, r *http.Request)

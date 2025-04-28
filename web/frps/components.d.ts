@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElCard: typeof import('element-plus/es')['ElCard']
     ElCascader: typeof import('element-plus/es')['ElCascader']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElContainer: typeof import('element-plus/es')['ElContainer']
@@ -38,6 +39,7 @@ declare module 'vue' {
     ElText: typeof import('element-plus/es')['ElText']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    LogView: typeof import('./src/components/LogView.vue')['default']
     LongSpan: typeof import('./src/components/LongSpan.vue')['default']
     ProxiesHTTP: typeof import('./src/components/ProxiesHTTP.vue')['default']
     ProxiesHTTPS: typeof import('./src/components/ProxiesHTTPS.vue')['default']

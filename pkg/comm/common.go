@@ -1,12 +1,11 @@
 package comm
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
-	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/model"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/gore/util"
@@ -15,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -27,7 +25,7 @@ type commapi struct {
 	pool *sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
-func NewCommApi(install gore.IGService, obj any) iface.IComm {
+func NewCommApi(install gore.IGService, obj any) *commapi {
 	return &commapi{
 		igs: install,
 		obj: obj,
@@ -39,6 +37,50 @@ func NewCommApi(install gore.IGService, obj any) iface.IComm {
 
 func (this *commapi) GetBuffer() *sync.Pool {
 	return this.pool
+}
+
+func (this *commapi) ApiFiles(w http.ResponseWriter, r *http.Request) {
+	res, f := Response(r)
+	defer f(w)
+	params, err := utils2.GetDataByJson[struct {
+		Path string `json:"path"`
+	}](r)
+	if err != nil {
+		res.Error(fmt.Errorf("read param err: %v", err).Error())
+		glog.Error(res.Msg)
+		return
+	}
+	if params == nil {
+		res.Error("params is empty")
+		glog.Error(res.Msg)
+		return
+	}
+	path := params.Path
+	isFile := strings.HasSuffix(path, "/")
+
+	if !isFile {
+		w.Header().Set("File-Type", "text")
+		http.ServeFile(w, r, path) //r.URL.Path
+	} else {
+		dirs, err := os.ReadDir(path)
+		if err != nil {
+			return
+		}
+
+		var files []model.TreeData
+		for _, dir := range dirs {
+			f := model.TreeData{
+				Id:    dir.Name(),
+				Label: dir.Name(),
+			}
+			if dir.IsDir() {
+				f.Label = dir.Name() + "/"
+			}
+			files = append(files, f)
+		}
+		res.Any(files)
+	}
+
 }
 
 func (this *commapi) ApiUpdate1(w http.ResponseWriter, r *http.Request) {
@@ -253,7 +295,7 @@ func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	v := map[string]interface{}{
+	res.Sucess("获取成功", map[string]interface{}{
 		"frpcVersion": version.Full(),
 		"appName":     pkg.AppName,
 		"appVersion":  pkg.AppVersion,
@@ -265,14 +307,8 @@ func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 		"description": pkg.Description,
 		"osType":      pkg.OsType,
 		"arch":        pkg.Arch,
-	}
-	jsonBytes, err := json.Marshal(v)
-	if err != nil {
-		res.Error("json marshal err")
-		glog.Error(res.Msg)
-	}
-	res.Raw = jsonBytes
-	glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
-	glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
-	glog.Println("CPU 核心数:", runtime.NumCPU())
+	})
+	//glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
+	//glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
+	//glog.Println("CPU 核心数:", runtime.NumCPU())
 }

@@ -3,8 +3,17 @@ package frpc
 import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"net/http"
 )
+
+var logQueue = pkg.NewLogQueue()
+
+func init() {
+	glog.Hook(func(bytes []byte) {
+		logQueue.AddMessage(string(bytes))
+	})
+}
 
 func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter := helper.Router.NewRoute().Name("admin").Subrouter()
@@ -12,6 +21,10 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	staticPrefix := "/log/"
 	baseDir := glog.GetCrossPlatformDataDir()
 	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
+
+	subRouter.PathPrefix("/fserver/").Handler(http.StripPrefix("/fserver/", http.FileServer(http.Dir("/"))))
+	subRouter.HandleFunc("/api/sse-stream", pkg.SseHandler(logQueue))
+	subRouter.HandleFunc("/api/files", this.upgrade.ApiFiles).Methods("PUT")
 
 	// apis
 	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")

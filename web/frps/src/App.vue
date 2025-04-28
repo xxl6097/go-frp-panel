@@ -124,6 +124,7 @@
               <el-menu-item index="/proxies/stcp">STCP</el-menu-item>
               <el-menu-item index="/proxies/sudp">SUDP</el-menu-item>
             </el-sub-menu>
+            <el-menu-item index="/log">日志</el-menu-item>
             <el-menu-item index="">帮助</el-menu-item>
           </el-menu>
         </el-col>
