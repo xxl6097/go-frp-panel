@@ -17,4 +17,7 @@ export interface Version {
   gitVersion: string
   gitReleaseCommit: string
   binName: string
+  totalSize: string
+  usedSize: string
+  freeSize: string
 }

@@ -20,6 +20,15 @@
             <el-form-item label="编译环境">
               <span class="single-line">{{ version?.goVersion }}</span>
             </el-form-item>
+            <el-form-item label="剩余空间">
+              <span class="single-line">{{ version?.freeSize }}</span>
+            </el-form-item>
+            <el-form-item label="使用空间">
+              <span class="single-line">{{ version?.usedSize }}</span>
+            </el-form-item>
+            <el-form-item label="总空间">
+              <span class="single-line">{{ version?.totalSize }}</span>
+            </el-form-item>
             <el-form-item label="TCP绑定端口" v-if="data.bindPort != 0">
               <span>{{ data.bindPort }}</span>
             </el-form-item>

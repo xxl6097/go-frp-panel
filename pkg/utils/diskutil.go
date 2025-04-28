@@ -18,6 +18,16 @@ func ShowUpDirSize() {
 	glog.Printf("Free space: %d bytes %v\n\n", free, ByteCountIEC(free))
 }
 
+func GetAppSpace() (string, string, string) {
+	dir := glog.GetCrossPlatformDataDir()
+	total, used, free, err := util.GetDiskUsage(dir)
+	glog.Printf("Current Working Directory: %s %v\n", dir, err)
+	glog.Printf("Total space: %d bytes %v\n", total, ByteCountIEC(total))
+	glog.Printf("Used space: %d bytes %v\n\n", used, ByteCountIEC(used))
+	glog.Printf("Free space: %d bytes %v\n\n", free, ByteCountIEC(free))
+	return ByteCountIEC(total), ByteCountIEC(used), ByteCountIEC(free)
+}
+
 func HasDiskSpace() bool {
 	size := GetSelfSize()
 	size *= 16
