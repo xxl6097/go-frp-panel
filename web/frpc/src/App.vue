@@ -306,7 +306,7 @@ const fetchData = () => {
     .then((json) => {
       if (json) {
         version.value = json
-        title.value = `Frpc ${json.appVersion}`
+        title.value = `Frpc ${json.data.appVersion}`
         document.title = title.value
       }
     })

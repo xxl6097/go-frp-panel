@@ -583,7 +583,7 @@ const fetchVersionData = () => {
         version.value = vv
         console.log('vv', vv)
         console.log('version', version.value)
-        title.value = `Frps ${json.appVersion}`
+        title.value = `Frps ${vv.appVersion}`
         document.title = title.value
       }
     })
