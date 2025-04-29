@@ -186,8 +186,11 @@
       width="500px"
     >
       <el-form label-width="130px">
-        <el-form-item label="服务器地址">
+        <el-form-item label="服务器地址：">
           <el-input v-model="clientForm.addr" placeholder="请输入服务器地址" />
+        </el-form-item>
+        <el-form-item label="服务器端口：">
+          <el-input v-model="clientForm.port" placeholder="请输入服务器端口" />
         </el-form-item>
 
         <el-form-item label="操作系统/架构" v-if="options.length > 0">
@@ -200,7 +203,7 @@
           />
         </el-form-item>
 
-        <el-form-item label="客户端下载地址" v-if="options.length <= 0">
+        <el-form-item label="客户端下载地址：" v-if="options.length <= 0">
           <el-input
             v-model="clientForm.url"
             placeholder="请输入客户端下载地址"
@@ -286,6 +289,7 @@ const newUserForm = ref({
 
 const clientForm = ref({
   addr: '',
+  port: 0,
   url: '',
   ops: {},
 })
@@ -432,6 +436,7 @@ const fetchClientGen = () => {
     const data = {
       binPath: node.filePath,
       addr: clientForm.value.addr,
+      port: clientForm.value.port,
       user: body,
     }
     downloadByPost(
@@ -722,6 +727,17 @@ onUnmounted(() => {
 //  )
 //})
 
+const fetchServerData = () => {
+  fetch('../api/serverinfo', { credentials: 'include' })
+    .then((res) => res.json())
+    .then((json) => {
+      clientForm.value.port = json.bindPort
+    })
+    .catch(() => {
+      showErrorTips('获取服务器信息失败')
+    })
+}
+
 // 获取数据
 const fetchData = () => {
   get('数据请求', '../api/token/all', null).then((data) => {
@@ -759,6 +775,7 @@ onUpdated(() => {
 })
 fetchData()
 fetchOptions()
+fetchServerData()
 </script>
 
 <style scoped>

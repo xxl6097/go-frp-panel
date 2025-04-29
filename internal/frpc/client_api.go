@@ -2,6 +2,7 @@ package frpc
 
 import (
 	"fmt"
+	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/pkg/config"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +121,15 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			utils.Delete(newFilePath)
 			return
 		}
-		err := this.runClient(newFilePath)
+
+		err = retry.Do(func() error {
+			e := this.runClient(newFilePath)
+			if e != nil {
+				glog.Errorf("创建frpc客户端失败: %s %v\n", newFilePath, e)
+			}
+			return e
+		}, retry.Delay(time.Second*5), retry.Attempts(10))
+		//err := this.runClient(newFilePath)
 		glog.Error(err)
 		if err != nil {
 			res.Err(err)

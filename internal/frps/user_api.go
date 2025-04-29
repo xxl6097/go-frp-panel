@@ -187,6 +187,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		BinPath string `json:"binPath"`
 		BinUrl  string `json:"binUrl"`
 		Addr    string `json:"addr"`
+		Port    int    `json:"port"`
 		User    User   `json:"user"`
 	}](r)
 	if err != nil {
@@ -270,10 +271,14 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
 	//cfgBuffer := ukey.GetBuffer()
+	bindPort := GetCfgModel().Frps.BindPort
+	if body.Port > 0 {
+		bindPort = body.Port
+	}
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	cfg := comm2.BufferConfig{
 		Addr:       body.Addr,
-		Port:       GetCfgModel().Frps.BindPort,
+		Port:       bindPort,
 		User:       body.User.User,
 		Token:      body.User.Token,
 		Comment:    body.User.Comment,

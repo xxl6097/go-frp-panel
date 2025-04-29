@@ -14,7 +14,6 @@ import (
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -74,7 +73,7 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 	logfrps.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
 	svr, err := server.NewService(cfg)
 	if err != nil {
-		log.Fatalf("new frps err: %v", err)
+		glog.Fatalf("new frps err: %v", err)
 	}
 	webServer := utils.GetPointerInstance[httppkg.Server]("webServer", svr)
 	f := &frps{

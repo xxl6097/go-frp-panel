@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/pkg/config"
@@ -93,18 +92,18 @@ func (this *frpc) startService(
 		go this.handleTermSignal(svr)
 	}
 
-	e := retry.Do(func() error {
-		e := svr.Run(context.Background())
-		if e != nil {
-			glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
-		}
-		return e
-	}, retry.Delay(time.Second*5), retry.Attempts(10))
+	//e := retry.Do(func() error {
+	//	e := svr.Run(context.Background())
+	//	if e != nil {
+	//		glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
+	//	}
+	//	return e
+	//}, retry.Delay(time.Second*5), retry.Attempts(10))
 
-	//e := svr.Run(context.Background())
-	//if e != nil {
-	//	glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
-	//}
+	e := svr.Run(context.Background())
+	if e != nil {
+		glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
+	}
 	//因为Run是阻塞的，能执行到这一行，说明失败了
 	delete(this.svrs, name)
 	return e
