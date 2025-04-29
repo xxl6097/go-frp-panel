@@ -8,10 +8,10 @@
             label-width="220px"
             class="server_info"
           >
-            <el-form-item label="Frps版本号">
+            <el-form-item label="内核版本号">
               <span>{{ version?.frpcVersion }}</span>
             </el-form-item>
-            <el-form-item label="Panel版本">
+            <el-form-item label="面板版本">
               <span>{{ version?.appVersion }}</span>
             </el-form-item>
             <el-form-item label="编译日期">
@@ -19,6 +19,12 @@
             </el-form-item>
             <el-form-item label="编译环境">
               <span class="single-line">{{ version?.goVersion }}</span>
+            </el-form-item>
+            <el-form-item label="操作系统">
+              <span class="single-line">{{ version?.osType }}</span>
+            </el-form-item>
+            <el-form-item label="CPU架构">
+              <span class="single-line">{{ version?.arch }}</span>
             </el-form-item>
             <el-form-item label="剩余空间">
               <span class="single-line">{{ version?.freeSize }}</span>

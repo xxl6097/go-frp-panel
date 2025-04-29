@@ -11,54 +11,7 @@
     <header class="grid-content header-color">
       <div class="header-content">
         <div class="brand">
-          <el-tooltip placement="right" effect="light">
-            <template #content>
-              <el-descriptions :column="1" border label-width="110px">
-                <el-descriptions-item
-                  label="frpc版本号："
-                  label-align="left"
-                  align="center"
-                  width="150px"
-                >
-                  <el-tag size="small">{{ version?.frpcVersion }}</el-tag>
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="面板版本号："
-                  label-align="left"
-                  align="center"
-                >
-                  <el-tag size="small">{{ version?.appVersion }}</el-tag>
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="编译时间："
-                  label-align="left"
-                  align="center"
-                  width="200px"
-                >
-                  {{ version?.buildTime }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="操作系统："
-                  label-align="left"
-                  align="center"
-                >
-                  {{ version?.osType }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="CPU架构："
-                  label-align="left"
-                  align="center"
-                >
-                  {{ version?.arch }}
-                </el-descriptions-item>
-              </el-descriptions>
-            </template>
-            <a href="#">{{ title }}</a>
-          </el-tooltip>
+          <a href="#">{{ title }}</a>
         </div>
         <div class="dark-switch">
           <div class="dark-reboot">
