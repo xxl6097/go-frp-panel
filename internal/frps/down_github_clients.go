@@ -70,23 +70,23 @@ func (this *frps) checkFrpc() {
 			var wg sync.WaitGroup
 			urls := make([]string, 0)
 			hasSpace := utils.HasDiskSpace()
-			for _, asset := range result.Assets {
-				if strings.Contains(asset.Name, "frpc") {
-					urls = append(urls, asset.BrowserDownloadUrl)
-					newProxy := []string{}
-					for _, proxy := range this.githubProxys {
-						newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
-						newProxy = append(newProxy, newUrl)
-					}
-					if hasSpace {
+			if hasSpace {
+				for _, asset := range result.Assets {
+					if strings.Contains(asset.Name, "frpc") {
+						urls = append(urls, asset.BrowserDownloadUrl)
+						newProxy := []string{}
+						for _, proxy := range this.githubProxys {
+							newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
+							newProxy = append(newProxy, newUrl)
+						}
 						glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 						go this.downloadFrpc(newProxy, clientsDir, &wg)
-					} else {
-						glog.Debug("没有足够磁盘空间下载", asset.BrowserDownloadUrl)
 					}
-					//go this.downloadFrpc(newProxy, clientsDir, &wg)
 				}
+			} else {
+				glog.Debug("没有足够磁盘空间下载", result.TagName)
 			}
+
 			this.urls = urls
 			wg.Wait()
 		} else {
