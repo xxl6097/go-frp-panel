@@ -21,10 +21,9 @@
               <span class="single-line">{{ version?.goVersion }}</span>
             </el-form-item>
             <el-form-item label="操作系统">
-              <span class="single-line">{{ version?.osType }}</span>
-            </el-form-item>
-            <el-form-item label="CPU架构">
-              <span class="single-line">{{ version?.arch }}</span>
+              <span class="single-line"
+                >{{ version?.osType }}/{{ version?.arch }}</span
+              >
             </el-form-item>
             <el-form-item label="剩余空间">
               <span class="single-line">{{ version?.freeSize }}</span>
@@ -105,7 +104,7 @@ import { ref, inject, Ref } from 'vue'
 import { DrawTrafficChart, DrawProxyChart } from '../utils/chart'
 import LongSpan from './LongSpan.vue'
 import { showErrorTips } from '../utils/utils.ts'
-import { Version } from "../utils/type.ts";
+import { Version } from '../utils/type.ts'
 
 const version = inject<Ref<Version>>('version')
 

@@ -63,7 +63,7 @@
             <el-menu-item index="/">服务器信息</el-menu-item>
 
             <el-menu-item index="/config">服务器配置</el-menu-item>
-            <el-menu-item index="/user">用户配置</el-menu-item>
+            <el-menu-item index="/user">客户端配置</el-menu-item>
 
             <el-sub-menu index="/proxies">
               <template #title>
