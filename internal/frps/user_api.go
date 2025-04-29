@@ -316,6 +316,19 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
+	binpath, err := os.Executable()
+	if err != nil {
+		return err, ""
+	}
+	userDir := filepath.Join(filepath.Dir(binpath), "user")
+	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
+	_ = utils2.EnsureDir(tempDir)
+	zipFilePath := filepath.Join(tempDir, fileName)
+	err = utils.Zip(userDir, zipFilePath)
+	return err, zipFilePath
+}
+
 func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 	res := &comm2.GeneralResponse{Code: 0}
 	binpath, err := os.Executable()
@@ -376,6 +389,23 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 		w.Write(prevBuffer)
 		prevBuffer = nil
 	}
+}
+
+func (this *frps) OnFrpcConfigImport(dstFilePath string) error {
+	binpath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	userDir := filepath.Join(filepath.Dir(binpath), "user")
+	if err = utils.DirCheck(userDir); err != nil {
+		return err
+	}
+	err = utils.UnzipToRoot(dstFilePath, userDir, true)
+	if err == nil {
+		utils.Delete(dstFilePath, "用户文件")
+		glog.Info("解压成功", userDir)
+	}
+	return err
 }
 
 func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
