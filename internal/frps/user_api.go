@@ -163,7 +163,8 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
 	res.Data = utils.ToTree("", this.frpsGithubDownloadUrls)
-	glog.Infof("扫描结果:%v", res.Data)
+	glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
+	glog.Infof("frps地址扫描:%v", res.Data)
 }
 
 func (this *frps) parseUser(data map[string]interface{}) {
@@ -627,11 +628,12 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	body, err := utils.GetDataByJson[struct {
-		BindPort  int    `json:"bindPort"`
-		AdminAddr string `json:"adminAddr"`
-		AdminPort int    `json:"adminPort"`
-		User      string `json:"user"`
-		Pass      string `json:"pass"`
+		BindPort  int      `json:"bindPort"`
+		AdminAddr string   `json:"adminAddr"`
+		AdminPort int      `json:"adminPort"`
+		User      string   `json:"user"`
+		Pass      string   `json:"pass"`
+		Ops       []string `json:"ops"`
 	}](r)
 	if err != nil {
 		glog.Error("解析Json对象失败", err)
@@ -644,7 +646,21 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Debugf("body:%+v\n", body)
-	var binUrl string
+
+	if body.Ops == nil {
+		msg := "body.Ops nil"
+		glog.Error(msg)
+		http.Error(w, "body.Ops nil", http.StatusInternalServerError)
+		return
+	}
+	binUrl := this.getFrpsDownloadUrls(body.Ops[0], body.Ops[1])
+
+	if binUrl == "" {
+		msg := "frps download url is nil"
+		glog.Error(msg)
+		http.Error(w, "frps download url is nil", http.StatusInternalServerError)
+		return
+	}
 	var binPath string
 	if this.githubProxys != nil {
 		var urls []string

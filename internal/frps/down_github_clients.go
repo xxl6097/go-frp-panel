@@ -122,3 +122,17 @@ func (this *frps) CheckClients() {
 	}
 	go this.check()
 }
+
+func (this *frps) getFrpsDownloadUrls(os, arch string) string {
+	os = strings.ToLower(os)
+	arch = strings.ToLower(arch)
+	if len(this.frpsGithubDownloadUrls) > 0 {
+		for _, url := range this.frpsGithubDownloadUrls {
+			url = strings.ToLower(url)
+			if strings.Contains(url, os) && strings.Contains(url, arch) {
+				return url
+			}
+		}
+	}
+	return ""
+}

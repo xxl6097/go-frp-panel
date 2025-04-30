@@ -190,8 +190,10 @@
       <el-form-item label="Admin密码：">
         <el-input v-model="frpsForm.pass" placeholder="请输入Admin密码" />
       </el-form-item>
-      <!--      v-if="frpsForm.options.length > 0"-->
-      <el-form-item label="操作系统/架构">
+      <el-form-item
+        label="操作系统/架构"
+        v-if="frpsForm.options && frpsForm.options.length > 0"
+      >
         <el-cascader
           :options="frpsForm.options"
           clearable
@@ -283,8 +285,7 @@ const fetchOptions = () => {
     .then((data) => {
       console.log('1-frpsForm.options', data)
       if (data) {
-        frpsForm.value.options = JSON.parse(JSON.stringify(data))
-        console.log('2-frpsForm.options', frpsForm.value.options)
+        frpsForm.value.options = data.data
       } else {
         frpsForm.value.options = []
       }

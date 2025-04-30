@@ -77,6 +77,9 @@ func (this Service) OnRun(i gore.IGService) error {
 }
 
 func (this Service) GetAny(binDir string) any {
+	frps.Assert()
+	conf := frps.GetCfgModel().Frps
+	glog.Printf("GetAny %+v\n", conf)
 	return this.menu()
 }
 
