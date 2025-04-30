@@ -78,8 +78,10 @@ func (this Service) OnRun(i gore.IGService) error {
 
 func (this Service) GetAny(binDir string) any {
 	frps.Assert()
-	conf := frps.GetCfgModel().Frps
-	glog.Printf("GetAny %+v\n", conf)
+	cfg := frps.GetCfgModel()
+	if cfg != nil && cfg.Frps.BindPort > 0 {
+		return nil
+	}
 	return this.menu()
 }
 
