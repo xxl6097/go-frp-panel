@@ -16,6 +16,12 @@ import (
 	"time"
 )
 
+func (this *frpc) apiUploadCreate(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	res.Ok("")
+}
+
 func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)

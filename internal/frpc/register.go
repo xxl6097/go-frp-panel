@@ -36,6 +36,7 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("PUT")
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("POST")
+	subRouter.HandleFunc("/api/client/upload", this.apiClientCreate).Methods("POST")
 	subRouter.HandleFunc("/api/client/delete", this.apiClientDelete).Methods("DELETE")
 	subRouter.HandleFunc("/api/client/status", this.apiClientStatus).Methods("GET")
 	subRouter.HandleFunc("/api/client/list", this.apiClientList).Methods("GET")

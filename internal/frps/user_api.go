@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
@@ -32,6 +33,8 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/client/get", this.apiClientGet).Methods("GET")
 	subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
+	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
+	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")
 	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
@@ -150,9 +153,16 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("扫描路径:%s", configPath)
 	nodes := utils.GetNodes(configPath)
 	if nodes == nil || len(nodes) == 0 {
-		nodes = utils.ToTree("", this.urls)
+		nodes = utils.ToTree("", this.frpcGithubDownloadUrls)
 	}
 	res.Data = nodes
+	glog.Infof("扫描结果:%v", res.Data)
+}
+
+func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	res.Data = utils.ToTree("", this.frpsGithubDownloadUrls)
 	glog.Infof("扫描结果:%v", res.Data)
 }
 
@@ -611,4 +621,113 @@ func (this *frps) apiClientUpload1(w http.ResponseWriter, r *http.Request) {
 		utils.Delete(dstFilePath)
 	}
 	res.Ok("文件上传成功～")
+}
+
+func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	body, err := utils.GetDataByJson[struct {
+		BindPort  int    `json:"bindPort"`
+		AdminAddr string `json:"adminAddr"`
+		AdminPort int    `json:"adminPort"`
+		User      string `json:"user"`
+		Pass      string `json:"pass"`
+	}](r)
+	if err != nil {
+		glog.Error("解析Json对象失败", err)
+		return
+	}
+	if body == nil {
+		msg := "json对象nil"
+		glog.Error(msg)
+		http.Error(w, "json对象nil", http.StatusInternalServerError)
+		return
+	}
+	glog.Debugf("body:%+v\n", body)
+	var binUrl string
+	var binPath string
+	if this.githubProxys != nil {
+		var urls []string
+		for _, proxy := range this.githubProxys {
+			newUrl := fmt.Sprintf("%s%s", proxy, binUrl)
+			urls = append(urls, newUrl)
+		}
+		binPath = utils2.DownloadFileWithCancelByUrls(urls)
+	} else {
+		dstPath, e := utils2.DownloadFileWithCancel(ctx, binUrl)
+		if e != nil {
+			msg := fmt.Errorf("下载文件失败～%v", e)
+			glog.Error(msg)
+			http.Error(w, msg.Error(), http.StatusNotImplemented)
+			return
+		}
+		binPath = dstPath
+	}
+	if binPath == "" {
+		msg := fmt.Errorf("bin文件路径空")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	glog.Infof("binPath: %s %+v\n", binPath, body)
+	tpl, err := os.Open(binPath)
+	if err != nil {
+		msg := fmt.Errorf("打开文件失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+		return
+	}
+	defer tpl.Close()
+
+	w.Header().Add("Content-Transfer-Encoding", "binary")
+	w.Header().Add("Content-Type", "application/octet-stream")
+	if stat, err := tpl.Stat(); err == nil {
+		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
+	}
+	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
+
+	cfg := &CfgModel{
+		Frps: v1.ServerConfig{
+			BindPort: body.BindPort,
+			WebServer: v1.WebServerConfig{
+				User:     body.User,
+				Password: body.Pass,
+				Port:     body.AdminPort,
+				Addr:     body.AdminAddr,
+			},
+			Log: v1.LogConfig{
+				To:      filepath.Join(glog.GetCrossPlatformDataDir("log"), "frps.log"),
+				MaxDays: 3,
+				Level:   "error",
+			},
+		},
+	}
+	cfgNewBytes, err := ukey.GenConfig(cfg, false)
+	if err != nil {
+		msg := fmt.Errorf("文件签名失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
+		return
+	}
+	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+	prevBuffer := make([]byte, 0)
+	for {
+		thisBuffer := make([]byte, 1024)
+		n, err := tpl.Read(thisBuffer)
+		thisBuffer = thisBuffer[:n]
+		tempBuffer := append(prevBuffer, thisBuffer...)
+		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
+		if bufIndex > -1 {
+			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
+		}
+		w.Write(tempBuffer[:len(prevBuffer)])
+		prevBuffer = tempBuffer[len(prevBuffer):]
+		if err != nil {
+			break
+		}
+	}
+	if len(prevBuffer) > 0 {
+		w.Write(prevBuffer)
+		prevBuffer = nil
+	}
 }

@@ -20,18 +20,21 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="dialogFormVisible = true"
-                    >升级服务</el-dropdown-item
-                  >
+                    >升级服务
+                  </el-dropdown-item>
                   <el-dropdown-item @click="checkVersion"
-                    >版本检测</el-dropdown-item
-                  >
+                    >版本检测
+                  </el-dropdown-item>
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
-                  <el-dropdown-item @click="dialogClientsVisible = true"
-                    >上传客户端</el-dropdown-item
-                  >
                   <el-dropdown-item @click="handleClearData"
-                    >清空数据</el-dropdown-item
-                  >
+                    >清空数据
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="dialogClientsVisible = true"
+                    >上传客户端
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="frpsForm.isShow = true"
+                    >创建服务端
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -114,8 +117,8 @@
         >
           <template #trigger>
             <el-button type="primary" :disabled="form.binUrl.length > 0"
-              >上传文件升级</el-button
-            >
+              >上传文件升级
+            </el-button>
           </template>
           <!-- 添加额外按钮 -->
           <el-button
@@ -146,13 +149,14 @@
       drag
       :accept="'.zip'"
     >
-      <i class="el-icon el-icon--upload"
-        ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+      <i class="el-icon el-icon--upload">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
           <path
             fill="currentColor"
             d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.808 239.808 0 0 1 512 192a239.872 239.872 0 0 1 235.456 194.752c119.488 13.76 212.48 114.112 212.48 237.248a240 240 0 0 1-240 240c-5.376 0-10.56-1.28-16-1.6v1.6z"
-          ></path></svg
-      ></i>
+          ></path>
+        </svg>
+      </i>
       <div class="el-upload__text">拖拽到这里 <em>点击上传</em></div>
       <template #tip>
         <div class="el-upload__tip">
@@ -160,6 +164,50 @@
         </div>
       </template>
     </el-upload>
+  </el-dialog>
+
+  <!-- 生成服务端 -->
+  <el-dialog v-model="frpsForm.isShow" title="生成客户端" width="500px">
+    <el-form label-width="130px">
+      <el-form-item label="frps绑定端口：">
+        <el-input v-model="frpsForm.bindPort" placeholder="请输入bindport" />
+      </el-form-item>
+      <el-form-item label="Admin管理地址：">
+        <el-input
+          v-model="frpsForm.adminAddr"
+          placeholder="请输入Admin管理地址"
+        />
+      </el-form-item>
+      <el-form-item label="Admin管理地址：">
+        <el-input
+          v-model="frpsForm.adminPort"
+          placeholder="请输入Admin管理端口"
+        />
+      </el-form-item>
+      <el-form-item label="Admin账户：">
+        <el-input v-model="frpsForm.user" placeholder="请输入Admin账户" />
+      </el-form-item>
+      <el-form-item label="Admin密码：">
+        <el-input v-model="frpsForm.pass" placeholder="请输入Admin密码" />
+      </el-form-item>
+
+      <el-form-item label="操作系统/架构" v-if="frpsForm.options.length > 0">
+        <el-cascader
+          :options="frpsForm.options"
+          clearable
+          v-model="frpsForm.ops"
+          placeholder="请选择"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button
+        type="primary"
+        @click="fetchFrpsGen()"
+        :loading="frpsForm.isLoading"
+        >确定
+      </el-button>
+    </template>
   </el-dialog>
 </template>
 
@@ -169,6 +217,7 @@ import UpgradeDialog from './components/UpgradeDialog.vue'
 import { onMounted, ref, provide } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
+  downloadByPost,
   piecesUpload,
   showErrorTips,
   showLoading,
@@ -178,7 +227,8 @@ import {
   showWarmTips,
   xhrPromise,
 } from './utils/utils.ts'
-import { Version } from "./utils/type.ts";
+import { Version } from './utils/type.ts'
+import { ElButton } from 'element-plus'
 //https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
 const isDark = useDark()
 const darkmodeSwitch = ref(isDark)
@@ -197,6 +247,18 @@ const dialogClientsVisible = ref(false)
 //   goVersion: '',
 // })
 
+const frpsForm = ref({
+  bindPort: 6000,
+  adminAddr: '0.0.0.0',
+  adminPort: 6500,
+  user: 'admin',
+  pass: '',
+  options: [],
+  ops: {},
+  isShow: false,
+  isLoading: false,
+})
+
 const version = ref<Version>()
 provide('version', version)
 
@@ -207,6 +269,36 @@ const showUpgradeDialog = () => {
   if (upgradeRef.value) {
     upgradeRef.value.openUpgradeDialog()
   }
+}
+
+// 获取平台数据
+const fetchOptions = () => {
+  fetch('../api/frps/get', {
+    credentials: 'include',
+    method: 'GET',
+  })
+    .then((res) => {
+      return res.json()
+    })
+    .then((data) => {
+      if (data) {
+        frpsForm.value.options = JSON.parse(JSON.stringify(data))
+      } else {
+        frpsForm.value.options = []
+      }
+    })
+}
+// 创建frps安装程序
+const fetchFrpsGen = () => {
+  frpsForm.value.isLoading = true
+  console.log('创建frps安装程序', frpsForm.value)
+  downloadByPost(
+    'frps生成中',
+    '../api/frps/gen',
+    JSON.stringify(frpsForm.value),
+  ).finally(() => {
+    frpsForm.value.isLoading = false
+  })
 }
 
 const customColors = [
@@ -549,6 +641,7 @@ onMounted(() => {
   menuIndex.value = result
 })
 fetchVersionData()
+fetchOptions()
 // checkVersion()
 </script>
 

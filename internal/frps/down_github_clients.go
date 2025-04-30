@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-func (this *frps) hasNewVersion(newVersion, clientsDir string) bool {
+// isLocalFrpcIsLatest 判断本地存储的frpc客户端版本是不是最新的
+func (this *frps) isLocalFrpcIsLatest(newVersion, clientsDir string) bool {
 	if utils.CheckDir(clientsDir) {
 		entries, err := os.ReadDir(clientsDir)
 		if err == nil && len(entries) > 0 {
@@ -65,33 +66,42 @@ func (this *frps) checkFrpc() {
 	err = json.Unmarshal(body, &result)
 	clientsDir := filepath.Join(this.binDir, "clients")
 	if err == nil {
-		if this.hasNewVersion(result.TagName, clientsDir) {
-			this.githubProxys = utils.ParseMarkdownCodeToStringArray(result.Body)
-			var wg sync.WaitGroup
-			urls := make([]string, 0)
-			hasSpace := utils.HasDiskSpace()
-			if hasSpace {
-				for _, asset := range result.Assets {
-					if strings.Contains(asset.Name, "frpc") {
-						urls = append(urls, asset.BrowserDownloadUrl)
-						newProxy := []string{}
-						for _, proxy := range this.githubProxys {
-							newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
-							newProxy = append(newProxy, newUrl)
-						}
-						glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
-						go this.downloadFrpc(newProxy, clientsDir, &wg)
-					}
-				}
-			} else {
-				glog.Debug("没有足够磁盘空间下载", result.TagName)
-			}
-
-			this.urls = urls
-			wg.Wait()
-		} else {
-			glog.Info("客户端无需升级...")
+		this.githubProxys = utils.ParseMarkdownCodeToStringArray(result.Body)
+		isFrpcLatest := this.isLocalFrpcIsLatest(result.TagName, clientsDir)
+		hasSpace := utils.HasDiskSpace()
+		var wg sync.WaitGroup
+		frpcUrls := make([]string, 0)
+		frpsUrls := make([]string, 0)
+		if !hasSpace {
+			glog.Debug("没有足够磁盘空间下载", result.TagName)
 		}
+		if !isFrpcLatest {
+			glog.Debug("本地frpc版本是最新的", result.TagName)
+		}
+		for _, asset := range result.Assets {
+			if strings.Contains(asset.Name, "frpc") {
+				frpcUrls = append(frpcUrls, asset.BrowserDownloadUrl)
+				newProxy := []string{}
+				for _, proxy := range this.githubProxys {
+					newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
+					newProxy = append(newProxy, newUrl)
+				}
+				glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
+				if hasSpace && isFrpcLatest {
+					go this.downloadFrpc(newProxy, clientsDir, &wg)
+				}
+			} else if strings.Contains(asset.Name, "acfrps") {
+				frpsUrls = append(frpsUrls, asset.BrowserDownloadUrl)
+				newProxy := []string{}
+				for _, proxy := range this.githubProxys {
+					newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
+					newProxy = append(newProxy, newUrl)
+				}
+			}
+		}
+		this.frpcGithubDownloadUrls = frpcUrls
+		this.frpsGithubDownloadUrls = frpsUrls
+		wg.Wait()
 	} else {
 		glog.Error(err)
 	}

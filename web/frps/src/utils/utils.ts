@@ -115,6 +115,21 @@ export function showInfoTips(message: string) {
   })
 }
 
+export const getFilePathByValue = (opt: any, valuePath: any) => {
+  const child = opt.find((item: any) => item.value === valuePath[0])
+  if (child) {
+    const children = child.children
+    if (children) {
+      const node = children.find((item: any) => item.value === valuePath[1])
+      if (node) {
+        console.log(node)
+        return node
+      }
+    }
+  }
+  return null
+}
+
 export function showTips(code: any, message: string) {
   if (code === 0) {
     showSucessTips(message)

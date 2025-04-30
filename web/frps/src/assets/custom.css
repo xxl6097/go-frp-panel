@@ -20,3 +20,15 @@
 .el-table .el-table__expanded-cell {
   padding: 20px 50px;
 }
+
+
+/* 调整标题与内容间隔 */
+.el-dialog__header {
+  padding: 0;  /* 原默认值为15px 20px，减少顶部内边距 */
+  margin: 0;    /* 消除标题底部默认间距 */
+}
+
+/* 调整内容区域顶部间距 */
+.el-dialog__body {
+  padding: 0;  /* 原默认值为25px，大幅缩减间距 */
+}

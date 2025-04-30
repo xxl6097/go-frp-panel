@@ -9,30 +9,30 @@
           placeholder="搜索用户名、凭证或备注"
           style="width: 300px; margin-right: 10px"
         />
+
         <el-upload
           :http-request="handleImportUsers"
           :limit="1"
           accept=".zip,.json"
         >
           <template #trigger>
-            <el-button type="warning" plain>导入用户</el-button>
+            <el-button ref="innerBtn" style="display: none"></el-button>
           </template>
-          <el-button
-            type="warning"
-            plain
-            @click="handleExportUsers()"
-            style="margin-left: 10px"
-            >导出用户</el-button
-          >
+        </el-upload>
+
+        <el-button-group class="ml-4">
+          <el-button type="warning" plain @click="handleImportUsersClick"
+            >导入用户
+          </el-button>
+          <el-button type="warning" plain @click="handleExportUsers()"
+            >导出用户
+          </el-button>
           <el-button
             type="primary"
             plain
             @click="showDialog('add', createEmptyUser())"
-            >新增用户</el-button
-          >
-          <el-button type="success" plain @click="handleRefresh"
-            >刷新</el-button
-          >
+            >新增用户
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             v-if="selectData.length !== 0"
@@ -42,7 +42,13 @@
               <el-button type="danger" plain>删除用户</el-button>
             </template>
           </el-popconfirm>
-        </el-upload>
+          <el-button type="success" plain @click="handleRefresh"
+            >刷新
+          </el-button>
+          <el-button type="info" plain @click="handleUploadCloud"
+            >上传云端
+          </el-button>
+        </el-button-group>
       </div>
     </el-header>
 
@@ -213,24 +219,39 @@
       <template #footer>
         <el-button @click="fetchClientToml">下载客户端toml配置</el-button>
         <el-button type="primary" @click="fetchClientGen()" :loading="isLoading"
-          >确定</el-button
-        >
+          >确定
+        </el-button>
       </template>
     </el-dialog>
 
-    <!-- 删除 -->
+    <!-- 填写api -->
+    <el-dialog
+      v-model="cloudApiForm.isShow"
+      title="云端Api信息填写"
+      width="500px"
+    >
+      <el-form label-width="130px">
+        <el-form-item label="接口地址：">
+          <el-input v-model="cloudApiForm.addr" placeholder="请输入api地址" />
+        </el-form-item>
+        <el-form-item label="授权用户：">
+          <el-input v-model="cloudApiForm.user" placeholder="请输入授权用户" />
+        </el-form-item>
+        <el-form-item label="授权密钥：">
+          <el-input v-model="cloudApiForm.pass" placeholder="请输入授权密钥" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="handleUploadCloud(cloudApiForm)"
+          >确定
+        </el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  reactive,
-  onUpdated,
-} from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive, onUpdated } from 'vue'
 import {
   post,
   get,
@@ -240,8 +261,9 @@ import {
   deepCopyJSON,
   downloadByPost,
   showLoading,
+  showTips,
 } from '../utils/utils.ts'
-import type { FormInstance, FormRules } from 'element-plus'
+import { ElButton, FormInstance, FormRules } from 'element-plus'
 
 interface User {
   user: string
@@ -254,6 +276,7 @@ interface User {
   id: number
 }
 
+const innerBtn = ref<InstanceType<typeof ElButton>>()
 // const ops = ref({})
 const options = ref([])
 const isLoading = ref<boolean>(false)
@@ -292,6 +315,13 @@ const clientForm = ref({
   port: 0,
   url: '',
   ops: {},
+})
+
+const cloudApiForm = ref({
+  addr: '',
+  user: '',
+  pass: '',
+  isShow: false,
 })
 
 const userRuleFormRef = ref<FormInstance>()
@@ -377,6 +407,11 @@ const handleDeleteUsers = () => {
       clearVariables()
       fetchData()
     })
+}
+
+const handleImportUsersClick = () => {
+  console.log('配置导出中', selectData.value)
+  innerBtn.value?.$el.click()
 }
 
 const handleExportUsers = () => {
@@ -527,6 +562,32 @@ const handlePageChange = (page: number) => {
 const handleRefresh = () => {
   fetchData()
   fetchOptions()
+}
+// 配置上传云端
+const handleUploadCloud = (data: any) => {
+  if (data) {
+    fetch('../api/client/upload', {
+      credentials: 'include',
+      method: 'post',
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('handleUploadCloud', json)
+        showTips(json.code, json.msg)
+      })
+  } else {
+    fetch('../api/client/upload', { credentials: 'include', method: 'get' })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('handleUploadCloud', json)
+        if (json.code === 100) {
+          //弹窗输入内容
+          cloudApiForm.value.isShow = true
+        }
+        showTips(json.code, json.msg)
+      })
+  }
 }
 
 const handleDialogCancel = () => {

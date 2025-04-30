@@ -19,15 +19,16 @@ import (
 )
 
 type frps struct {
-	svr          *server.Service
-	webServer    *httppkg.Server
-	cfg          *v1.ServerConfig
-	install      gore.IGService
-	upgrade      iface2.IComm
-	binDir       string
-	cfgFilePath  string
-	urls         []string
-	githubProxys []string
+	svr                    *server.Service
+	webServer              *httppkg.Server
+	cfg                    *v1.ServerConfig
+	install                gore.IGService
+	upgrade                iface2.IComm
+	binDir                 string
+	cfgFilePath            string
+	frpcGithubDownloadUrls []string
+	frpsGithubDownloadUrls []string
+	githubProxys           []string
 }
 
 func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
