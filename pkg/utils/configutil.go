@@ -7,6 +7,8 @@ import (
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 func Export(obj model.CloudApi) error {
@@ -27,6 +29,11 @@ func Export(obj model.CloudApi) error {
 	}
 	defer utils2.Delete(zipFilePath, "用户配置")
 	err = UploadGeneric(obj.Addr, "PUT", zipFilePath, obj.User, obj.Pass)
+	if strings.Contains(obj.Addr, "latest") {
+		version := time.Now().Format("2006.01.02.15.04.05")
+		obj.Addr = strings.ReplaceAll(obj.Addr, "latest", version)
+		err = UploadGeneric(obj.Addr, "PUT", zipFilePath, obj.User, obj.Pass)
+	}
 	if err != nil {
 		return err
 	}

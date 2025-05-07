@@ -549,7 +549,7 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET", "get":
 		if !utils2.FileExists(fpath) {
-			res.StatusCode(100)
+			res.Response(100, "接口设置～")
 		} else {
 			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
 			if err != nil {
@@ -571,7 +571,6 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 	case "POST", "post":
 		body, err := utils.GetDataByJson[model.CloudApi](r)
 		if err != nil {
-			res.Error("body can't be empty")
 			res.Err(err)
 			return
 		}
@@ -579,7 +578,6 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 		if body.Addr != "" {
 			err = utils.SaveWithGob[model.CloudApi](*body, fpath)
 			if err != nil {
-				res.Error(fmt.Sprintf("SaveWithGob err %+v", err))
 				res.Err(err)
 				return
 			}

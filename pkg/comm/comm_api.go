@@ -32,6 +32,7 @@ func (g *GeneralResponse) StatusCode(code int) *GeneralResponse {
 	return g.response(code, "", nil)
 }
 func (g *GeneralResponse) Err(err error) *GeneralResponse {
+	glog.Error(err)
 	return g.Response(-1, err.Error())
 }
 func (g *GeneralResponse) Error(msg string) *GeneralResponse {
