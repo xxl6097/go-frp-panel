@@ -5,6 +5,7 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
+	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	"os"
@@ -73,5 +74,23 @@ func Assert() {
 			return
 		}
 		os.Exit(0)
+	}
+}
+
+func (this *frps) InitClientsConfig() {
+	host := os.Getenv("CLOUD_HOST")
+	user := os.Getenv("CLOUD_USER")
+	pass := os.Getenv("CLOUD_PASS")
+	if host == "" || user == "" || pass == "" {
+		return
+	}
+	this.cloudApi = &model.CloudApi{
+		Addr: host,
+		User: user,
+		Pass: pass,
+	}
+	err := utils.Import(*this.cloudApi)
+	if err != nil {
+		glog.Errorf("更新失败 %+v", err)
 	}
 }

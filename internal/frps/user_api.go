@@ -549,12 +549,13 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET", "get":
 		if !utils2.FileExists(fpath) {
-			res.Response(100, "接口设置～")
+			res.Result(100, "接口设置～", this.cloudApi)
 		} else {
 			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
 			if err != nil {
 				res.Err(err)
 			} else {
+				this.cloudApi = &obj
 				glog.Debug("LoadWithGob:", obj)
 				err = utils.Import(obj)
 				glog.Debug("导入配置:", err)

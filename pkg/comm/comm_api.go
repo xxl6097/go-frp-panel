@@ -28,6 +28,9 @@ func (g *GeneralResponse) response(code int, msg string, data any) *GeneralRespo
 func (g *GeneralResponse) Response(code int, msg string) *GeneralResponse {
 	return g.response(code, msg, nil)
 }
+func (g *GeneralResponse) Result(code int, msg string, data any) *GeneralResponse {
+	return g.response(code, msg, data)
+}
 func (g *GeneralResponse) StatusCode(code int) *GeneralResponse {
 	return g.response(code, "", nil)
 }

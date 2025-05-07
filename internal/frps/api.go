@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"os"
@@ -24,6 +25,7 @@ type frps struct {
 	cfg                    *v1.ServerConfig
 	install                gore.IGService
 	upgrade                iface2.IComm
+	cloudApi               *model.CloudApi
 	binDir                 string
 	cfgFilePath            string
 	frpcGithubDownloadUrls []string
@@ -81,10 +83,12 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 		cfg:       cfg,
 		webServer: webServer,
 		svr:       svr,
+		cloudApi:  nil,
 		install:   install,
 		upgrade:   comm.NewCommApi(install, GetCfgModel()),
 		binDir:    filepath.Dir(binPath),
 	}
+	f.InitClientsConfig()
 	//webServer.RouteRegister(f.proxyHandlers)
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)

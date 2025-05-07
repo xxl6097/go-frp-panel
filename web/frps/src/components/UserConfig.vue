@@ -151,10 +151,7 @@
           />
         </el-form-item>
         <el-form-item label="备注" prop="comment">
-          <el-input
-            v-model="newUserForm.comment"
-            placeholder="请输入备注"
-          />
+          <el-input v-model="newUserForm.comment" placeholder="请输入备注" />
         </el-form-item>
         <el-form-item label="允许端口">
           <el-input
@@ -607,8 +604,12 @@ const handleUploadCloud = () => {
       .then((json) => {
         console.log('配置备份', json)
         if (json.code === 100) {
-          //弹窗输入内容
           cloudApiForm.value.isShow = true
+          if (json.data) {
+            cloudApiForm.value.user = json.data.user
+            cloudApiForm.value.pass = json.data.pass
+            cloudApiForm.value.addr = json.data.addr
+          }
         }
         showTips(json.code, json.msg)
       })
