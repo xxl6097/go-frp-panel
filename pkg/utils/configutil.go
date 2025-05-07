@@ -71,6 +71,9 @@ func Import(obj model.CloudApi) error {
 	}
 
 	userDir := filepath.Join(filepath.Dir(binpath), "user")
+	if err = DirCheck(userDir); err != nil {
+		return err
+	}
 	err = UnzipToRoot(dstFilePath, userDir, true)
 	if err != nil {
 		return err
