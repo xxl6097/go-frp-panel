@@ -30,7 +30,7 @@
           <el-button
             type="primary"
             plain
-            @click="showDialog('add', createEmptyUser())"
+            @click="showDialog('add', createNewUser())"
             >新增用户
           </el-button>
           <el-popconfirm
@@ -132,7 +132,11 @@
         label-width="100px"
       >
         <el-form-item label="用户名" prop="user">
-          <el-input v-model="newUserForm.user" placeholder="请输入用户名(user)">
+          <el-input
+            v-model="newUserForm.user"
+            placeholder="请输入用户名(user)"
+            disabled
+          >
             <template #append>
               <el-button @click="handleRandUser">随机</el-button>
             </template>
@@ -140,14 +144,14 @@
         </el-form-item>
         <el-form-item label="凭证" prop="token">
           <el-input
+            disabled
             v-model="newUserForm.token"
             placeholder="请输入Token凭证(meta_token)"
+            type="password"
           />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item label="备注" prop="comment">
           <el-input
-            :rows="2"
-            type="textarea"
             v-model="newUserForm.comment"
             placeholder="请输入备注"
           />
@@ -230,10 +234,10 @@
       </template>
     </el-dialog>
 
-    <!-- 填写api -->
+    <!-- 填写云Api信息设置 -->
     <el-dialog
       v-model="cloudApiForm.isShow"
-      title="云端Api信息填写"
+      title="云Api信息设置"
       width="500px"
     >
       <el-form label-width="130px">
@@ -342,6 +346,13 @@ const userRules = reactive<FormRules>({
     {
       required: true,
       message: '凭证不能空',
+      trigger: 'blur',
+    },
+  ],
+  comment: [
+    {
+      required: true,
+      message: '备注不能空',
       trigger: 'blur',
     },
   ],
@@ -742,6 +753,18 @@ const createUser = (row: User) => {
 const clearVariables = () => {
   newUserForm.value = createEmptyUser()
   dialogType.value = ''
+}
+const createNewUser = () => {
+  return {
+    user: `${new Date().getTime()}`,
+    token: `${generateRandomKey(16)}`,
+    comment: '',
+    ports: '',
+    domains: '',
+    subdomains: '',
+    enable: true,
+    id: 0,
+  }
 }
 const createEmptyUser = () => {
   return {
