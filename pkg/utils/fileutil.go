@@ -354,3 +354,17 @@ func IsExist(filePath string) bool {
 	}
 	return false
 }
+
+func GetUserDir() (string, error) {
+	binpath, err := os.Executable()
+	if err != nil {
+		glog.Error(binpath, err)
+		return "", err
+	}
+
+	userDir := filepath.Join(filepath.Dir(binpath), "user")
+	if err = DirCheck(userDir); err != nil {
+		return "", err
+	}
+	return userDir, nil
+}

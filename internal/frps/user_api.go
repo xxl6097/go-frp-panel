@@ -39,7 +39,8 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
-	subRouter.HandleFunc("/api/config/backup", this.apiConfigBackup)
+	subRouter.HandleFunc("/api/config/upload", this.apiConfigUpload)
+	subRouter.HandleFunc("/api/config/upgrade", this.apiConfigUpgrade)
 	subRouter.HandleFunc("/api/client/upload", this.apiClientUpload).Methods("POST")
 }
 
@@ -102,8 +103,12 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiUserDeleteAll(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	userDir := GetUserDir()
-	err := utils2.DeleteAll(userDir, "apiUserDeleteAll")
+	userDir, err := utils.GetUserDir()
+	if err != nil {
+		res.Err(err)
+		return
+	}
+	err = utils2.DeleteAll(userDir, "apiUserDeleteAll")
 	if err != nil {
 		res.Err(err)
 		return
@@ -130,11 +135,6 @@ func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Printf("%+v\n", u)
-	//userFilePath := filepath.Join(this.workDir, "user", fmt.Sprintf("%s.json", u.User))
-	//if gore.FileExists(userFilePath) {
-	//	os.Remove(userFilePath)
-	//}
-	//err = u.CreateUser(userFilePath)
 	err = u.UpdateUser()
 
 	if err != nil {
@@ -349,11 +349,10 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
-	binpath, err := os.Executable()
+	userDir, err := utils.GetUserDir()
 	if err != nil {
 		return err, ""
 	}
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
 	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
 	_ = utils2.EnsureDir(tempDir)
 	zipFilePath := filepath.Join(tempDir, fileName)
@@ -363,13 +362,13 @@ func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
 
 func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 	res := &comm2.GeneralResponse{Code: 0}
-	binpath, err := os.Executable()
+
+	userDir, err := utils.GetUserDir()
 	if err != nil {
 		res.Err(err)
 		glog.Error(err)
 		return
 	}
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
 
 	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
 	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
@@ -424,12 +423,9 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frps) OnFrpcConfigImport(dstFilePath string) error {
-	binpath, err := os.Executable()
+	userDir, err := utils.GetUserDir()
 	if err != nil {
-		return err
-	}
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
-	if err = utils.DirCheck(userDir); err != nil {
+		glog.Error(err)
 		return err
 	}
 	err = utils.UnzipToRoot(dstFilePath, userDir, true)
@@ -456,20 +452,12 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	binpath, err := os.Executable()
+	userDir, err := utils.GetUserDir()
 	if err != nil {
 		res.Err(err)
-		glog.Error(binpath, err)
 		return
 	}
 
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
-
-	if err = utils.DirCheck(userDir); err != nil {
-		res.Err(fmt.Errorf("check config dir err: %v", err))
-		glog.Error(res.Msg)
-		return
-	}
 	glog.Info(handler.Filename)
 	ext := strings.ToLower(filepath.Ext(handler.Filename)) // 统一转为小写
 	switch ext {
@@ -564,7 +552,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(sb.String()))
 }
 
-func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
+func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
 	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
@@ -579,12 +567,9 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 			} else {
 				this.cloudApi = &obj
 				glog.Debug("LoadWithGob:", obj)
-				err = utils.Import(obj)
-				glog.Debug("导入配置:", err)
 				err = utils.Export(obj)
-				glog.Debug("导出配置:", err)
 				if err == nil {
-					res.Ok("同步成功")
+					res.Ok("上传成功")
 					return
 				}
 				res.Err(err)
@@ -605,8 +590,66 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			glog.Debug("SaveWithGob", fpath)
+			err = utils.Export(*body)
+			if err == nil {
+				res.Ok("上传成功")
+				return
+			}
+		} else {
+			res.Error("cloud api无效")
 		}
-		res.Ok("哇哈哈")
+		break
+	default:
+		break
+	}
+}
+
+func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
+	switch r.Method {
+	case "GET", "get":
+		if !utils2.FileExists(fpath) {
+			res.Result(100, "接口设置～", this.cloudApi)
+		} else {
+			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
+			if err != nil {
+				res.Err(err)
+			} else {
+				this.cloudApi = &obj
+				glog.Debug("LoadWithGob:", obj)
+				err = utils.Import(obj)
+				if err == nil {
+					res.Ok("更新成功")
+					return
+				}
+				res.Err(err)
+			}
+		}
+		break
+	case "POST", "post":
+		body, err := utils.GetDataByJson[model.CloudApi](r)
+		if err != nil {
+			res.Err(err)
+			return
+		}
+		glog.Debugf("参数：%+v", body)
+		if body.Addr != "" {
+			err = utils.SaveWithGob[model.CloudApi](*body, fpath)
+			if err != nil {
+				res.Err(err)
+				return
+			}
+			glog.Debug("SaveWithGob", fpath)
+			err = utils.Import(*body)
+			if err == nil {
+				res.Ok("更新成功")
+				return
+			}
+		} else {
+			res.Error("cloud api无效")
+		}
 		break
 	default:
 		break

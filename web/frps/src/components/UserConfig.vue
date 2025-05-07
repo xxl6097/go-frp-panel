@@ -32,7 +32,7 @@
             @confirm="handleDeleteAll"
           >
             <template #reference>
-              <el-button type="danger" plain>清空用户 </el-button>
+              <el-button type="danger" plain>清空用户</el-button>
             </template>
           </el-popconfirm>
           <el-button
@@ -54,12 +54,21 @@
             >刷新
           </el-button>
           <el-popconfirm
-            title="Are you sure to sync config?"
+            title="Are you sure to upload config?"
             @confirm="handleUploadCloud"
             @cancel="cloudApiForm.isShow = true"
           >
             <template #reference>
               <el-button type="info" plain>上传云端</el-button>
+            </template>
+          </el-popconfirm>
+          <el-popconfirm
+            title="Are you sure to upgrade config?"
+            @confirm="handleUpgradeCloud"
+            @cancel="cloudApiForm.isShow = true"
+          >
+            <template #reference>
+              <el-button type="info" plain>同步云端</el-button>
             </template>
           </el-popconfirm>
         </el-button-group>
@@ -78,6 +87,7 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="comment" label="备注" />
         <el-table-column prop="user" label="名称" />
+        <el-table-column prop="id" label="ID" />
         <el-table-column
           prop="token"
           label="凭证"
@@ -615,11 +625,12 @@ const handleRefresh = () => {
   fetchData()
   fetchOptions()
 }
-// 配置上传云端
-const handleUploadCloud = () => {
-  console.log('handleUploadCloud:', cloudApiForm)
+
+// 配置同步云端
+const handleUpgradeCloud = () => {
+  console.log('handleUpgradeCloud:', cloudApiForm)
   if (cloudApiForm.value.isShow) {
-    fetch('../api/config/backup', {
+    fetch('../api/config/upgrade', {
       credentials: 'include',
       method: 'post',
       body: JSON.stringify(cloudApiForm.value),
@@ -634,9 +645,11 @@ const handleUploadCloud = () => {
       })
       .finally(() => {
         localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
+        clearVariables()
+        fetchData()
       })
   } else {
-    fetch('../api/config/backup', {
+    fetch('../api/config/upgrade', {
       credentials: 'include',
       method: 'get',
     })
@@ -652,6 +665,57 @@ const handleUploadCloud = () => {
           }
         }
         showTips(json.code, json.msg)
+      })
+      .finally(() => {
+        clearVariables()
+        fetchData()
+      })
+  }
+}
+
+// 配置上传云端
+const handleUploadCloud = () => {
+  console.log('handleUploadCloud:', cloudApiForm)
+  if (cloudApiForm.value.isShow) {
+    fetch('../api/config/upload', {
+      credentials: 'include',
+      method: 'post',
+      body: JSON.stringify(cloudApiForm.value),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('配置备份', json)
+        showTips(json.code, json.msg)
+        if (json.code === 0) {
+          cloudApiForm.value.isShow = false
+        }
+      })
+      .finally(() => {
+        localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
+        clearVariables()
+        fetchData()
+      })
+  } else {
+    fetch('../api/config/upload', {
+      credentials: 'include',
+      method: 'get',
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('配置备份', json)
+        if (json.code === 100) {
+          cloudApiForm.value.isShow = true
+          if (json.data) {
+            cloudApiForm.value.user = json.data.user
+            cloudApiForm.value.pass = json.data.pass
+            cloudApiForm.value.addr = json.data.addr
+          }
+        }
+        showTips(json.code, json.msg)
+      })
+      .finally(() => {
+        clearVariables()
+        fetchData()
       })
   }
 }

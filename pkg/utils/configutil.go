@@ -12,12 +12,10 @@ import (
 )
 
 func Export(obj model.CloudApi) error {
-	binpath, err := os.Executable()
+	userDir, err := GetUserDir()
 	if err != nil {
-		glog.Error(err)
 		return err
 	}
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
 	fileName := fmt.Sprintf("user_%s.zip", GetFileNameByTime())
 	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
 	_ = utils2.EnsureDir(tempDir)
@@ -64,14 +62,8 @@ func Import(obj model.CloudApi) error {
 		return err
 	}
 	defer Delete(dstFilePath, "用户文件")
-	binpath, err := os.Executable()
+	userDir, err := GetUserDir()
 	if err != nil {
-		glog.Error(binpath, err)
-		return err
-	}
-
-	userDir := filepath.Join(filepath.Dir(binpath), "user")
-	if err = DirCheck(userDir); err != nil {
 		return err
 	}
 	err = UnzipToRoot(dstFilePath, userDir, true)

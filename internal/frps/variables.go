@@ -80,15 +80,12 @@ func (u *User) UpdateUser() error {
 	return utils.Write(userFilePath, jsonData)
 }
 
-func GetUserDir() string {
-	binpath, err := os.Executable()
+func GetJsonPath(fileName string) string {
+	dir, err := utils.GetUserDir()
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(filepath.Dir(binpath), "user")
-}
-func GetJsonPath(fileName string) string {
-	return filepath.Join(GetUserDir(), fmt.Sprintf("%s.json", fileName))
+	return filepath.Join(dir, fmt.Sprintf("%s.json", fileName))
 }
 
 func Read(filePath string) (*User, error) {
