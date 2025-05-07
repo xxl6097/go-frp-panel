@@ -725,6 +725,7 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
+	glog.Debugf("配置信息:%+v", cfgNewBytes)
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	prevBuffer := make([]byte, 0)
 	for {
@@ -736,14 +737,21 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		if bufIndex > -1 {
 			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
 		}
-		w.Write(tempBuffer[:len(prevBuffer)])
+		s, e := w.Write(tempBuffer[:len(prevBuffer)])
+		if e != nil {
+			glog.Errorf("size:%v err:%v", s, e)
+		}
 		prevBuffer = tempBuffer[len(prevBuffer):]
 		if err != nil {
+			glog.Errorf("tpl.Read err:%v", err)
 			break
 		}
 	}
 	if len(prevBuffer) > 0 {
-		w.Write(prevBuffer)
+		s, e := w.Write(prevBuffer)
+		if e != nil {
+			glog.Errorf("size:%v err:%v", s, e)
+		}
 		prevBuffer = nil
 	}
 }
