@@ -199,6 +199,54 @@ func Unzip(src, dest string) error {
 	}
 	return nil
 }
+func ZipFiles(zipPath string, files []string) error {
+	// 创建 ZIP 文件
+	zipFile, err := os.Create(zipPath)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+
+	// 初始化 ZIP 写入器
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// 遍历文件列表
+	for _, filePath := range files {
+		// 打开文件
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// 获取文件信息（用于元数据）
+		info, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		// 创建 ZIP 条目头
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		header.Name = filepath.Base(filePath) // 设置 ZIP 内文件名
+		header.Method = zip.Deflate           // 使用 Deflate 压缩算法
+
+		// 写入条目头
+		zipEntry, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		// 复制文件内容到 ZIP
+		if _, err := io.Copy(zipEntry, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func Zip(dir, dst string) error {
 	// 创建目标ZIP文件
