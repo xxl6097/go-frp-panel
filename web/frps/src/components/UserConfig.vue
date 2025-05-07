@@ -242,9 +242,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button type="primary" @click="handleUploadCloud(cloudApiForm)"
-          >确定
-        </el-button>
+        <el-button type="primary" @click="handleUploadCloud">确定</el-button>
       </template>
     </el-dialog>
   </el-container>
@@ -564,23 +562,30 @@ const handleRefresh = () => {
   fetchOptions()
 }
 // 配置上传云端
-const handleUploadCloud = (data: any) => {
-  if (data) {
-    fetch('../api/client/upload', {
+const handleUploadCloud = () => {
+  console.log('handleUploadCloud:', cloudApiForm)
+  if (cloudApiForm.value.isShow) {
+    fetch('../api/config/backup', {
       credentials: 'include',
       method: 'post',
-      body: JSON.stringify(data),
+      body: JSON.stringify(cloudApiForm.value),
     })
       .then((res) => res.json())
       .then((json) => {
-        console.log('handleUploadCloud', json)
+        console.log('配置备份', json)
         showTips(json.code, json.msg)
+        if (json.code === 0) {
+          cloudApiForm.value.isShow = false
+        }
       })
   } else {
-    fetch('../api/client/upload', { credentials: 'include', method: 'get' })
+    fetch('../api/config/backup', {
+      credentials: 'include',
+      method: 'get',
+    })
       .then((res) => res.json())
       .then((json) => {
-        console.log('handleUploadCloud', json)
+        console.log('配置备份', json)
         if (json.code === 100) {
           //弹窗输入内容
           cloudApiForm.value.isShow = true

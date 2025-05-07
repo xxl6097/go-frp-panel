@@ -10,7 +10,7 @@ import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
-	"github.com/xxl6097/go-frp-panel/pkg/comm/upload"
+	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -38,8 +38,8 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
+	subRouter.HandleFunc("/api/config/backup", this.apiConfigBackup)
 	subRouter.HandleFunc("/api/client/upload", this.apiClientUpload).Methods("POST")
-
 }
 
 func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
@@ -542,29 +542,57 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(sb.String()))
 }
 
-func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
-	clientsDir := filepath.Join(this.binDir, "clients")
-	err, dstFilePath := upload.NewPieces(clientsDir).UploadHandler(w, r)
-	if err != nil {
-		glog.Error(err)
-		return
-	}
+func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	glog.Println("客户端路径", clientsDir)
-	glog.Println("文件上传成功", dstFilePath)
-	err = utils.UnzipToRoot(dstFilePath, clientsDir, true)
-	if err != nil {
-		res.Error(err.Error())
-		glog.Error(res.Msg)
-		return
-	} else {
-		utils.Delete(dstFilePath)
+	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
+	switch r.Method {
+	case "GET", "get":
+		if !utils2.FileExists(fpath) {
+			res.StatusCode(100)
+		} else {
+			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
+			if err != nil {
+				res.Err(err)
+			} else {
+				glog.Debug("LoadWithGob:", obj)
+				err = utils.Import(obj)
+				if err == nil {
+					err = utils.Export(obj)
+					if err == nil {
+						res.Ok("同步成功")
+						return
+					}
+				}
+				res.Err(err)
+			}
+		}
+		break
+	case "POST", "post":
+		body, err := utils.GetDataByJson[model.CloudApi](r)
+		if err != nil {
+			res.Error("body can't be empty")
+			res.Err(err)
+			return
+		}
+		glog.Debugf("参数：%+v", body)
+		if body.Addr != "" {
+			err = utils.SaveWithGob[model.CloudApi](*body, fpath)
+			if err != nil {
+				res.Error(fmt.Sprintf("SaveWithGob err %+v", err))
+				res.Err(err)
+				return
+			}
+			glog.Debug("SaveWithGob", fpath)
+		}
+		res.Ok("哇哈哈")
+		break
+	default:
+		break
 	}
-	res.Ok("文件上传成功～")
 }
 
-func (this *frps) apiClientUpload1(w http.ResponseWriter, r *http.Request) {
+func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
 	//err := r.ParseMultipartForm(32 << 20)
