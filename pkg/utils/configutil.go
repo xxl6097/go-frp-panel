@@ -28,11 +28,19 @@ func Export(obj model.CloudApi) error {
 		return err
 	}
 	defer utils2.Delete(zipFilePath, "用户配置")
-	err = UploadGeneric(obj.Addr, "PUT", zipFilePath, obj.User, obj.Pass)
-	if strings.Contains(obj.Addr, "latest") {
+	envType := os.Getenv("ENV_TYPE")
+	if envType == "" {
+		envType = "uuxia"
+	}
+	if strings.Contains(obj.Addr, "coding.net") {
+		baseUrl := fmt.Sprintf("%s/%s_frps_config.zip?version=latest", obj.Addr, envType)
+		err = UploadGeneric(baseUrl, "PUT", zipFilePath, obj.User, obj.Pass)
 		version := time.Now().Format("2006.01.02.15.04.05")
-		obj.Addr = strings.ReplaceAll(obj.Addr, "latest", version)
-		err = UploadGeneric(obj.Addr, "PUT", zipFilePath, obj.User, obj.Pass)
+		baseUrl = fmt.Sprintf("%s/%s_frps_config.zip?version=%s", obj.Addr, envType, version)
+		err = UploadGeneric(baseUrl, "PUT", zipFilePath, obj.User, obj.Pass)
+	} else {
+		obj.Addr = fmt.Sprintf("%s/frp/config/%s_frps_config.zip", obj.Addr, envType)
+		err = UploadGeneric(obj.Addr, "POST", zipFilePath, obj.User, obj.Pass)
 	}
 	if err != nil {
 		return err
@@ -42,6 +50,15 @@ func Export(obj model.CloudApi) error {
 
 func Import(obj model.CloudApi) error {
 	dstFilePath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), "user_import.zip")
+	envType := os.Getenv("ENV_TYPE")
+	if envType == "" {
+		envType = "uuxia"
+	}
+	if strings.Contains(obj.Addr, "coding.net") {
+		obj.Addr = fmt.Sprintf("%s/%s_frps_config.zip?version=latest", obj.Addr, envType)
+	} else {
+		obj.Addr = fmt.Sprintf("%s/frp/config/%s_frps_config.zip", obj.Addr, envType)
+	}
 	err := DownLoadGeneric(obj.Addr, obj.User, obj.Pass, dstFilePath)
 	if err != nil {
 		return err

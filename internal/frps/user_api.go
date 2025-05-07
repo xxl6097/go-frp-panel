@@ -557,8 +557,10 @@ func (this *frps) apiConfigBackup(w http.ResponseWriter, r *http.Request) {
 			} else {
 				glog.Debug("LoadWithGob:", obj)
 				err = utils.Import(obj)
+				glog.Debug("导入配置:", err)
 				if err == nil {
 					err = utils.Export(obj)
+					glog.Debug("导出配置:", err)
 					if err == nil {
 						res.Ok("同步成功")
 						return
