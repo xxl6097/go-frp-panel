@@ -14,6 +14,7 @@ import (
 )
 
 type User struct {
+	ID         string   `json:"id,omitempty"`
 	User       string   `json:"user,omitempty"`
 	Token      string   `json:"token,omitempty"`
 	Comment    string   `json:"comment,omitempty"`
@@ -23,14 +24,17 @@ type User struct {
 	Enable     bool     `json:"enable,omitempty"`
 }
 
-func (u *User) CreateUser() error {
+func (u *User) CreateUserByID() error {
 	if u.User == "" {
 		return errors.New("用户名空")
 	}
 	if u.Token == "" {
 		return errors.New("凭证空")
 	}
-	userFilePath := GetJsonPath(u.User)
+	if u.ID == "" {
+		return errors.New("ID空")
+	}
+	userFilePath := GetJsonPath(u.ID)
 	if utils2.FileExists(userFilePath) {
 		return errors.New("user already exists")
 	}
@@ -52,10 +56,10 @@ func (u *User) UpdateUser() error {
 	if u.Token == "" {
 		return errors.New("token is empty")
 	}
-	if u.User == "" {
-		return errors.New("user is empty")
+	if u.ID == "" {
+		return errors.New("id is empty")
 	}
-	userFilePath := GetJsonPath(u.User)
+	userFilePath := GetJsonPath(u.ID)
 	if utils2.FileExists(userFilePath) {
 		err := os.Remove(userFilePath)
 		if err != nil {
@@ -76,13 +80,15 @@ func (u *User) UpdateUser() error {
 	return utils.Write(userFilePath, jsonData)
 }
 
-func GetJsonPath(fileName string) string {
+func GetUserDir() string {
 	binpath, err := os.Executable()
 	if err != nil {
 		return ""
 	}
-	fmt.Println(filepath.Dir(binpath))
-	return filepath.Join(filepath.Dir(binpath), "user", fmt.Sprintf("%s.json", fileName))
+	return filepath.Join(filepath.Dir(binpath), "user")
+}
+func GetJsonPath(fileName string) string {
+	return filepath.Join(GetUserDir(), fmt.Sprintf("%s.json", fileName))
 }
 
 func Read(filePath string) (*User, error) {
@@ -95,11 +101,11 @@ func Read(filePath string) (*User, error) {
 	return &u, err
 }
 
-func DeleteUser(name string) error {
-	if name == "" {
-		return errors.New("user is empty")
+func DeleteUser(id string) error {
+	if id == "" {
+		return errors.New("id is empty")
 	}
-	return os.Remove(GetJsonPath(name))
+	return os.Remove(GetJsonPath(id))
 }
 
 func GetUserAll() ([]User, error) {
@@ -188,22 +194,22 @@ func ToPorts(ports []any) []any {
 	return ps
 }
 
-func JudgeToken(user, token string) (bool, error) {
-	u, err := Read(GetJsonPath(user))
+func JudgeToken(id, token string) (bool, error) {
+	u, err := Read(GetJsonPath(id))
 	if err != nil {
-		return false, fmt.Errorf("[token校验]frps服务器不存在该用户:%v", err)
+		return false, fmt.Errorf("[token校验]frps服务器不存在该用户ID:%v,err: %v", id, err)
 	}
 	if u.Token != token {
-		return false, fmt.Errorf("[token校验]用户【%s】的token【%s】校验错误❌", user, token)
+		return false, fmt.Errorf("[token校验]ID【%s】的token【%s】校验错误❌", id, token)
 	}
 	if !u.Enable {
-		return false, fmt.Errorf("[token校验]用户【%s】被禁用", user)
+		return false, fmt.Errorf("[token校验]用户【%s】被禁用", id)
 	}
 	return true, nil
 }
 
-func JudgePort(user, proxyType string, userPort int, userDomains []string, userSubdomain string) (bool, error) {
-	u, err := Read(GetJsonPath(user))
+func JudgePort(id, proxyType string, userPort int, userDomains []string, userSubdomain string) (bool, error) {
+	u, err := Read(GetJsonPath(id))
 	//u, err := this.Find(user)
 	if err != nil {
 		return false, fmt.Errorf("[port校验]frps服务器不存在该用户:%v", err)
@@ -218,17 +224,17 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 				if strings.Contains(str, "-") {
 					allowedRanges := strings.Split(str, "-")
 					if len(allowedRanges) != 2 {
-						portErr = fmt.Errorf("user [%v] port range [%v] format error", user, port)
+						portErr = fmt.Errorf("id [%v] port range [%v] format error", id, port)
 						break
 					}
 					start, err := strconv.Atoi(strings.TrimSpace(allowedRanges[0]))
 					if err != nil {
-						portErr = fmt.Errorf("user [%v] port rang [%v] start port [%v] is not a number", user, port, allowedRanges[0])
+						portErr = fmt.Errorf("id [%v] port rang [%v] start port [%v] is not a number", id, port, allowedRanges[0])
 						break
 					}
 					end, err := strconv.Atoi(strings.TrimSpace(allowedRanges[1]))
 					if err != nil {
-						portErr = fmt.Errorf("user [%v] port rang [%v] end port [%v] is not a number", user, port, allowedRanges[0])
+						portErr = fmt.Errorf("id [%v] port rang [%v] end port [%v] is not a number", id, port, allowedRanges[0])
 						break
 					}
 					if max(int64(userPort), int64(start)) == int64(userPort) && min(int64(userPort), int64(end)) == int64(userPort) {
@@ -242,7 +248,7 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 					}
 					allowed, err := strconv.Atoi(str)
 					if err != nil {
-						portErr = fmt.Errorf("user [%v] allowed port [%v] is not a number", user, port)
+						portErr = fmt.Errorf("id [%v] allowed port [%v] is not a number", id, port)
 					}
 					if int64(allowed) == int64(userPort) {
 						portAllowed = true
@@ -267,7 +273,7 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 	//判断port是否合法
 	if !portAllowed {
 		if portErr == nil {
-			portErr = fmt.Errorf("user [%v] port [%v] is not allowed", user, userPort)
+			portErr = fmt.Errorf("id [%v] port [%v] is not allowed", id, userPort)
 		}
 		reject = true
 	}
@@ -286,7 +292,7 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 				}
 			}
 			if !domainAllowed {
-				portErr = fmt.Errorf("user [%v] domain [%v] is not allowed", user, strings.Join(userDomains, ","))
+				portErr = fmt.Errorf("id [%v] domain [%v] is not allowed", id, strings.Join(userDomains, ","))
 				reject = true
 			}
 		}
@@ -308,7 +314,7 @@ func JudgePort(user, proxyType string, userPort int, userDomains []string, userS
 				}
 			}
 			if !subdomainAllowed {
-				portErr = fmt.Errorf("user [%v] subdomain [%v] is not allowed", user, userSubdomain)
+				portErr = fmt.Errorf("id [%v] subdomain [%v] is not allowed", id, userSubdomain)
 				reject = true
 			}
 		}

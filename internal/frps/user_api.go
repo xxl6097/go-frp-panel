@@ -28,6 +28,7 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	// apis
 	subRouter.HandleFunc("/api/token/add", this.apiUserCreate).Methods("POST")
 	subRouter.HandleFunc("/api/token/del", this.apiUserDelete).Methods("POST")
+	subRouter.HandleFunc("/api/token/delall", this.apiUserDeleteAll).Methods("POST")
 	subRouter.HandleFunc("/api/token/chg", this.apiUserUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/token/all", this.apiUserAll).Methods("GET")
 
@@ -62,7 +63,7 @@ func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 		res.Error("token is nil")
 		return
 	}
-	err = u.CreateUser()
+	err = u.CreateUserByID()
 	if err != nil {
 		res.Err(err)
 		glog.Errorf("%v create user err: %+v", err, u)
@@ -76,6 +77,7 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 	defer f(w)
 	users, err := utils.GetDataByJson[[]struct {
 		User string `json:"user"`
+		ID   string `json:"id"`
 	}](r)
 	if err != nil {
 		res.Err(err)
@@ -87,7 +89,7 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, u := range *users {
-		err = DeleteUser(u.User)
+		err = DeleteUser(u.ID)
 	}
 	//err = this.repo.Delete(u.User)
 	//if err != nil {
@@ -95,6 +97,24 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 	res.Ok("密钥删除成功")
+}
+
+func (this *frps) apiUserDeleteAll(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	userDir := GetUserDir()
+	err := utils2.DeleteAll(userDir, "apiUserDeleteAll")
+	if err != nil {
+		res.Err(err)
+		return
+	}
+
+	//err = this.repo.Delete(u.User)
+	//if err != nil {
+	//	res.Err(err)
+	//	return
+	//}
+	res.Ok("删除成功")
 }
 
 func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
@@ -292,6 +312,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		Port:       bindPort,
 		User:       body.User.User,
 		Token:      body.User.Token,
+		ID:         body.User.ID,
 		Comment:    body.User.Comment,
 		Ports:      body.User.Ports,
 		Domains:    body.User.Domains,
@@ -533,6 +554,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	sb.WriteString(fmt.Sprintf("serverPort = %d\n", GetCfgModel().Frps.BindPort))
 	sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
 	sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
+	sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.ID))
 	size := sb.Len()
 
 	w.Header().Add("Content-Transfer-Encoding", "binary")

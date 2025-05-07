@@ -10,6 +10,7 @@ type BufferConfig struct {
 	Port       int      `json:"port"`
 	User       string   `json:"user"`
 	Token      string   `json:"token"`
+	ID         string   `json:"id"`
 	Comment    string   `json:"comment,omitempty"`
 	Ports      []any    `json:"ports,omitempty"`
 	Domains    []string `json:"domains,omitempty"`

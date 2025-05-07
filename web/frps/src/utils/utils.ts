@@ -1,88 +1,122 @@
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
+
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+
 export function markdownToHtml(markdown: string): string {
-  let lines: string[] = markdown.split('\n');
-  let html: string = '';
-  let inList: boolean = false;
-  let listItems: string[] = [];
-  let inCodeBlock: boolean = false;
-  let codeBlockContent: string = '';
+  const lines: string[] = markdown.split('\n')
+  let html: string = ''
+  let inList: boolean = false
+  let listItems: string[] = []
+  let inCodeBlock: boolean = false
+  let codeBlockContent: string = ''
 
   for (let i = 0; i < lines.length; i++) {
-    let line: string = lines[i].trim();
+    const line: string = lines[i].trim()
 
     // 处理代码块开始
     if (line.startsWith('```')) {
       if (inCodeBlock) {
-        html += `<pre><code>${codeBlockContent}</code></pre>`;
-        inCodeBlock = false;
-        codeBlockContent = '';
+        html += `<pre><code>${codeBlockContent}</code></pre>`
+        inCodeBlock = false
+        codeBlockContent = ''
       } else {
-        inCodeBlock = true;
+        inCodeBlock = true
       }
-      continue;
+      continue
     }
 
     if (inCodeBlock) {
-      codeBlockContent += line + '\n';
-      continue;
+      codeBlockContent += line + '\n'
+      continue
     }
 
     // 处理标题
     if (/^(#+) (.*)$/.test(line)) {
-      let [, hashes, content] = line.match(/^(#+) (.*)$/)!;
-      let level: number = hashes.length;
+      const [, hashes, content] = line.match(/^(#+) (.*)$/)!
+      const level: number = hashes.length
       if (inList) {
-        html += `<ul>${listItems.join('')}</ul>`;
-        inList = false;
-        listItems = [];
+        html += `<ul>${listItems.join('')}</ul>`
+        inList = false
+        listItems = []
       }
-      html += `<h${level}>${content}</h${level}>`;
+      html += `<h${level}>${content}</h${level}>`
     }
     // 处理无序列表
     else if (/^([*-]) (.*)$/.test(line)) {
-      let [, , content] = line.match(/^([*-]) (.*)$/)!;
+      const [, , content] = line.match(/^([*-]) (.*)$/)!
       if (!inList) {
-        inList = true;
+        inList = true
       }
-      listItems.push(`<li>${content}</li>`);
+      listItems.push(`<li>${content}</li>`)
     }
     // 处理段落
     else {
       if (inList) {
-        html += `<ul>${listItems.join('')}</ul>`;
-        inList = false;
-        listItems = [];
+        html += `<ul>${listItems.join('')}</ul>`
+        inList = false
+        listItems = []
       }
       if (line) {
-        html += `<p>${line}</p>`;
+        html += `<p>${line}</p>`
       }
     }
   }
 
   // 如果最后处于列表状态，闭合列表
   if (inList) {
-    html += `<ul>${listItems.join('')}</ul>`;
+    html += `<ul>${listItems.join('')}</ul>`
   }
 
   // 如果最后处于代码块状态，闭合代码块
   if (inCodeBlock) {
-    html += `<pre><code>${codeBlockContent}</code></pre>`;
+    html += `<pre><code>${codeBlockContent}</code></pre>`
   }
 
   // 处理加粗
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 
   // 处理斜体
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
 
-  return html;
+  return html
 }
 
+// function uint8ArrayToString(array: Uint8Array): string {
+//   const decoder = new TextDecoder('utf-8') // 可替换为其他编码如 'ascii'
+//   return decoder.decode(array)
+// }
 
-export function generateRandomKey(length: number) {
+// function bytesToAsciiString(bytes: Uint8Array): string {
+//   let str = ''
+//   for (const byte of bytes) {
+//     str += String.fromCharCode(byte)
+//   }
+//   return str
+// }
+
+function bytesToHexString(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+// 生成 32 字节随机密钥（256 位）
+function generateRandomKeys(length: number): string {
+  const array = new Uint8Array(length)
+  window.crypto.getRandomValues(array)
+  const key = bytesToHexString(array)
+  return key
+}
+
+export function generateRandomKey(): string {
+  return generateRandomKeys(32)
+}
+
+// const key = generateRandomKey(32);
+
+export function generateRandomKey1(length: number) {
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let key = ''
@@ -100,6 +134,7 @@ export function showWarmTips(message: string) {
     type: 'warning',
   })
 }
+
 export function showErrorTips(message: string) {
   ElMessage({
     showClose: true,
@@ -107,6 +142,7 @@ export function showErrorTips(message: string) {
     type: 'error',
   })
 }
+
 export function showInfoTips(message: string) {
   ElMessage({
     showClose: true,
@@ -328,9 +364,11 @@ export async function download(url: string) {
 export function post(title: string, path: string, body: any) {
   return fetchReest('POST', title, path, body)
 }
+
 export function put(title: string, path: string, body: any) {
   return fetchReest('PUT', title, path, body)
 }
+
 export function get(title: string, path: string, body: any) {
   return fetchReest('GET', title, path, body)
 }

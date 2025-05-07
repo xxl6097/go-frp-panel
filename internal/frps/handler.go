@@ -67,14 +67,16 @@ func (c *frps) apiHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c *frps) HandleLogin(content *plugin.LoginContent) plugin.Response {
 	token := content.Metas["token"]
-	user := content.User
-	return c.JudgeToken(user, token)
+	id := content.Metas["id"]
+	//user := content.User
+	return c.JudgeToken(id, token)
 }
 
 func (c *frps) HandleNewProxy(content *plugin.NewProxyContent) plugin.Response {
 	token := content.User.Metas["token"]
-	user := content.User.User
-	judgeToken := c.JudgeToken(user, token)
+	id := content.User.Metas["id"]
+	//user := content.User.User
+	judgeToken := c.JudgeToken(id, token)
 	if judgeToken.Reject {
 		return judgeToken
 	}
@@ -98,13 +100,13 @@ func (c *frps) HandleNewUserConn(content *plugin.NewUserConnContent) plugin.Resp
 	user := content.User.User
 	return c.JudgeToken(user, token)
 }
-func (c *frps) JudgeToken(user string, token string) plugin.Response {
+func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	var res plugin.Response
-	if user == "" || token == "" {
+	if id == "" || token == "" {
 		res.Reject = true
 		res.RejectReason = "user or meta token can not be empty"
 	} else {
-		ok, err := JudgeToken(user, token)
+		ok, err := JudgeToken(id, token)
 		if ok {
 			res.Unchange = true
 		} else {
@@ -130,12 +132,13 @@ func (c *frps) JudgePort(content *plugin.NewProxyContent) plugin.Response {
 		return res
 	}
 
-	user := content.User.User
+	//user := content.User.User
+	id := content.User.Metas["id"]
 	userPort := content.RemotePort
 	userDomains := content.CustomDomains
 	userSubdomain := content.SubDomain
 
-	ok, err := JudgePort(user, proxyType, userPort, userDomains, userSubdomain)
+	ok, err := JudgePort(id, proxyType, userPort, userDomains, userSubdomain)
 	if ok {
 		res.Reject = true
 		res.RejectReason = err.Error()

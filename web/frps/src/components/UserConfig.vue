@@ -27,6 +27,14 @@
           <el-button type="warning" plain @click="handleExportUsers()"
             >导出用户
           </el-button>
+          <el-popconfirm
+            title="确定清空客户端配置吗？"
+            @confirm="handleDeleteAll"
+          >
+            <template #reference>
+              <el-button type="danger" plain>清空用户 </el-button>
+            </template>
+          </el-popconfirm>
           <el-button
             type="primary"
             plain
@@ -69,8 +77,13 @@
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="comment" label="备注" />
-        <el-table-column prop="user" label="用户名" />
-        <el-table-column prop="token" label="凭证" />
+        <el-table-column prop="user" label="名称" />
+        <el-table-column
+          prop="token"
+          label="凭证"
+          width="150"
+          :show-overflow-tooltip="true"
+        />
         <el-table-column prop="ports" label="允许端口" />
         <el-table-column prop="domains" label="允许域名" />
         <el-table-column prop="subdomains" label="允许子域名" />
@@ -131,12 +144,8 @@
         :model="newUserForm"
         label-width="100px"
       >
-        <el-form-item label="用户名" prop="user">
-          <el-input
-            v-model="newUserForm.user"
-            placeholder="请输入用户名(user)"
-            disabled
-          >
+        <el-form-item label="ID" prop="id">
+          <el-input v-model="newUserForm.id" placeholder="请输入ID" disabled>
             <template #append>
               <el-button @click="handleRandUser">随机</el-button>
             </template>
@@ -147,8 +156,15 @@
             disabled
             v-model="newUserForm.token"
             placeholder="请输入Token凭证(meta_token)"
-            type="password"
           />
+        </el-form-item>
+        <el-form-item label="名称" prop="user">
+          <el-input
+            v-model="newUserForm.user"
+            placeholder="请输入名称(user)"
+            :disabled="newUserForm.editable"
+          >
+          </el-input>
         </el-form-item>
         <el-form-item label="备注" prop="comment">
           <el-input v-model="newUserForm.comment" placeholder="请输入备注" />
@@ -278,7 +294,8 @@ interface User {
   domains: string
   subdomains: string
   enable: boolean
-  id: number
+  editable: boolean
+  id: string
 }
 
 const innerBtn = ref<InstanceType<typeof ElButton>>()
@@ -312,7 +329,8 @@ const newUserForm = ref({
   domains: '',
   subdomains: '',
   enable: true,
-  id: 0,
+  editable: false,
+  id: '',
 })
 
 const clientForm = ref({
@@ -332,6 +350,13 @@ const cloudApiForm = ref({
 const userRuleFormRef = ref<FormInstance>()
 
 const userRules = reactive<FormRules>({
+  id: [
+    {
+      required: true,
+      message: 'ID不能为空',
+      trigger: 'blur',
+    },
+  ],
   user: [
     {
       required: true,
@@ -408,12 +433,25 @@ const handleDeleteUsers = () => {
 
   const body = JSON.stringify(selectData.value)
   post('删除中...', '../api/token/del', body)
-    .then((data) => {
+    .then((data: any) => {
       console.log(data)
       //tableData.value = tableData.value.filter((item) => item !== row)
     })
-    .catch((err) => {
+    .catch((err: any) => {
       console.log(err)
+    })
+    .finally(() => {
+      clearVariables()
+      fetchData()
+    })
+}
+
+const handleDeleteAll = () => {
+  fetch('../api/token/delall', {
+    method: 'POST',
+  })
+    .then((response) => {
+      return response.json()
     })
     .finally(() => {
       clearVariables()
@@ -470,6 +508,7 @@ const fetchClientGen = () => {
   console.log('fetchClientGen', clientForm.value.ops)
   const node = getFilePathByValue(options.value, clientForm.value.ops)
   const body = {
+    id: newUserForm.value.id,
     user: newUserForm.value.user,
     token: newUserForm.value.token,
     comment: newUserForm.value.comment,
@@ -523,6 +562,7 @@ const fetchClientToml = () => {
   console.log('fetchClientToml', clientForm.value.ops)
 
   const body = {
+    id: newUserForm.value.id,
     user: newUserForm.value.user,
     token: newUserForm.value.token,
     comment: newUserForm.value.comment,
@@ -645,18 +685,25 @@ const handleClientDialog = (row: User) => {
 
 const showDialog = (type: string, row: User) => {
   clearVariables()
-
   //newUserForm.value = deepCopyJSON(row)
   //newUserForm.value = row
   if (type === 'ToggleStatus') {
     row.enable = !row.enable
     newUserForm.value = deepCopyJSON(row)
+    newUserForm.value.editable = true
     updateUser()
+  } else if (type === 'add') {
+    newUserForm.value = deepCopyJSON(row)
+    dialogVisible.value = true
+    dialogType.value = type
+    newUserForm.value.editable = false
   } else {
     newUserForm.value = deepCopyJSON(row)
     dialogVisible.value = true
     dialogType.value = type
+    newUserForm.value.editable = true
   }
+  //
 }
 
 const handleDelete = (row: User) => {
@@ -671,11 +718,11 @@ const handleDelete = (row: User) => {
       ]
       const body = JSON.stringify(data)
       post('删除中...', '../api/token/del', body)
-        .then((data) => {
+        .then((data: any) => {
           console.log(data)
           tableData.value = tableData.value.filter((item) => item !== row)
         })
-        .catch((err) => {
+        .catch((err: any) => {
           console.log(err)
         })
         .finally(() => {
@@ -690,13 +737,14 @@ const handleDelete = (row: User) => {
 }
 
 const handleRandUser = () => {
-  newUserForm.value.token = `${generateRandomKey(16)}`
-  newUserForm.value.user = `${new Date().getTime()}`
+  newUserForm.value.token = `${generateRandomKey()}`
+  newUserForm.value.id = `${new Date().getTime()}`
   console.log('handleRandUser', newUserForm.value)
 }
 
 const addUser = () => {
-  const data = {
+  const newData = {
+    id: newUserForm.value.id,
     user: newUserForm.value.user,
     token: newUserForm.value.token,
     comment: newUserForm.value.comment,
@@ -705,16 +753,16 @@ const addUser = () => {
     subdomains: newUserForm.value.subdomains.split(','),
     enable: newUserForm.value.enable,
   }
-  const body = JSON.stringify(data)
+  const body = JSON.stringify(newData)
   post('添加用户中...', '../api/token/add', body)
-    .then((data) => {
+    .then((data: any) => {
       console.log(data)
       tableData.value.push({
         ...newUserForm.value,
         enable: true, // 默认状态为启用
       })
     })
-    .catch((err) => {
+    .catch((err: any) => {
       console.log(err)
     })
     .finally(() => {
@@ -725,10 +773,10 @@ const addUser = () => {
 
 const updateUser = () => {
   post('更新中...', '../api/token/chg', createUser(newUserForm.value))
-    .then((data) => {
+    .then((data: any) => {
       console.log(data)
     })
-    .catch((err) => {
+    .catch((err: any) => {
       console.log(err)
     })
     .finally(() => {
@@ -757,14 +805,15 @@ const clearVariables = () => {
 }
 const createNewUser = () => {
   return {
-    user: `${new Date().getTime()}`,
-    token: `${generateRandomKey(16)}`,
+    user: '',
+    token: `${generateRandomKey()}`,
     comment: '',
     ports: '',
     domains: '',
     subdomains: '',
     enable: true,
-    id: 0,
+    editable: false,
+    id: `${new Date().getTime()}`,
   }
 }
 const createEmptyUser = () => {
@@ -776,7 +825,8 @@ const createEmptyUser = () => {
     domains: '',
     subdomains: '',
     enable: true,
-    id: 0,
+    editable: false,
+    id: '',
   }
 }
 
@@ -839,7 +889,7 @@ const fetchServerData = () => {
 
 // 获取数据
 const fetchData = () => {
-  get('数据请求', '../api/token/all', null).then((data) => {
+  get('数据请求', '../api/token/all', null).then((data: any) => {
     if (data) {
       const obj = JSON.parse(JSON.stringify(data))
       tableData.value = obj.map((item: any) => ({
@@ -859,7 +909,7 @@ const fetchData = () => {
 }
 // 获取平台数据
 const fetchOptions = () => {
-  get('', '../api/client/get', null).then((data) => {
+  get('', '../api/client/get', null).then((data: any) => {
     console.log('clients', data)
     if (data) {
       options.value = JSON.parse(JSON.stringify(data))
