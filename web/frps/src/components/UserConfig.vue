@@ -45,9 +45,15 @@
           <el-button type="success" plain @click="handleRefresh"
             >刷新
           </el-button>
-          <el-button type="info" plain @click="handleUploadCloud"
-            >上传云端
-          </el-button>
+          <el-popconfirm
+            title="Are you sure to sync config?"
+            @confirm="handleUploadCloud"
+            @cancel="cloudApiForm.isShow = true"
+          >
+            <template #reference>
+              <el-button type="info" plain>上传云端</el-button>
+            </template>
+          </el-popconfirm>
         </el-button-group>
       </div>
     </el-header>
@@ -578,6 +584,9 @@ const handleUploadCloud = () => {
           cloudApiForm.value.isShow = false
         }
       })
+      .finally(() => {
+        localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
+      })
   } else {
     fetch('../api/config/backup', {
       credentials: 'include',
@@ -838,6 +847,16 @@ const fetchOptions = () => {
 
 onUpdated(() => {
   fetchOptions()
+})
+onMounted(() => {
+  const jsonString = localStorage.getItem('cloudApi')
+  if (jsonString) {
+    const obj = JSON.parse(jsonString)
+    if (obj) {
+      cloudApiForm.value = obj
+    }
+    cloudApiForm.value.isShow = false
+  }
 })
 fetchData()
 fetchOptions()

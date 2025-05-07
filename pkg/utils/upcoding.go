@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"github.com/xxl6097/glog/glog"
 	"io"
 	"net/http"
 	"os"
 )
 
 func DownLoadGeneric(baseUrl, username, password, destPath string) error {
+	glog.Debug("DownLoadGeneric", baseUrl)
 	// 创建HTTP请求对象
 	req, err := http.NewRequest("GET", baseUrl, nil)
 	if err != nil {
@@ -54,6 +56,7 @@ func DownLoadGeneric(baseUrl, username, password, destPath string) error {
 }
 
 func UploadGeneric(baseUrl, method, cfgpath string, username, password string) error {
+	glog.Debug("UploadGeneric", baseUrl)
 	file, err := os.Open(cfgpath)
 	if err != nil {
 		fmt.Println("无法打开文件:", err)
