@@ -57,7 +57,6 @@ func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 	u, err := utils.GetDataByJson[User](r)
 	if err != nil {
 		res.Err(err)
-		glog.Errorf("%v decode user err: %+v", err, u)
 		return
 	}
 	if u == nil {
@@ -67,7 +66,6 @@ func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 	err = u.CreateUserByID()
 	if err != nil {
 		res.Err(err)
-		glog.Errorf("%v create user err: %+v", err, u)
 		return
 	}
 	res.Ok("密钥创建成功")
@@ -82,7 +80,6 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 	}](r)
 	if err != nil {
 		res.Err(err)
-		glog.Error(err)
 		return
 	}
 	if users == nil {
@@ -139,7 +136,6 @@ func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		res.Err(err)
-		glog.Error(err)
 		return
 	}
 	res.Ok("密钥更新成功")
@@ -358,7 +354,6 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 	userDir, err := utils.GetUserDir()
 	if err != nil {
 		res.Err(err)
-		glog.Error(err)
 		return
 	}
 
@@ -517,7 +512,6 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		res.Err(errors.New("body is nil"))
 		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("body is nil")
 		return
 	}
 	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {

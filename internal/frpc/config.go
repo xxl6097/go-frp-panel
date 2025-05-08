@@ -23,7 +23,6 @@ func load() error {
 	defer glog.Flush()
 	byteArray, err := ukey.Load()
 	if err != nil {
-		//glog.Error(err)
 		return err
 	}
 	cfgBytes = byteArray

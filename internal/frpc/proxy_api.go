@@ -29,18 +29,15 @@ func (this *frpc) apiProxyTCPAdd(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		res.Err(fmt.Errorf("解析数据失败: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	if body == nil {
 		res.Error("数据nil")
-		glog.Error(res.Msg)
 		return
 	}
 	binpath, err := os.Executable()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 
@@ -53,7 +50,6 @@ func (this *frpc) apiProxyTCPAdd(w http.ResponseWriter, r *http.Request) {
 	cfgFilePath := filepath.Join(cfgDir, cfgFileName)
 	if !utils2.FileExists(cfgFilePath) {
 		res.Err(fmt.Errorf("客户端不存在: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	sb := strings.Builder{}
@@ -114,7 +110,6 @@ func (this *frpc) apiProxyPortCheck(w http.ResponseWriter, r *http.Request) {
 		binpath, err := os.Executable()
 		if err != nil {
 			res.Err(fmt.Errorf("get executable path err: %v", err))
-			glog.Error(res.Msg)
 			return
 		}
 		cfgDir := filepath.Join(filepath.Dir(binpath), "config")
@@ -122,25 +117,21 @@ func (this *frpc) apiProxyPortCheck(w http.ResponseWriter, r *http.Request) {
 		cfg, _, _, _, err := config.LoadClientConfig(cfgFilePath, true)
 		if err != nil {
 			res.Err(fmt.Errorf("配置文件解析失败: %v", err))
-			glog.Error(res.Msg)
 			return
 		}
 		if cfg == nil || cfg.ServerAddr == "" {
 			res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-			glog.Error(res.Msg)
 			return
 		}
 		host = cfg.ServerAddr
 		if v, ok := this.svrs[name]; ok {
 			if v.cfg == nil || v.cfg.ServerAddr == "" {
 				res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-				glog.Error(res.Msg)
 				return
 			}
 			host = v.cfg.ServerAddr
 		} else {
 			res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-			glog.Error(res.Msg)
 			return
 		}
 	}

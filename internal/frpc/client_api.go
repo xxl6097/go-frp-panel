@@ -29,13 +29,11 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 	binpath, err := os.Executable()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
 	if err = utils.DirCheck(cfgDir); err != nil {
 		res.Err(fmt.Errorf("check config dir err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 
@@ -59,13 +57,11 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		cfgFilePath := filepath.Join(cfgDir, body.Name)
 		if utils2.FileExists(cfgFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
-			glog.Error(res.Msg)
 			return
 		}
 		err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
 		if err != nil {
 			res.Err(fmt.Errorf("write http body err: %v", err))
-			glog.Error(res.Msg)
 			utils.Delete(cfgFilePath)
 			return
 		}
@@ -93,7 +89,6 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		dstFilePath := filepath.Join(cfgDir, handler.Filename)
 		if utils2.FileExists(dstFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
-			glog.Error(res.Msg)
 			return
 		}
 		//dstFilePath 名称为上传文件的原始名称
@@ -123,7 +118,6 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		_, _, _, _, err = config.LoadClientConfig(newFilePath, true)
 		if err != nil {
 			res.Err(fmt.Errorf("文件不合法: %v", err))
-			glog.Error(res.Msg)
 			utils.Delete(newFilePath)
 			return
 		}
@@ -139,7 +133,6 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		glog.Error(err)
 		if err != nil {
 			res.Err(err)
-			glog.Error(res.Msg)
 			utils.Delete(newFilePath)
 			return
 		}
@@ -212,7 +205,6 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 		files, err := os.ReadDir(cfgDir)
 		if err != nil {
 			res.Err(fmt.Errorf("read config dir err: %v", err))
-			glog.Error(res.Msg)
 			return
 		}
 
@@ -229,7 +221,6 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 		res.Sucess("客户端列表获取成功", names)
 	} else {
 		res.Err(fmt.Errorf("配置目录不存在：%v", cfgDir))
-		glog.Error(res.Msg)
 	}
 
 }
@@ -246,7 +237,6 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 	binpath, err := os.Executable()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
@@ -254,7 +244,6 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 	body, err := utils.ReadToml(cfgFilePath)
 	if err != nil {
 		res.Err(fmt.Errorf("write http body err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	//res.Raw = body
@@ -276,14 +265,12 @@ func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
 	binpath, err := os.Executable()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
 	cfgFilePath := filepath.Join(cfgDir, body.Name)
 	if !utils2.FileExists(cfgFilePath) {
 		res.Err(fmt.Errorf("客户端不存在: %v", err))
-		glog.Error(res.Msg)
 		return
 	}
 	err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
