@@ -90,24 +90,25 @@ func (this Service) GetAny(binDir string) any {
 //}
 
 func (this *Service) menu() *frpc.CfgModel {
-	var bindAddr, userName, password, id string
+	var bindAddr, userName, token, id string
 	var bindPort int
 	err := frpc.IsInit()
 	c := frpc.GetCfgModel()
-	glog.Infof("c: %+v", c)
+	//glog.Infof("Frpc: %+v", c.Frpc)
+	//glog.Infof("Cfg: %+v", c.Cfg)
 	//glog.Error(err)
 	if err != nil || c == nil {
 		bindAddr = utils2.InputString("Frps服务器地址:")
 		bindPort = utils2.InputInt("Frps服务器绑定端口:")
 		userName = utils2.InputStringEmpty("请输入用户名(admin):", "admin")
 		id = utils2.InputString("请输入ID：")
-		password = utils2.InputString("请输入密钥：")
+		token = utils2.InputString("请输入密钥：")
 	} else {
 		bindAddr = c.Frpc.ServerAddr
 		bindPort = c.Frpc.ServerPort
 		userName = c.Frpc.User
-		password = c.Frpc.Metadatas["token"]
-		password = c.Frpc.Metadatas["id"]
+		token = c.Frpc.Metadatas["token"]
+		id = c.Frpc.Metadatas["id"]
 	}
 	adminPort := utils2.InputIntDefault("管理后台端口(6400)", 6400)
 	adminUser := utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
@@ -118,7 +119,7 @@ func (this *Service) menu() *frpc.CfgModel {
 		ServerPort: bindPort,
 		User:       userName,
 		Metadatas: map[string]string{
-			"token": password,
+			"token": token,
 			"id":    id,
 		},
 		Log: v1.LogConfig{
