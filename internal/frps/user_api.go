@@ -349,23 +349,39 @@ func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
 }
 
 func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
-	res := &comm2.GeneralResponse{Code: 0}
-
+	res, f := comm2.Response(r)
+	defer f(w)
+	users, err := utils.GetDataByJson[[]struct {
+		User string `json:"user"`
+		ID   string `json:"id"`
+	}](r)
+	if err != nil {
+		res.Err(err)
+		return
+	}
 	userDir, err := utils.GetUserDir()
 	if err != nil {
 		res.Err(err)
 		return
 	}
-
+	var zipFilePath string
 	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
-	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
+	tempDir := glog.GetCrossPlatformDataDir("user")
 	_ = utils2.EnsureDir(tempDir)
-	zipFilePath := filepath.Join(tempDir, fileName)
-	err = utils.Zip(userDir, zipFilePath)
+	zipFilePath = filepath.Join(tempDir, fileName)
+	if users != nil && len(*users) > 0 {
+		var ids []string
+		for _, u := range *users {
+			ids = append(ids, filepath.Join(userDir, u.ID+".json"))
+		}
+		err = utils.ZipFiles(zipFilePath, ids)
+	} else {
+		err = utils.Zip(userDir, zipFilePath)
+	}
 
 	if err != nil {
+		res.Err(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("GetDataByJson", err)
 		return
 	}
 
