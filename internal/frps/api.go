@@ -33,6 +33,10 @@ type frps struct {
 	githubProxys           []string
 }
 
+func (this *frps) GetCloudApi() *model.CloudApi {
+	return this.cloudApi
+}
+
 func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 	binPath, err := os.Executable()
 	if err != nil {
