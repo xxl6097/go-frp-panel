@@ -514,7 +514,7 @@ const handleSelectionChange = (rows: User[]) => {
 // 调用接口创建客户端
 const fetchClientGen = () => {
   isLoading.value = genClientDialogVisible.value
-  console.log('download----0----')
+  console.log('download--------', newUserForm.value)
   console.log('fetchClientGen', clientForm.value.ops)
   const node = getFilePathByValue(options.value, clientForm.value.ops)
   const body = {
@@ -528,15 +528,15 @@ const fetchClientGen = () => {
     enable: newUserForm.value.enable,
   }
   if (node && node.filePath !== '') {
-    //download('../api/client/gen?binPath=' + node.filePath)
     const data = {
       binPath: node.filePath,
       addr: clientForm.value.addr,
       port: clientForm.value.port,
       user: body,
     }
+    console.log('客户端生成中1--------', data)
     downloadByPost(
-      '客户端生产中',
+      '客户端生成中',
       '../api/client/gen',
       JSON.stringify(data),
     ).finally(() => {
@@ -554,8 +554,9 @@ const fetchClientGen = () => {
         user: body,
       }
 
+      console.log('客户端生成中2--------', data)
       downloadByPost(
-        '客户端生产中',
+        '客户端生成中',
         '../api/client/gen',
         JSON.stringify(data),
       ).finally(() => {
