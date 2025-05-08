@@ -85,20 +85,23 @@ func (c *frps) HandleNewProxy(content *plugin.NewProxyContent) plugin.Response {
 
 func (c *frps) HandlePing(content *plugin.PingContent) plugin.Response {
 	token := content.User.Metas["token"]
-	user := content.User.User
-	return c.JudgeToken(user, token)
+	id := content.User.Metas["id"]
+	//user := content.User.User
+	return c.JudgeToken(id, token)
 }
 
 func (c *frps) HandleNewWorkConn(content *plugin.NewWorkConnContent) plugin.Response {
 	token := content.User.Metas["token"]
-	user := content.User.User
-	return c.JudgeToken(user, token)
+	id := content.User.Metas["id"]
+	//user := content.User.User
+	return c.JudgeToken(id, token)
 }
 
 func (c *frps) HandleNewUserConn(content *plugin.NewUserConnContent) plugin.Response {
 	token := content.User.Metas["token"]
-	user := content.User.User
-	return c.JudgeToken(user, token)
+	id := content.User.Metas["id"]
+	//user := content.User.User
+	return c.JudgeToken(id, token)
 }
 func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	var res plugin.Response

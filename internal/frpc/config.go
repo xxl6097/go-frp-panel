@@ -41,6 +41,7 @@ func load() error {
 			User:       c.User,
 			Metadatas: map[string]string{
 				"token": c.Token,
+				"id":    c.ID,
 			},
 		},
 		Cfg: &c}

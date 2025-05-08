@@ -187,19 +187,20 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("frps地址扫描:%v", res.Data)
 }
 
-func (this *frps) parseUser(data map[string]interface{}) {
-	glog.Println(data)
-	u := User{
-		User:       data["user"].(string),
-		Token:      data["token"].(string),
-		Comment:    data["comment"].(string),
-		Ports:      ToPorts(data["ports"].([]any)),
-		Domains:    data["domains"].([]string),
-		Subdomains: data["subdomains"].([]string),
-		Enable:     data["enable"].(bool),
-	}
-	glog.Error(u)
-}
+//func (this *frps) parseUser(data map[string]interface{}) {
+//	glog.Println(data)
+//	u := User{
+//		User:       data["user"].(string),
+//		Token:      data["token"].(string),
+//		ID:         data["id"].(string),
+//		Comment:    data["comment"].(string),
+//		Ports:      ToPorts(data["ports"].([]any)),
+//		Domains:    data["domains"].([]string),
+//		Subdomains: data["subdomains"].([]string),
+//		Enable:     data["enable"].(bool),
+//	}
+//	glog.Error(u)
+//}
 
 func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	//res := &comm.GeneralResponse{Code: 0}
