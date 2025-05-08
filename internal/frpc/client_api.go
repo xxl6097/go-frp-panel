@@ -48,6 +48,16 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			glog.Error(res.Msg)
 			return
 		}
+		if body.Name == "" {
+			res.Error("文件名空")
+			glog.Error(res.Msg)
+			return
+		}
+		if body.Toml == "" {
+			res.Error("toml配置空")
+			glog.Error(res.Msg)
+			return
+		}
 
 		if filepath.Ext(body.Name) != ".toml" {
 			res.Error("文件必须是toml后缀～")

@@ -107,7 +107,7 @@ func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	var res plugin.Response
 	if id == "" || token == "" {
 		res.Reject = true
-		res.RejectReason = "user or meta token can not be empty"
+		res.RejectReason = "ID和Token不能为空"
 	} else {
 		ok, err := JudgeToken(id, token)
 		if ok {

@@ -22,18 +22,18 @@
       <template #content>
         <div style="display: flex">
           <el-button type="primary" @click="upload" :loading="uploading" plain
-            >更新</el-button
-          >
+            >更新
+          </el-button>
           <el-button type="success" @click="refresh" :loading="loading" plain
-            >刷新</el-button
-          >
+            >刷新
+          </el-button>
           <el-button
             type="warning"
             @click="handleShowNewFrpc"
             :loading="loading"
             plain
-            >新建客户端</el-button
-          >
+            >新建客户端
+          </el-button>
           <div
             v-if="selectValue !== '' && selectValue !== undefined"
             style="margin-left: 10px; margin-right: 10px"
@@ -41,17 +41,17 @@
             <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
               <template #reference>
                 <el-button type="danger" :loading="loading" plain
-                  >删除客户端</el-button
-                >
+                  >删除客户端
+                </el-button>
               </template>
             </el-popconfirm>
           </div>
           <el-button type="warning" @click="handleShowNewProxyDrawer" plain
-            >新建代理</el-button
-          >
+            >新建代理
+          </el-button>
         </div>
       </template>
-      <template #extra> </template>
+      <template #extra></template>
     </el-page-header>
 
     <el-input
@@ -65,7 +65,7 @@
 
   <!--新建客户端-->
   <el-dialog v-model="newClientFormVisible" width="700">
-    <template #header><span>创建客户端</span> </template>
+    <template #header><span>创建客户端</span></template>
     <template #default>
       <el-form ref="ruleFormRef" :model="newClientForm" :rules="rules">
         <el-form-item label="配置文件名：" prop="name">
@@ -94,8 +94,8 @@
       <div class="dialog-footer">
         <el-button @click="newClientFormVisible = false">取消</el-button>
         <el-button type="primary" @click="submitForm(ruleFormRef)"
-          >确定</el-button
-        >
+          >确定
+        </el-button>
       </div>
     </template>
   </el-dialog>
@@ -225,9 +225,9 @@
                       fill="none"
                     />
                   </svg>
-                  <el-text v-if="checkPortErr.code !== 0">{{
-                    checkPortErr.msg
-                  }}</el-text>
+                  <el-text v-if="checkPortErr.code !== 0"
+                    >{{ checkPortErr.msg }}
+                  </el-text>
                 </div>
               </div>
             </el-form-item>
@@ -247,8 +247,8 @@
           type="primary"
           @click="handleNewTCPProxy"
           :loading="proxyAddSaveLoading"
-          >{{ proxyAddSaveLoading ? '保存中 ...' : '保存' }}</el-button
-        >
+          >{{ proxyAddSaveLoading ? '保存中 ...' : '保存' }}
+        </el-button>
       </div>
     </div>
   </el-drawer>
@@ -271,6 +271,7 @@ interface Option {
   value: string
   label: string
 }
+
 const drawer = ref(false)
 const checkPortErr = ref({
   code: -1,
@@ -506,7 +507,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 }
 
 const handleNewFrpcClient = () => {
-  const body = JSON.stringify(newClientForm)
+  const body = JSON.stringify(newClientForm.value)
   put('客户端创建中...', '../api/client/create', body).finally(() => {
     newClientFormVisible.value = false
     fetchListData()
@@ -738,12 +739,14 @@ fetchListData()
 #head {
   margin-bottom: 30px;
 }
+
 .autoWidth1 {
   width: auto;
   min-width: 250px; /* 初始最小宽度 */
   max-width: 400px; /* 初始最小宽度 */
   margin-left: 10px;
 }
+
 .success-icon {
   color: #67c23a; /* Element Plus 成功色 */
   font-size: 16px;
