@@ -89,7 +89,10 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 	if err != nil {
 		glog.Fatalf("new frps err: %v", err)
 	}
-	webServer := utils.GetPointerInstance[httppkg.Server]("webServer", svr)
+	webServer, err := utils.GetPointerInstance[httppkg.Server]("webServer", svr)
+	if err != nil {
+		glog.Fatalf("new frps err: %v", err)
+	}
 	f := &frps{
 		cfg:       cfg,
 		webServer: webServer,

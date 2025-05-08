@@ -102,7 +102,10 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 		go this.handleTermSignal(svr)
 	}
 
-	webServer := utils.GetPointerInstance[httppkg.Server]("webServer", svr)
+	webServer, err := utils.GetPointerInstance[httppkg.Server]("webServer", svr)
+	if err != nil {
+		return nil, err
+	}
 	if webServer == nil {
 		return nil, fmt.Errorf("can't find webServer")
 	}

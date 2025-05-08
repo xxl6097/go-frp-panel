@@ -138,11 +138,17 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	if svr == nil {
 		return nil, fmt.Errorf("客户端服务未创建")
 	}
-	ctl := utils.GetPointerInstance[client.Control]("ctl", svr)
+	ctl, err := utils.GetPointerInstance[client.Control]("ctl", svr)
+	if err != nil {
+		return nil, err
+	}
 	if ctl == nil {
 		return nil, fmt.Errorf("没有找到服务控制器")
 	}
-	pm := utils.GetPointerInstance[proxy.Manager]("pm", ctl)
+	pm, err := utils.GetPointerInstance[proxy.Manager]("pm", ctl)
+	if err != nil {
+		return nil, err
+	}
 	if pm == nil {
 		return nil, fmt.Errorf("没有找到服务代理器")
 	}

@@ -6,37 +6,42 @@ import (
 	"unsafe"
 )
 
-func GetFuncInstance[T any](name string, obj interface{}) *T {
-	value := reflect.ValueOf(obj).Elem()
-	// 通过方法名查找方法
-	nameField := value.MethodByName(name)
-	if nameField.IsValid() {
-		nameField = nameField.Elem()
-		instance := (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
-		return instance
-	}
-	return nil
-}
+//func GetFuncInstance[T any](name string, obj interface{}) *T {
+//	value := reflect.ValueOf(obj).Elem()
+//	// 通过方法名查找方法
+//	nameField := value.MethodByName(name)
+//	if nameField.IsValid() {
+//		nameField = nameField.Elem()
+//		instance := (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
+//		return instance
+//	}
+//	return nil
+//}
+//
+//func GetStructInstance[T any](name string, obj interface{}) *T {
+//	value := reflect.ValueOf(obj).Elem()
+//	nameField := value.FieldByName(name)
+//	if nameField.IsValid() {
+//		instance := (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
+//		return instance
+//	}
+//	return nil
+//}
 
-func GetPointerInstance[T any](name string, obj interface{}) *T {
+func GetPointerInstance[T any](name string, obj interface{}) (t *T, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic occurred: %v", r) // 将 panic 转为 error
+		}
+	}()
 	value := reflect.ValueOf(obj).Elem()
 	nameField := value.FieldByName(name)
 	if nameField.IsValid() {
 		nameField = nameField.Elem()
-		instance := (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
-		return instance
+		t = (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
+		return t, nil
 	}
-	return nil
-}
-
-func GetStructInstance[T any](name string, obj interface{}) *T {
-	value := reflect.ValueOf(obj).Elem()
-	nameField := value.FieldByName(name)
-	if nameField.IsValid() {
-		instance := (*T)(unsafe.Pointer(nameField.UnsafeAddr()))
-		return instance
-	}
-	return nil
+	return nil, fmt.Errorf("nameField.IsValid(): %v", nameField.IsValid())
 }
 
 // SetFieldValue 使用反射给结构体的字段赋值
