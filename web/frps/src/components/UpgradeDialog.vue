@@ -1,19 +1,27 @@
 <template>
-  <div>
-    <div v-if="showUpgradeDialog" class="upgrade-popup-overlay">
-      <div class="upgrade-popup">
-        <div class="upgrade-popup-header">
-          <h3>❤️ 发现新版本</h3>
-          <button @click="handleClose" class="close-button">×</button>
-        </div>
-        <div class="upgrade-popup-content" v-html="updateContent"></div>
-        <div class="upgrade-popup-footer">
-          <el-button @click="handleClose">稍后提醒</el-button>
-          <el-button type="primary" @click="handleConfirm">立即升级</el-button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <el-dialog v-model="showUpgradeDialog" title="❤️ 发现新版本">
+    <div class="upgrade-popup-content" v-html="updateContent"></div>
+    <template #footer>
+      <el-button @click="handleClose">稍后提醒</el-button>
+      <el-button type="primary" @click="handleConfirm">立即升级</el-button>
+    </template>
+  </el-dialog>
+
+  <!--  <div>-->
+  <!--    <div v-if="showUpgradeDialog" class="upgrade-popup-overlay">-->
+  <!--      <div class="upgrade-popup">-->
+  <!--        <div class="upgrade-popup-header">-->
+  <!--          <h3>❤️ 发现新版本</h3>-->
+  <!--          <button @click="handleClose" class="close-button">×</button>-->
+  <!--        </div>-->
+  <!--        <div class="upgrade-popup-content" v-html="updateContent"></div>-->
+  <!--        <div class="upgrade-popup-footer">-->
+  <!--          <el-button @click="handleClose">稍后提醒</el-button>-->
+  <!--          <el-button type="primary" @click="handleConfirm">立即升级</el-button>-->
+  <!--        </div>-->
+  <!--      </div>-->
+  <!--    </div>-->
+  <!--  </div>-->
 </template>
 
 <script setup lang="ts">
@@ -24,6 +32,8 @@ import {
   showLoading,
   showTips,
 } from '../utils/utils.ts'
+import { ElButton } from 'element-plus'
+
 const showUpgradeDialog = ref(false)
 
 const showUpdateDialog = (message: string, binurl: string) => {
@@ -177,6 +187,7 @@ const handleClose = () => {
   .upgrade-popup-overlay {
     background-color: rgba(0, 0, 0, 0.5);
   }
+
   .upgrade-popup {
     background-color: white;
   }
@@ -187,13 +198,16 @@ const handleClose = () => {
   .upgrade-popup-overlay {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
   .upgrade-popup {
     background-color: #333;
     color: white;
   }
+
   .upgrade-popup-header {
     border-bottom: 1px solid #555;
   }
+
   .upgrade-popup-footer {
     border-top: 1px solid #555;
   }
