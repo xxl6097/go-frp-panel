@@ -12,5 +12,6 @@ type IFrps interface {
 	OnFrpcConfigExport(string) (error, string)
 	OnFrpcConfigImport(string) error
 	GetCloudApi() *model.CloudApi
+	SetCloudApi(*model.CloudApi)
 	Close()
 }

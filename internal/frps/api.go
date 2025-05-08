@@ -33,6 +33,13 @@ type frps struct {
 	githubProxys           []string
 }
 
+func (this *frps) SetCloudApi(api *model.CloudApi) {
+	if api == nil {
+		return
+	}
+	this.cloudApi = api
+}
+
 func (this *frps) GetCloudApi() *model.CloudApi {
 	return this.cloudApi
 }
