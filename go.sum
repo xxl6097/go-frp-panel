@@ -60,8 +60,6 @@ github.com/google/pprof v0.0.0-20241206021119-61a79c692802 h1:US08AXzP0bLurpzFUV
 github.com/google/pprof v0.0.0-20241206021119-61a79c692802/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
 github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
-github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
-github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/hashicorp/yamux v0.1.1 h1:yrQxtgseBDrq9Y652vSRDvsKCJKOUD+GzTS4Y0Y8pvE=
 github.com/hashicorp/yamux v0.1.1/go.mod h1:CtWFDAQgb7dxtzFs4tWbplKIe2jSi3+5vKbgIO0SLnQ=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
@@ -139,8 +137,8 @@ github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 h1:EWU6Pktpas0n8lL
 github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37/go.mod h1:HpMP7DB2CyokmAh4lp0EQnnWhmycP/TvwBGzvuie+H0=
 github.com/xxl6097/glog v0.1.23 h1:Of4SasEGWxDW7DMkcxSPVbxa0u19dOX9iuxuxqvU/Z4=
 github.com/xxl6097/glog v0.1.23/go.mod h1:Ug/BU4gFQMUoDgY1t8bJZU9T472CXcj70BekRC+fz+k=
-github.com/xxl6097/go-service v0.4.52 h1:DkzdYxa04M3VdzLiM6Jh7ZlNnCe+pVuilNit0IpCsQE=
-github.com/xxl6097/go-service v0.4.52/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
+github.com/xxl6097/go-service v0.4.53 h1:wFBFNUPQJXx9awy0Nxu2UmFJGaNdlbgF8bhL2zpd/8s=
+github.com/xxl6097/go-service v0.4.53/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/mock v0.5.0 h1:KAMbZvZPyBPWgD14IrIQ38QCyjwpvVVV6K/bHl1IwQU=
 go.uber.org/mock v0.5.0/go.mod h1:ge71pBPLYDk7QIi1LupWxdAykm7KIEFchiOqd6z7qMM=
