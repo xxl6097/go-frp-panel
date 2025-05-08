@@ -51,6 +51,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/server/config/get", this.apiServerConfigGet).Methods("GET")
 	subRouter.HandleFunc("/api/server/config/set", this.apiServerConfigSet).Methods("PUT")
 	subRouter.HandleFunc("/api/proxy/{type}", this.apiProxyByType).Methods("GET")
+	subRouter.HandleFunc("/api/bindinfo", this.apiBindInfo).Methods("GET")
 }
 
 // /api/shutdown
@@ -216,4 +217,17 @@ func (svr *frps) apiProxyByType(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Http request: [%s]", r.URL.Path)
 
 	res.Msg = proxyType
+}
+
+func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	bindPort := os.Getenv("BIND_PORT")
+	if bindPort == "" {
+		bindPort = fmt.Sprintf("%d", this.cfg.BindPort)
+	}
+	data := map[string]interface{}{
+		"bindPort": bindPort,
+	}
+	res.Any(data)
 }

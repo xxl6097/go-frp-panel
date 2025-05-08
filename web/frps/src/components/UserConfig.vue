@@ -942,10 +942,12 @@ onUnmounted(() => {
 //})
 
 const fetchServerData = () => {
-  fetch('../api/serverinfo', { credentials: 'include' })
+  fetch('../api/bindinfo', { credentials: 'include' })
     .then((res) => res.json())
     .then((json) => {
-      clientForm.value.port = json.bindPort
+      if (json.code === 0) {
+        clientForm.value.port = json.data.bindPort
+      }
     })
     .catch(() => {
       showErrorTips('获取服务器信息失败')
