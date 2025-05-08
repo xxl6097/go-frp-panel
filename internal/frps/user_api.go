@@ -203,16 +203,6 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 //}
 
 func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
-	//res := &comm.GeneralResponse{Code: 0}
-
-	//body1, err := io.ReadAll(r.Body)
-	//if err != nil {
-	//	res.Response(400, fmt.Sprintf("read request body error: %v", err))
-	//	glog.Warnf("%s", res.Msg)
-	//	return
-	//}
-	//fmt.Println(string(body1))
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	body, err := utils.GetDataByJson[struct {
@@ -232,7 +222,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "json对象nil", http.StatusInternalServerError)
 		return
 	}
-	glog.Debugf("body:%+v\n", body)
+	glog.Debugf("客户端生成参数:%+v", body)
 	if utils2.IsURL(body.BinPath) {
 		if this.githubProxys != nil {
 			var urls []string
@@ -311,15 +301,16 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	cfg := comm2.BufferConfig{
 		Addr:       body.Addr,
 		Port:       bindPort,
+		ID:         body.User.ID,
 		User:       body.User.User,
 		Token:      body.User.Token,
-		ID:         body.User.ID,
 		Comment:    body.User.Comment,
 		Ports:      body.User.Ports,
 		Domains:    body.User.Domains,
 		Subdomains: body.User.Subdomains,
 	}
 
+	glog.Infof("BufferConfig: %+v", cfg)
 	cfgNewBytes, err := ukey.GenConfig(cfg, false)
 	if err != nil {
 		msg := fmt.Errorf("文件签名失败：%v", err)
