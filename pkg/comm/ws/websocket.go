@@ -40,9 +40,9 @@ func (this *FrpWebSocket) onMessageRecv(ws *websocket.Conn, r *http.Request) {
 		// 读取消息
 		messageType, message, err := ws.ReadMessage()
 		if err != nil {
-			glog.Errorf("websocket client 断开:%v,err:%+v", messageType, err)
-			glog.Errorf("%+v", r)
 			//delete(this.clients, ws.RemoteAddr().String())
+			pointAddress := fmt.Sprintf("%p", ws)
+			glog.Errorf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
 			break
 		} else {
 			glog.Printf("Received:%s %d %s\n", ws.RemoteAddr().String(), messageType, message)
@@ -74,7 +74,7 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	}
 	defer ws.Close()
 	pointAddress := fmt.Sprintf("%p", ws)
-	glog.Error("websocket客户端连接成功", secKey, pointAddress)
+	glog.Warn("websocket客户端连接成功", secKey, pointAddress)
 	childMap := this.clients[secKey]
 	defer delete(childMap, pointAddress)
 	if childMap == nil {
