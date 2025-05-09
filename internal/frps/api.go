@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
@@ -26,6 +27,7 @@ type frps struct {
 	install                gore.IGService
 	upgrade                iface2.IComm
 	cloudApi               *model.CloudApi
+	webSocket              iface2.IWebSocket
 	binDir                 string
 	cfgFilePath            string
 	frpcGithubDownloadUrls []string
@@ -101,12 +103,14 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 		install:   install,
 		upgrade:   comm.NewCommApi(install, GetCfgModel()),
 		binDir:    filepath.Dir(binPath),
+		webSocket: ws.NewWebSocket(),
 	}
 	f.InitClientsConfig()
 	//webServer.RouteRegister(f.proxyHandlers)
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)
 	webServer.RouteRegister(f.userHandlers)
+	webServer.RouteRegister(f.webSocketHandler)
 	f.CheckClients()
 	return f, nil
 }

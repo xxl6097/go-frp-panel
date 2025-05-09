@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket连接示例（含Basic认证）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#6B7280',
+                        success: '#36D399',
+                        danger: '#F87272',
+                        warning: '#FBBD23',
+                        info: '#3ABFF8',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .animate-pulse-slow {
+                animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-light to-gray-100 min-h-screen flex flex-col">
+    <header class="bg-white shadow-md py-4 px-6 sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-plug text-primary text-2xl"></i>
+                <h1 class="text-[clamp(1.25rem,3vw,1.75rem)] font-bold text-dark">WebSocket连接示例</h1>
+            </div>
+            <div id="connection-status" class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+                <i class="fa fa-circle text-warning mr-2"></i>
+                <span>未连接</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 连接设置面板 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl">
+                    <h2 class="text-xl font-bold text-dark mb-4 flex items-center">
+                        <i class="fa fa-cog text-primary mr-2"></i>
+                        连接设置
+                    </h2>
+
+                    <form id="connection-form" class="space-y-4">
+                        <div>
+                            <label for="ws-url" class="block text-sm font-medium text-gray-700 mb-1">WebSocket URL</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-globe"></i>
+                                </span>
+                                <input type="text" id="ws-url" name="ws-url"
+                                    class="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                                    placeholder="ws://127.0.0.1:7200/frp"
+                                    value="ws://127.0.0.1:7200/frp">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="username" class="block text-sm font-medium text-gray-700">用户名</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-user"></i>
+                                </span>
+                                <input type="text" id="username" name="username"
+                                    class="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                                    placeholder="输入用户名"
+                                    value="admin">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="password" class="block text-sm font-medium text-gray-700">密码</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                                <input type="password" id="password" name="password"
+                                    class="pl-10 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                                    placeholder="输入密码"
+                                    value="admin">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="connect-btn"
+                                class="group relative flex w-full justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 overflow-hidden">
+                                <span class="relative z-10 flex items-center justify-center">
+                                    <i class="fa fa-link mr-2 group-hover:rotate-90 transition-transform duration-300"></i>
+                                    连接
+                                </span>
+                                <span class="absolute inset-0 h-full w-full bg-gradient-to-r from-primary/50 via-transparent to-primary/50 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-in-out"></span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="auth-info" class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">认证信息</h3>
+                        <p class="text-xs text-gray-600 mb-2">
+                            <span class="font-semibold">Base64编码:</span>
+                            <span id="encoded-credentials" class="font-mono bg-gray-100 px-1 rounded">正在生成...</span>
+                        </p>
+                        <p class="text-xs text-gray-600">
+                            <span class="font-semibold">认证头:</span>
+                            <span id="auth-header" class="font-mono bg-gray-100 px-1 rounded">正在生成...</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 消息面板 -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg h-full flex flex-col transition-all duration-300 hover:shadow-xl">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-dark flex items-center">
+                            <i class="fa fa-comments text-primary mr-2"></i>
+                            消息面板
+                        </h2>
+                    </div>
+
+                    <div id="messages-container" class="flex-grow p-4 overflow-y-auto scrollbar-hide max-h-[calc(100vh-300px)]">
+                        <div class="animate-pulse-slow text-center py-8">
+                            <i class="fa fa-info-circle text-info text-xl mb-2"></i>
+                            <p class="text-gray-500">连接建立后，消息将显示在这里</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-200">
+                        <form id="message-form" class="flex space-x-3">
+                            <input type="text" id="message-input"
+                                class="flex-grow rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                                placeholder="输入消息..." disabled>
+                            <button type="submit" id="send-btn"
+                                class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
+                                <i class="fa fa-paper-plane mr-1"></i> 发送
+                            </button>
+                        </form>
+
+                        <div class="text-xs text-gray-500">
+                            <p>提示: 要测试此示例，你需要一个支持 Basic 认证的 WebSocket 服务器。</p>
+                            <p>消息日志将显示所有发送和接收的消息以及连接状态。</p>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-6 px-4">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-sm text-gray-400">WebSocket连接示例 &copy; 2025</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // WebSocket连接相关变量
+        let socket = null;
+        let connectionTimer = null;
+
+        // DOM元素
+        const connectionForm = document.getElementById('connection-form');
+        const messageForm = document.getElementById('message-form');
+        const wsUrlInput = document.getElementById('ws-url');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const connectBtn = document.getElementById('connect-btn');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const messagesContainer = document.getElementById('messages-container');
+        const connectionStatus = document.getElementById('connection-status');
+        const encodedCredentialsEl = document.getElementById('encoded-credentials');
+        const authHeaderEl = document.getElementById('auth-header');
+        const authInfoEl = document.getElementById('auth-info');
+
+        // 更新连接状态显示
+        function updateConnectionStatus(status, isConnecting = false) {
+            const statusEl = connectionStatus.querySelector('span');
+            const iconEl = connectionStatus.querySelector('i');
+
+            if (isConnecting) {
+                connectionStatus.className = 'px-4 py-2 rounded-full text-sm font-medium bg-blue-50 text-blue-800 transition-all duration-300';
+                iconEl.className = 'fa fa-circle-notch fa-spin text-blue-500 mr-2';
+                statusEl.textContent = status;
+            } else if (status === '已连接') {
+                connectionStatus.className = 'px-4 py-2 rounded-full text-sm font-medium bg-green-50 text-green-800 transition-all duration-300';
+                iconEl.className = 'fa fa-circle text-green-500 mr-2';
+                statusEl.textContent = status;
+            } else if (status === '连接失败') {
+                connectionStatus.className = 'px-4 py-2 rounded-full text-sm font-medium bg-red-50 text-red-800 transition-all duration-300';
+                iconEl.className = 'fa fa-circle text-red-500 mr-2';
+                statusEl.textContent = status;
+            } else {
+                connectionStatus.className = 'px-4 py-2 rounded-full text-sm font-medium bg-yellow-50 text-yellow-800 transition-all duration-300';
+                iconEl.className = 'fa fa-circle text-yellow-500 mr-2';
+                statusEl.textContent = status;
+            }
+        }
+
+        // 添加消息到消息面板
+        function addMessage(content, isSent = false, isSystem = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isSystem
+                ? 'flex justify-center mb-4'
+                : `flex ${isSent ? 'justify-end' : 'justify-start'} mb-4`;
+
+            let messageContent = '';
+            if (isSystem) {
+                messageContent = `
+                    <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        ${content}
+                    </span>
+                `;
+            } else {
+                messageContent = `
+                    <div class="max-w-[80%] ${isSent ? 'bg-primary text-white' : 'bg-gray-100 text-gray-800'} rounded-xl p-3 shadow-md transition-all duration-300 hover:shadow-lg">
+                        <p class="text-sm break-words">${content}</p>
+                        <p class="text-xs mt-1 text-right ${isSent ? 'text-white/70' : 'text-gray-500'}">
+                            ${new Date().toLocaleTimeString()}
+                        </p>
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = messageContent;
+            messagesContainer.appendChild(messageDiv);
+
+            // 滚动到底部
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // 启用/禁用输入控件
+        function toggleFormControls(enabled) {
+            wsUrlInput.disabled = enabled;
+            usernameInput.disabled = enabled;
+            passwordInput.disabled = enabled;
+            // connectBtn.disabled = enabled;
+            // connectBtn.innerHTML = enabled
+            //     ? '<span class="relative z-10 flex items-center justify-center"><i class="fa fa-unlink mr-2"></i> 断开连接</span><span class="absolute inset-0 h-full w-full bg-gradient-to-r from-primary/50 via-transparent to-primary/50 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-in-out"></span>'
+            //     : '<span class="relative z-10 flex items-center justify-center"><i class="fa fa-link mr-2 group-hover:rotate-90 transition-transform duration-300"></i> 连接</span><span class="absolute inset-0 h-full w-full bg-gradient-to-r from-primary/50 via-transparent to-primary/50 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-in-out"></span>';
+
+            if (enabled) {
+                connectBtn.innerHTML = '<span class="relative z-10 flex items-center justify-center"><i class="fa fa-unlink mr-2"></i> 断开连接</span><span class="absolute inset-0 h-full w-full bg-gradient-to-r from-primary/50 via-transparent to-primary/50 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-in-out"></span>';
+                connectBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
+                connectBtn.classList.add('bg-danger');
+            } else {
+                connectBtn.innerHTML = '<span class="relative z-10 flex items-center justify-center"><i class="fa fa-link mr-2 group-hover:rotate-90 transition-transform duration-300"></i> 连接</span><span class="absolute inset-0 h-full w-full bg-gradient-to-r from-primary/50 via-transparent to-primary/50 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-in-out"></span>';
+                connectBtn.classList.remove('bg-danger', 'hover:bg-danger/90');
+                connectBtn.classList.add('bg-primary', 'hover:bg-primary/90');
+            }
+            messageInput.disabled = !enabled;
+            sendBtn.disabled = !enabled;
+        }
+
+        // 建立WebSocket连接
+        function connectWebSocket(url, username, password) {
+            // 清除之前的连接
+            if (socket) {
+                socket.close();
+            }
+
+            // 清空消息面板
+            messagesContainer.innerHTML = '';
+            addMessage('正在尝试连接...', false, true);
+
+            // 更新连接状态
+            updateConnectionStatus('连接中...', true);
+
+            // 生成Basic认证凭证
+            const credentials = `${username}:${password}`;
+            const encodedCredentials = btoa(credentials);
+            // 更新认证信息显示
+            encodedCredentialsEl.textContent = encodedCredentials;
+            authHeaderEl.textContent = `Basic ${encodedCredentials}`;
+            authInfoEl.classList.remove('hidden');
+
+            try {
+                // 创建WebSocket实例
+                socket = new WebSocket(url);
+
+                // 监听WebSocket事件
+                socket.onopen = function() {
+                    //socket.send('Authorization: Bearer ' + encodedCredentials);
+                    clearInterval(connectionTimer);
+                    updateConnectionStatus('已连接');
+                    toggleFormControls(true);
+                    addMessage('WebSocket连接已建立', false, true);
+
+                    // 发送认证信息
+                    const authMessage = JSON.stringify({
+                        type: 'auth',
+                        data: {
+                            authorization: `Basic ${encodedCredentials}`
+                        }
+                    });
+
+                    socket.send(authMessage);
+                    addMessage('已发送认证信息', false, true);
+                };
+
+                socket.onmessage = function(event) {
+                    addMessage(event.data);
+                };
+
+                socket.onclose = function(event) {
+                    clearInterval(connectionTimer);
+                    updateConnectionStatus('未连接');
+                    toggleFormControls(false);
+
+                    let reason = '未知原因';
+                    if (event.code === 1000) {
+                        reason = '正常关闭';
+                    } else if (event.code === 1001) {
+                        reason = '端点离开';
+                    } else if (event.code === 1002) {
+                        reason = '协议错误';
+                    } else if (event.code === 1003) {
+                        reason = '不支持的数据';
+                    } else if (event.code === 1006) {
+                        reason = '连接中断';
+                    }
+
+                    addMessage(`WebSocket连接已关闭 (代码: ${event.code}, 原因: ${reason})`, false, true);
+
+                    // 尝试重新连接
+                    connectionTimer = setInterval(() => {
+                        connectWebSocket(url, username, password);
+                    }, 5000);
+                };
+
+                socket.onerror = function(error) {
+                    updateConnectionStatus('连接失败');
+                    addMessage(`WebSocket错误: ${error.message}`, false, true);
+                };
+            } catch (error) {
+                updateConnectionStatus('连接失败');
+                addMessage(`创建WebSocket时出错: ${error.message}`, false, true);
+            }
+        }
+
+        // 连接表单提交事件
+        connectionForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('submit')
+            const url = wsUrlInput.value.trim();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!url) {
+                addMessage('请输入WebSocket URL', false, true);
+                return;
+            }
+
+            if (!username || !password) {
+                addMessage('请输入用户名和密码进行Basic认证', false, true);
+                return;
+            }
+
+            // 构建包含认证信息的URL
+            const authString = `${encodeURIComponent(username)}:${encodeURIComponent(password)}@`;
+            const protocolIndex = url.indexOf('://');
+
+            let urlWithAuth;
+            if (protocolIndex !== -1) {
+                urlWithAuth = url.slice(0, protocolIndex + 3) + authString + url.slice(protocolIndex + 3);
+            } else {
+                urlWithAuth = authString + url;
+            }
+
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                // 断开连接
+                console.log('断开连接')
+                socket.close();
+                toggleFormControls(false);
+            } else {
+                console.log('尝试连接到')
+                addMessage(`尝试连接到 ${urlWithAuth}...`);
+                // 建立连接
+                connectWebSocket(urlWithAuth, username, password);
+            }
+        });
+
+        // 消息表单提交事件
+        messageForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const message = messageInput.value.trim();
+            if (message) {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(message);
+                    addMessage(message, true);
+                    messageInput.value = '';
+                    messageInput.focus();
+                } else {
+                    addMessage('WebSocket连接未建立', false, true);
+                }
+            }
+        });
+
+        // 为输入框添加Enter键发送消息功能
+        messageInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                messageForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // 添加页面载入动画
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('opacity-0');
+            setTimeout(() => {
+                document.body.classList.remove('opacity-0');
+                document.body.classList.add('opacity-100');
+                document.body.classList.add('transition-opacity');
+                document.body.classList.add('duration-500');
+            }, 100);
+        });
+    </script>
+</body>
+</html>
+    

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
-	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
@@ -21,28 +20,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
-	subRouter := helper.Router.NewRoute().Name("user").Subrouter()
-	subRouter.Use(helper.AuthMiddleware)
-	// apis
-	subRouter.HandleFunc("/api/token/add", this.apiUserCreate).Methods("POST")
-	subRouter.HandleFunc("/api/token/del", this.apiUserDelete).Methods("POST")
-	subRouter.HandleFunc("/api/token/delall", this.apiUserDeleteAll).Methods("POST")
-	subRouter.HandleFunc("/api/token/chg", this.apiUserUpdate).Methods("POST")
-	subRouter.HandleFunc("/api/token/all", this.apiUserAll).Methods("GET")
-
-	subRouter.HandleFunc("/api/client/get", this.apiClientGet).Methods("GET")
-	subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
-	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
-	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")
-	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
-	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
-	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
-	subRouter.HandleFunc("/api/config/upload", this.apiConfigUpload)
-	subRouter.HandleFunc("/api/config/upgrade", this.apiConfigUpgrade)
-	subRouter.HandleFunc("/api/client/upload", this.apiClientUpload).Methods("POST")
-}
 
 func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)

@@ -3,7 +3,6 @@ package frps
 import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
-	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
@@ -26,33 +25,6 @@ func init() {
 	glog.Hook(func(bytes []byte) {
 		logQueue.AddMessage(string(bytes))
 	})
-}
-
-func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
-	subRouter := helper.Router.NewRoute().Name("admin").Subrouter()
-	subRouter.Use(helper.AuthMiddleware)
-	staticPrefix := "/log/"
-	baseDir := glog.GetCrossPlatformDataDir()
-	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
-
-	subRouter.PathPrefix("/fserver/").Handler(http.StripPrefix("/fserver/", http.FileServer(http.Dir("/"))))
-	subRouter.HandleFunc("/api/sse-stream", pkg.SseHandler(logQueue))
-	subRouter.HandleFunc("/api/files", this.upgrade.ApiFiles).Methods("PUT")
-
-	// apis
-	//subRouter.HandleFunc("/api/panelinfo", this.apiPanelinfo).Methods("GET")
-	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
-	subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
-	subRouter.HandleFunc("/api/shutdown", this.apiShutdown).Methods("GET")
-	subRouter.HandleFunc("/api/uninstall", this.upgrade.ApiUninstall).Methods("GET")
-	subRouter.HandleFunc("/api/clear", this.apiClear).Methods("DELETE")
-	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")
-	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
-	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
-	subRouter.HandleFunc("/api/server/config/get", this.apiServerConfigGet).Methods("GET")
-	subRouter.HandleFunc("/api/server/config/set", this.apiServerConfigSet).Methods("PUT")
-	subRouter.HandleFunc("/api/proxy/{type}", this.apiProxyByType).Methods("GET")
-	subRouter.HandleFunc("/api/bindinfo", this.apiBindInfo).Methods("GET")
 }
 
 // /api/shutdown
