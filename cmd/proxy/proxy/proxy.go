@@ -1,9 +1,7 @@
 package proxy
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -92,24 +90,24 @@ func (p *singleton) modifyResponse(targetUrl, localUrl string, o *httputil.Rever
 				resp.Header.Set("Location", newLocation)
 			}
 		}
-		contentType := resp.Header.Get("Content-Type")
-		if contentType == "text/html" {
-			// 处理 HTML 响应中的静态资源路径
-			body, err := httputil.DumpResponse(resp, true)
-			if err == nil {
-				bodyStr := string(body)
-				bodyStr = strings.ReplaceAll(bodyStr, targetUrl, localUrl)
-				//resp.Body = http.NoBody
-				//resp.ContentLength = int64(len(bodyStr))
-				//resp.Header.Set("Content-Length", string(len(bodyStr)))
-				//resp.Body = http.MaxBytesReader(nil, http.NoBody, resp.ContentLength)
-
-				bodySize := len(bodyStr)
-				resp.Body = io.NopCloser(bytes.NewReader([]byte(bodyStr)))
-				resp.ContentLength = int64(bodySize)
-				resp.Header.Set("Content-Length", fmt.Sprintf("%d", bodySize))
-			}
-		}
+		//contentType := resp.Header.Get("Content-Type")
+		//if contentType == "text/html" {
+		//	// 处理 HTML 响应中的静态资源路径
+		//	body, err := httputil.DumpResponse(resp, true)
+		//	if err == nil {
+		//		bodyStr := string(body)
+		//		bodyStr = strings.ReplaceAll(bodyStr, targetUrl, localUrl)
+		//		//resp.Body = http.NoBody
+		//		//resp.ContentLength = int64(len(bodyStr))
+		//		//resp.Header.Set("Content-Length", string(len(bodyStr)))
+		//		//resp.Body = http.MaxBytesReader(nil, http.NoBody, resp.ContentLength)
+		//
+		//		bodySize := len(bodyStr)
+		//		resp.Body = io.NopCloser(bytes.NewReader([]byte(bodyStr)))
+		//		resp.ContentLength = int64(bodySize)
+		//		resp.Header.Set("Content-Length", fmt.Sprintf("%d", bodySize))
+		//	}
+		//}
 		return nil
 	}
 }

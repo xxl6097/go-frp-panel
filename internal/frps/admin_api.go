@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -222,12 +223,16 @@ func (svr *frps) apiProxyByType(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
+	port := this.cfg.BindPort
 	bindPort := os.Getenv("BIND_PORT")
-	if bindPort == "" {
-		bindPort = fmt.Sprintf("%d", this.cfg.BindPort)
+	if bindPort != "" {
+		n, e := strconv.Atoi(bindPort)
+		if e == nil {
+			bindPort = strconv.Itoa(n)
+		}
 	}
 	data := map[string]interface{}{
-		"bindPort": bindPort,
+		"bindPort": port,
 	}
 	res.Any(data)
 }
