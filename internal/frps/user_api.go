@@ -495,6 +495,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		BinPath string `json:"binPath"`
 		BinUrl  string `json:"binUrl"`
 		Addr    string `json:"addr"`
+		Port    int    `json:"port"`
 		User    User   `json:"user"`
 	}](r)
 	if err != nil {
@@ -516,9 +517,14 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 
 	fileName := fmt.Sprintf("%s_frpc.toml", body.User.User)
 
+	bindPort := GetCfgModel().Frps.BindPort
+	if body.Port > 0 {
+		bindPort = body.Port
+	}
+
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", body.Addr))
-	sb.WriteString(fmt.Sprintf("serverPort = %d\n", GetCfgModel().Frps.BindPort))
+	sb.WriteString(fmt.Sprintf("serverPort = %d\n", bindPort))
 	sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
 	sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
 	sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.ID))

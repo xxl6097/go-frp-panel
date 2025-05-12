@@ -46,9 +46,9 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/client/get", this.apiClientGet).Methods("GET")
 	subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
+	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
 	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")
-	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
 	subRouter.HandleFunc("/api/config/upload", this.apiConfigUpload)

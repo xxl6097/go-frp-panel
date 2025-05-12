@@ -15,8 +15,9 @@ var cfgData *CfgModel
 var cfgBytes []byte
 
 type CfgModel struct {
-	Frpc v1.ClientCommonConfig `json:"frpc"`
-	Cfg  *comm.BufferConfig    `json:"cfg"`
+	//Frpc v1.ClientCommonConfig `json:"frpc"`
+	Frpc v1.ClientConfig    `json:"frpc"`
+	Cfg  *comm.BufferConfig `json:"cfg"`
 }
 
 func load() error {
@@ -34,13 +35,15 @@ func load() error {
 		return err
 	}
 	cfgData = &CfgModel{
-		Frpc: v1.ClientCommonConfig{
-			ServerAddr: c.Addr,
-			ServerPort: c.Port,
-			User:       c.User,
-			Metadatas: map[string]string{
-				"token": c.Token,
-				"id":    c.ID,
+		Frpc: v1.ClientConfig{
+			ClientCommonConfig: v1.ClientCommonConfig{
+				ServerAddr: c.Addr,
+				ServerPort: c.Port,
+				User:       c.User,
+				Metadatas: map[string]string{
+					"token": c.Token,
+					"id":    c.ID,
+				},
 			},
 		},
 		Cfg: &c}

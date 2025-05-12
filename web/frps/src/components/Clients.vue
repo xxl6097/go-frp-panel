@@ -1,90 +1,13 @@
 <template>
   <el-container>
-    <!-- 搜索栏 -->
-    <el-header>
-      <div class="header-row">
-        <el-input
-          v-model="searchKeyword"
-          clearable
-          placeholder="搜索用户名、凭证或备注"
-          style="width: 300px; margin-right: 10px"
-        />
-
-        <el-upload
-          :http-request="handleImportUsers"
-          :limit="1"
-          accept=".zip,.json"
-        >
-          <template #trigger>
-            <el-button ref="innerBtn" style="display: none"></el-button>
-          </template>
-        </el-upload>
-
-        <el-button-group class="ml-4">
-          <el-button type="warning" plain @click="handleImportUsersClick"
-            >导入用户
-          </el-button>
-          <el-button type="warning" plain @click="handleExportUsers()"
-            >导出用户
-          </el-button>
-          <el-popconfirm
-            title="确定清空客户端配置吗？"
-            @confirm="handleDeleteAll"
-          >
-            <template #reference>
-              <el-button type="danger" plain>清空用户</el-button>
-            </template>
-          </el-popconfirm>
-          <el-button
-            type="primary"
-            plain
-            @click="showDialog('add', createNewUser())"
-            >新增用户
-          </el-button>
-          <el-popconfirm
-            title="确定删除吗？"
-            v-if="selectData.length !== 0"
-            @confirm="handleDeleteUsers"
-          >
-            <template #reference>
-              <el-button type="danger" plain>删除用户</el-button>
-            </template>
-          </el-popconfirm>
-          <el-button type="success" plain @click="handleRefresh"
-            >刷新
-          </el-button>
-          <el-popconfirm
-            title="Are you sure to upload config?"
-            @confirm="handleUploadCloud"
-            @cancel="cloudApiForm.isShow = true"
-          >
-            <template #reference>
-              <el-button type="info" plain>上传云端</el-button>
-            </template>
-          </el-popconfirm>
-          <el-popconfirm
-            title="Are you sure to upgrade config?"
-            @confirm="handleUpgradeCloud"
-            @cancel="cloudApiForm.isShow = true"
-          >
-            <template #reference>
-              <el-button type="info" plain>同步云端</el-button>
-            </template>
-          </el-popconfirm>
-        </el-button-group>
-      </div>
-    </el-header>
-
     <!-- 表格 -->
     <el-main>
       <el-table
         :data="paginatedTableData"
         style="width: 100%"
-        @selection-change="handleSelectionChange"
         class="custom-border-table"
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
-        <el-table-column type="selection" width="55" />
         <el-table-column prop="comment" label="备注" />
         <el-table-column prop="user" label="名称" />
         <el-table-column prop="id" label="ID" />
@@ -125,9 +48,6 @@
                   </el-dropdown-item>
                   <el-dropdown-item @click="handleClientDialog(row)"
                     >生成客户端
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="router.push({ path: '/user/list' })"
-                    >列表
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -232,11 +152,7 @@
           <el-input v-model="clientForm.addr" placeholder="请输入服务器地址" />
         </el-form-item>
         <el-form-item label="服务器端口：">
-          <el-input-number
-            controls-position="right"
-            v-model="clientForm.port"
-            placeholder="请输入服务器端口"
-          />
+          <el-input v-model="clientForm.port" placeholder="请输入服务器端口" />
         </el-form-item>
 
         <el-form-item label="操作系统/架构" v-if="options.length > 0">
@@ -257,11 +173,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="downloadClientTomlFile">frpc toml配置</el-button>
-        <el-button
-          type="primary"
-          @click="downloadClientByGen"
-          :loading="clientForm.loading"
+        <el-button @click="fetchClientToml">下载客户端toml配置</el-button>
+        <el-button type="primary" @click="fetchClientGen()" :loading="isLoading"
           >确定
         </el-button>
       </template>
@@ -301,11 +214,9 @@ import {
   generateRandomKey,
   deepCopyJSON,
   downloadByPost,
-  showLoading,
   showTips,
 } from '../utils/utils.ts'
 import { ElButton, FormInstance, FormRules } from 'element-plus'
-import router from '../router'
 
 interface User {
   user: string
@@ -319,24 +230,16 @@ interface User {
   id: string
 }
 
-const innerBtn = ref<InstanceType<typeof ElButton>>()
-// const ops = ref({})
 const options = ref([])
-// const isLoading = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
 
 // 搜索关键字
 const searchKeyword = ref<string>('')
 // 分页相关
 const pageSize = ref<number>(10)
 const currentPage = ref<number>(1)
-//const filteredTableData = ref<User[]>([])
 
-// 表格数据{user:'admin'}
-//const tableData = ref<User[]>([{user: 'admin'}])
 const tableData = ref<User[]>([])
-const selectData = ref<User[]>([])
-// const clientDownUrl = ref<string>()
-// const serverAddr = ref<string>()
 const dialogType = ref<string>()
 // 新增用户弹窗相关
 const dialogVisible = ref<boolean>(false)
@@ -359,7 +262,6 @@ const clientForm = ref({
   port: 0,
   url: '',
   ops: {},
-  loading: false,
 })
 
 const cloudApiForm = ref({
@@ -440,94 +342,11 @@ const filteredTableData = computed<User[]>(() => {
   )
 })
 
-const handleDeleteUsers = () => {
-  // if (selectData.value && selectData.value.length > 0) {
-  //   showWarmDialog(
-  //       `确定删除批量删除吗？`,
-  //       () => {
-  //
-  //       },
-  //       () => {
-  //         clearVariables()
-  //       },
-  //   )
-  // }
-
-  const body = JSON.stringify(selectData.value)
-  post('删除中...', '../api/token/del', body)
-    .then((data: any) => {
-      console.log(data)
-      //tableData.value = tableData.value.filter((item) => item !== row)
-    })
-    .catch((err: any) => {
-      console.log(err)
-    })
-    .finally(() => {
-      clearVariables()
-      fetchData()
-    })
-}
-
-const handleDeleteAll = () => {
-  fetch('../api/token/delall', {
-    method: 'POST',
-  })
-    .then((response) => {
-      return response.json()
-    })
-    .finally(() => {
-      clearVariables()
-      fetchData()
-    })
-}
-
-const handleImportUsersClick = () => {
-  console.log('配置导出中', selectData.value)
-  innerBtn.value?.$el.click()
-}
-
-const handleExportUsers = () => {
-  console.log('配置导出中', selectData.value)
-
-  const body = JSON.stringify(selectData.value)
-  downloadByPost('配置导出中', '../api/client/user/export', body).finally(
-    () => {
-      genClientDialogVisible.value = false
-    },
-  )
-}
-
-const handleImportUsers = (options: any) => {
-  const { file } = options
-  const formData = new FormData()
-  formData.append('file', file)
-  const loading = showLoading('用户导入中...')
-  // 使用 fetch 发送请求
-  fetch('../api/client/user/import', {
-    method: 'POST',
-    body: formData,
-  })
-    .then((response) => {
-      return response.json()
-    })
-    .finally(() => {
-      loading.close()
-      setTimeout(function () {
-        window.location.reload()
-      }, 1000)
-    })
-}
-// 选择变化事件
-const handleSelectionChange = (rows: User[]) => {
-  selectData.value = rows
-  console.log('--->', rows)
-}
-
 // 调用接口创建客户端
-const downloadClientByGen = () => {
-  clientForm.value.loading = true
-  console.log('downloadClientByGen.newUserForm', newUserForm.value)
-  console.log('clientForm', clientForm.value)
+const fetchClientGen = () => {
+  isLoading.value = genClientDialogVisible.value
+  console.log('download--------', newUserForm.value)
+  console.log('fetchClientGen', clientForm.value.ops)
   const node = getFilePathByValue(options.value, clientForm.value.ops)
   const body = {
     id: newUserForm.value.id,
@@ -546,15 +365,15 @@ const downloadClientByGen = () => {
       port: clientForm.value.port,
       user: body,
     }
-    console.log('data1', data)
+    console.log('客户端生成中1--------', data)
     downloadByPost(
       '客户端生成中',
       '../api/client/gen',
       JSON.stringify(data),
     ).finally(() => {
       genClientDialogVisible.value = false
-      clientForm.value.loading = false
     })
+    console.log('download----1----')
   } else {
     if (clientForm.value.url === '') {
       showErrorTips('生成客户端失败～')
@@ -563,18 +382,17 @@ const downloadClientByGen = () => {
       const data = {
         binUrl: clientForm.value.url,
         addr: clientForm.value.addr,
-        port: clientForm.value.port,
         user: body,
       }
 
-      console.log('data2', data)
+      console.log('客户端生成中2--------', data)
       downloadByPost(
         '客户端生成中',
         '../api/client/gen',
         JSON.stringify(data),
       ).finally(() => {
         genClientDialogVisible.value = false
-        clientForm.value.loading = false
+        isLoading.value = genClientDialogVisible.value
       })
       console.log('download----2----')
     }
@@ -582,23 +400,23 @@ const downloadClientByGen = () => {
 }
 
 // 调用接口创建客户端
-const downloadClientTomlFile = () => {
+const fetchClientToml = () => {
+  console.log('fetchClientToml', clientForm.value.ops)
+
+  const body = {
+    id: newUserForm.value.id,
+    user: newUserForm.value.user,
+    token: newUserForm.value.token,
+    comment: newUserForm.value.comment,
+    ports: toPorts(newUserForm.value.ports),
+    domains: newUserForm.value.domains.split(','),
+    subdomains: newUserForm.value.subdomains.split(','),
+    enable: newUserForm.value.enable,
+  }
   const data = {
     addr: clientForm.value.addr,
-    port: clientForm.value.port,
-    user: {
-      id: newUserForm.value.id,
-      user: newUserForm.value.user,
-      token: newUserForm.value.token,
-      comment: newUserForm.value.comment,
-      ports: toPorts(newUserForm.value.ports),
-      domains: newUserForm.value.domains.split(','),
-      subdomains: newUserForm.value.subdomains.split(','),
-      enable: newUserForm.value.enable,
-    },
+    user: body,
   }
-
-  console.log('downloadClientTomlFile', clientForm.value, data)
   downloadByPost(
     '配置生成中',
     '../api/client/toml',
@@ -633,58 +451,6 @@ const paginatedTableData = computed<User[]>(() => {
 // 分页切换
 const handlePageChange = (page: number) => {
   currentPage.value = page
-}
-
-const handleRefresh = () => {
-  fetchData()
-  fetchOptions()
-}
-
-// 配置同步云端
-const handleUpgradeCloud = () => {
-  console.log('handleUpgradeCloud:', cloudApiForm)
-  if (cloudApiForm.value.isShow) {
-    fetch('../api/config/upgrade', {
-      credentials: 'include',
-      method: 'post',
-      body: JSON.stringify(cloudApiForm.value),
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log('配置备份', json)
-        showTips(json.code, json.msg)
-        if (json.code === 0) {
-          cloudApiForm.value.isShow = false
-        }
-      })
-      .finally(() => {
-        localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
-        clearVariables()
-        fetchData()
-      })
-  } else {
-    fetch('../api/config/upgrade', {
-      credentials: 'include',
-      method: 'get',
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log('配置备份', json)
-        if (json.code === 100) {
-          cloudApiForm.value.isShow = true
-          if (json.data) {
-            cloudApiForm.value.user = json.data.user
-            cloudApiForm.value.pass = json.data.pass
-            cloudApiForm.value.addr = json.data.addr
-          }
-        }
-        showTips(json.code, json.msg)
-      })
-      .finally(() => {
-        clearVariables()
-        fetchData()
-      })
-  }
 }
 
 // 配置上传云端
@@ -880,19 +646,6 @@ const createUser = (row: User) => {
 const clearVariables = () => {
   newUserForm.value = createEmptyUser()
   dialogType.value = ''
-}
-const createNewUser = () => {
-  return {
-    user: '',
-    token: `${generateRandomKey()}`,
-    comment: '',
-    ports: '',
-    domains: '',
-    subdomains: '',
-    enable: true,
-    editable: false,
-    id: `${new Date().getTime()}`,
-  }
 }
 const createEmptyUser = () => {
   return {
