@@ -179,12 +179,13 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	body, err := utils.GetDataByJson[struct {
-		BinPath string              `json:"binPath"`
-		BinUrl  string              `json:"binUrl"`
-		Addr    string              `json:"addr"`
-		Port    int                 `json:"port"`
-		User    User                `json:"user"`
-		Proxy   v1.TypedProxyConfig `json:"proxy"`
+		BinPath   string               `json:"binPath"`
+		BinUrl    string               `json:"binUrl"`
+		Addr      string               `json:"addr"`
+		Port      int                  `json:"port"`
+		User      User                 `json:"user"`
+		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+		WebServer *v1.WebServerConfig  `json:"webserver"`
 	}](r)
 	if err != nil {
 		glog.Error("解析Json对象失败", err)
@@ -283,7 +284,8 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		Ports:      body.User.Ports,
 		Domains:    body.User.Domains,
 		Subdomains: body.User.Subdomains,
-		Proxy:      &body.Proxy,
+		Proxy:      body.Proxy,
+		WebServer:  body.WebServer,
 	}
 
 	glog.Infof("BufferConfig: %+v", cfg)

@@ -17,6 +17,7 @@ type BufferConfig struct {
 	Domains    []string             `json:"domains,omitempty"`
 	Subdomains []string             `json:"subdomains,omitempty"`
 	Proxy      *v1.TypedProxyConfig `json:"proxy"`
+	WebServer  *v1.WebServerConfig  `json:"webserver"`
 }
 
 func (u *BufferConfig) ParsePorts() []int {

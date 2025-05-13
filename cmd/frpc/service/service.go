@@ -110,9 +110,23 @@ func (this *Service) menu() *frpc.CfgModel {
 		token = c.Frpc.Metadatas["token"]
 		id = c.Frpc.Metadatas["id"]
 	}
-	adminPort := utils2.InputIntDefault("管理后台端口(6400)", 6400)
-	adminUser := utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
-	adminPass := utils2.InputString("管理后台密码：")
+	webServer := &v1.WebServerConfig{}
+	if c.Cfg != nil && c.Cfg.WebServer != nil {
+		webServer = c.Cfg.WebServer
+	}
+	if webServer.Addr == "" {
+		webServer.Addr = "0.0.0.0"
+	}
+	if webServer.Port == 0 {
+		webServer.Port = utils2.InputIntDefault("管理后台端口(6400)", 6400)
+	}
+	if webServer.User == "" {
+		webServer.User = utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
+	}
+	if webServer.Password == "" {
+		webServer.Password = utils2.InputString("管理后台密码：")
+	}
+
 	temp := glog.GetCrossPlatformDataDir("frpc", "log")
 	ccc := v1.ClientCommonConfig{
 		ServerAddr: bindAddr,
@@ -127,12 +141,7 @@ func (this *Service) menu() *frpc.CfgModel {
 			MaxDays: 7,
 			Level:   "error",
 		},
-		WebServer: v1.WebServerConfig{
-			Addr:     "0.0.0.0",
-			Port:     adminPort,
-			User:     adminUser,
-			Password: adminPass,
-		},
+		WebServer: *webServer,
 	}
 
 	var proxies []v1.TypedProxyConfig
@@ -148,8 +157,6 @@ func (this *Service) menu() *frpc.CfgModel {
 		Frpc: cc,
 	}
 
-	glog.Infof("2--->%+v", c.Cfg.Proxy.GetBaseConfig())
-	glog.Infof("3--->%+v", c.Cfg.Proxy.ProxyConfigurer.GetBaseConfig())
 	glog.Infof("menu: %+v", cfg)
 	//proxy := v1.TypedProxyConfig{
 	//	Type: "tcp",

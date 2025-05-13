@@ -258,9 +258,52 @@
 
         <el-button
           type="text"
+          @click="
+            clientForm.webserver.showAdvanced =
+              !clientForm.webserver.showAdvanced
+          "
+        >
+          <span>{{
+            clientForm.webserver.showAdvanced ? '收起' : 'admin配置'
+          }}</span>
+        </el-button>
+
+        <transition name="fade">
+          <div v-show="clientForm.webserver.showAdvanced">
+            <el-form-item label="管理地址：">
+              <el-input
+                v-model="clientForm.webserver.addr"
+                placeholder="请输入addr"
+              />
+            </el-form-item>
+
+            <el-form-item label="管理端口：">
+              <el-input-number
+                controls-position="right"
+                v-model="clientForm.webserver.port"
+                placeholder="请输入port"
+              />
+            </el-form-item>
+            <el-form-item label="管理用户：">
+              <el-input
+                v-model="clientForm.webserver.user"
+                placeholder="请输入管理用户"
+              />
+            </el-form-item>
+            <el-form-item label="管理密码：">
+              <el-input
+                v-model="clientForm.webserver.password"
+                placeholder="请输入password"
+              />
+            </el-form-item>
+          </div>
+        </transition>
+
+        <el-button
+          type="text"
           @click="clientForm.showAdvanced = !clientForm.showAdvanced"
         >
-          <span>{{ clientForm.showAdvanced ? '收起' : '高级功能' }}</span>
+          <span>{{ clientForm.showAdvanced ? '收起' : '代理配置' }}</span>
         </el-button>
 
         <transition name="fade">
@@ -419,6 +462,13 @@ const clientForm = ref({
     localIP: '0.0.0.0',
     localPort: 0,
     remotePort: 0,
+  },
+  webserver: {
+    addr: '0.0.0.0',
+    port: 0,
+    user: '',
+    password: '',
+    showAdvanced: false,
   },
   options: [
     {
@@ -614,7 +664,9 @@ const downloadClientByGen = () => {
       addr: clientForm.value.addr,
       port: clientForm.value.port,
       user: body,
+      data: clientForm.value,
       proxy: clientForm.value.proxy,
+      webserver: clientForm.value.webserver,
     }
     console.log('data1', data)
     downloadByPost(
@@ -635,7 +687,9 @@ const downloadClientByGen = () => {
         addr: clientForm.value.addr,
         port: clientForm.value.port,
         user: body,
+        data: clientForm.value,
         proxy: clientForm.value.proxy,
+        webserver: clientForm.value.webserver,
       }
 
       console.log('data2', data)
