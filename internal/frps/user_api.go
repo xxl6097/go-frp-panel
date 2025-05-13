@@ -283,7 +283,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		Ports:      body.User.Ports,
 		Domains:    body.User.Domains,
 		Subdomains: body.User.Subdomains,
-		Proxy:      body.Proxy,
+		Proxy:      &body.Proxy,
 	}
 
 	glog.Infof("BufferConfig: %+v", cfg)
@@ -294,6 +294,9 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
+
+	//err = frpc.TestLoadBuffer(cfgNewBytes)
+	//glog.Infof("TestLoadBuffer: %+v\n", err)
 
 	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
 	outFile, err := os.Create(dstFile)

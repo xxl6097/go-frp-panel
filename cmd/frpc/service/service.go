@@ -137,7 +137,7 @@ func (this *Service) menu() *frpc.CfgModel {
 
 	var proxies []v1.TypedProxyConfig
 	if c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
-		proxies = append(proxies, c.Cfg.Proxy)
+		proxies = append(proxies, *c.Cfg.Proxy)
 	}
 
 	cc := v1.ClientConfig{

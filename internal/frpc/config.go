@@ -37,7 +37,7 @@ func load() error {
 
 	var proxies []v1.TypedProxyConfig
 	if c.Proxy.GetBaseConfig().LocalPort != 0 && c.Proxy.GetBaseConfig().LocalIP != "" {
-		proxies = append(proxies, c.Proxy)
+		proxies = append(proxies, *c.Proxy)
 	}
 	cfgData = &CfgModel{
 		Frpc: v1.ClientConfig{
@@ -89,4 +89,42 @@ func Assert() {
 		}
 		os.Exit(0)
 	}
+}
+
+func TestLoadBuffer(buffer []byte) error {
+	defer glog.Flush()
+	byteArray, err := ukey.LoadBuffer(buffer)
+	if err != nil {
+		return err
+	}
+	cfgBytes = byteArray
+	//c := CfgModel{}
+	c := comm.BufferConfig{}
+	err = json.Unmarshal(cfgBytes, &c)
+	if err != nil {
+		glog.Println("cfgBytes解析错误", err)
+		return err
+	}
+
+	var proxies []v1.TypedProxyConfig
+	if c.Proxy.GetBaseConfig().LocalPort != 0 && c.Proxy.GetBaseConfig().LocalIP != "" {
+		proxies = append(proxies, *c.Proxy)
+	}
+	cfgData = &CfgModel{
+		Frpc: v1.ClientConfig{
+			ClientCommonConfig: v1.ClientCommonConfig{
+				ServerAddr: c.Addr,
+				ServerPort: c.Port,
+				User:       c.User,
+				Metadatas: map[string]string{
+					"token": c.Token,
+					"id":    c.ID,
+				},
+			},
+			Proxies: proxies,
+		},
+		Cfg: &c}
+	//glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
+	pkg.Version()
+	return nil
 }
