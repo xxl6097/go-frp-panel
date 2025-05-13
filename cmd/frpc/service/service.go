@@ -18,7 +18,7 @@ import (
 )
 
 type Service struct {
-	webServer *v1.WebServerConfig
+	wsc *v1.WebServerConfig
 }
 
 func Bootstrap() {
@@ -27,10 +27,10 @@ func Bootstrap() {
 	if err != nil {
 		glog.Error("程序启动出错了", err)
 	}
-	if svr.webServer != nil {
-		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
+	if svr.wsc != nil {
+		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
 	}
-	glog.Warnf("OnFinish %+v", svr.webServer)
+	glog.Warnf("OnFinish %+v", svr.wsc)
 	glog.Println("服务程序启动成功", os.Getegid())
 }
 
@@ -68,6 +68,7 @@ func (this Service) OnRun(i gore.IGService) error {
 func (this Service) GetAny(binDir string) any {
 	cfg := this.menu()
 	cfgPath := filepath.Join(binDir, "config.toml")
+	glog.Infof("WebServer %+v", cfg.Frpc.WebServer)
 	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
 		glog.Warnf("write content to frpc config file error: %v", err)
 	} else {
@@ -179,6 +180,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	//v1.TCPProxyConfig{
 	//	v1.ProxyBaseConfig{Type: "tcp"},
 	//}
-	this.webServer = webServer
+	this.wsc = webServer
+	glog.Debugf("====>%+v", webServer)
 	return cfg
 }
