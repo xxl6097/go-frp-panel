@@ -148,6 +148,8 @@ func (this *Service) menu() *frpc.CfgModel {
 		Frpc: cc,
 	}
 
+	glog.Infof("2--->%+v", c.Cfg.Proxy.GetBaseConfig())
+	glog.Infof("3--->%+v", c.Cfg.Proxy.ProxyConfigurer.GetBaseConfig())
 	glog.Infof("menu: %+v", cfg)
 	//proxy := v1.TypedProxyConfig{
 	//	Type: "tcp",
