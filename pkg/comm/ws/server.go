@@ -19,15 +19,21 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type WSSession struct {
+	Conn   *websocket.Conn `json:"conn"`
+	DevMac string          `json:"devMac"`
+	DevIp  string          `json:"devIp"`
+}
+
 type FrpWebSocket struct {
-	clients map[string]map[string]*websocket.Conn
+	clients map[string]map[string]*WSSession
 }
 
 func (this *FrpWebSocket) Send(id string, payload []byte) error {
 	v, ok := this.clients[id]
 	if ok && v != nil && len(v) > 0 {
 		for _, conn := range v {
-			err := conn.WriteMessage(websocket.TextMessage, payload)
+			err := conn.Conn.WriteMessage(websocket.TextMessage, payload)
 			if err != nil {
 				return err
 			}
@@ -69,6 +75,8 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	//	//	fmt.Printf("Value: %s\n", v)
 	//	//}
 	//}
+	localMacAddress := r.Header.Get("LocalMacAddress")
+	localIpv4 := r.Header.Get("LocalIpv4")
 	secKey := r.Header.Get("Sec-Websocket-Key")
 	if secKey == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -82,19 +90,19 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	}
 	defer ws.Close()
 	pointAddress := fmt.Sprintf("%p", ws)
-	glog.Warn("websocket客户端连接成功", secKey, pointAddress)
+	glog.Warn("websocket客户端连接成功", secKey, pointAddress, localMacAddress, localIpv4)
 	childMap := this.clients[secKey]
 	defer delete(childMap, pointAddress)
 	if childMap == nil {
-		childMap = make(map[string]*websocket.Conn)
-		childMap[pointAddress] = ws
+		childMap = make(map[string]*WSSession)
+		childMap[pointAddress] = &WSSession{Conn: ws, DevMac: secKey, DevIp: localIpv4}
 		this.clients[secKey] = childMap
 	} else {
-		childMap[pointAddress] = ws
+		childMap[pointAddress] = &WSSession{Conn: ws, DevMac: secKey, DevIp: localIpv4}
 	}
 	this.onMessageRecv(ws, r)
 }
 
 func NewWebSocket() iface.IWebSocket {
-	return &FrpWebSocket{clients: make(map[string]map[string]*websocket.Conn)}
+	return &FrpWebSocket{clients: make(map[string]map[string]*WSSession)}
 }

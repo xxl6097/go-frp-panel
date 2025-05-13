@@ -29,9 +29,7 @@ type websocketclient struct {
 }
 
 // NewWebSocketClient 创建WebSocket客户端实例
-func NewWebSocketClient(url, user, pass string) *websocketclient {
-	header := &http.Header{}
-	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
+func NewWebSocketClient(url string, header *http.Header) *websocketclient {
 	return &websocketclient{
 		url:            url,
 		reconnectDelay: 5 * time.Second,
@@ -204,7 +202,16 @@ func GetClientInstance() *client {
 }
 
 func (c *client) Init(baseUrl, user, pass string) {
-	c.cls = NewWebSocketClient(baseUrl, user, pass)
+	header := &http.Header{}
+	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
+	devInfo, err := utils.GetDeviceInfo()
+	if err == nil {
+		header.Set("LocalMacAddress", devInfo.MacAddress)
+		header.Set("LocalIpv4", devInfo.Ipv4)
+		header.Set("InterfaceName", devInfo.Name)
+		header.Set("DisplayName", devInfo.DisplayName)
+	}
+	c.cls = NewWebSocketClient(baseUrl, header)
 	// 设置消息处理函数
 	c.cls.SetMessageHandler(func(message []byte) {
 		glog.Printf("收到消息: %s", string(message))
@@ -215,18 +222,18 @@ func (c *client) Init(baseUrl, user, pass string) {
 	// 设置错误处理函数
 	c.cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
 		glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
-		devInfo, err := utils.GetDeviceInfo()
-		if err != nil {
-			return
-		}
-		jsonData, e := json.Marshal(Message[string]{
-			Action: "login",
-			DevIp:  devInfo.Ipv4,
-			DevMac: devInfo.MacAddress,
-			Data:   conn.RemoteAddr().String(),
-		})
-		e = conn.WriteMessage(websocket.TextMessage, jsonData)
-		glog.Warnf("WriteMessage:%+v", e)
+		//devInfo, err := utils.GetDeviceInfo()
+		//if err != nil {
+		//	return
+		//}
+		//jsonData, e := json.Marshal(Message[string]{
+		//	Action: "login",
+		//	DevIp:  devInfo.Ipv4,
+		//	DevMac: devInfo.MacAddress,
+		//	Data:   conn.RemoteAddr().String(),
+		//})
+		//e = conn.WriteMessage(websocket.TextMessage, jsonData)
+		//glog.Warnf("WriteMessage:%+v", e)
 	})
 
 	// 设置错误处理函数
