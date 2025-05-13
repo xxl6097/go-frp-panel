@@ -111,7 +111,7 @@ func (this *Service) menu() *frpc.CfgModel {
 		id = c.Frpc.Metadatas["id"]
 	}
 	webServer := &v1.WebServerConfig{}
-	if c.Cfg != nil && c.Cfg.WebServer != nil {
+	if c.Cfg != nil && c.Cfg.WebServer != nil && c.Cfg.WebServer.Port != 0 && c.Cfg.WebServer.Addr != "" && c.Cfg.WebServer.User != "" && c.Cfg.WebServer.Password != "" {
 		webServer = c.Cfg.WebServer
 	}
 	if webServer.Addr == "" {

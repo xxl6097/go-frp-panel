@@ -32,3 +32,7 @@
 .el-dialog__body {
   padding: 0;  /* 原默认值为25px，大幅缩减间距 */
 }
+
+.el-input-number .el-input__inner {
+  text-align: left;
+}

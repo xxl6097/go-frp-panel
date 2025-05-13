@@ -71,6 +71,10 @@
               <el-button type="info" plain>同步云端</el-button>
             </template>
           </el-popconfirm>
+
+          <el-button type="info" plain @click="genClientDialogVisible = true"
+            >测试
+          </el-button>
         </el-button-group>
       </div>
     </el-header>
@@ -256,17 +260,19 @@
           />
         </el-form-item>
 
-        <el-button
-          type="text"
-          @click="
-            clientForm.webserver.showAdvanced =
-              !clientForm.webserver.showAdvanced
-          "
-        >
-          <span>{{
-            clientForm.webserver.showAdvanced ? '收起' : 'admin配置'
-          }}</span>
-        </el-button>
+        <el-divider content-position="left">
+          <el-button
+            type="text"
+            @click="
+              clientForm.webserver.showAdvanced =
+                !clientForm.webserver.showAdvanced
+            "
+          >
+            <span>{{
+              clientForm.webserver.showAdvanced ? '收起' : 'admin配置'
+            }}</span>
+          </el-button>
+        </el-divider>
 
         <transition name="fade">
           <div v-show="clientForm.webserver.showAdvanced">
@@ -299,12 +305,14 @@
           </div>
         </transition>
 
-        <el-button
-          type="text"
-          @click="clientForm.showAdvanced = !clientForm.showAdvanced"
-        >
-          <span>{{ clientForm.showAdvanced ? '收起' : '代理配置' }}</span>
-        </el-button>
+        <el-divider content-position="left">
+          <el-button
+            type="text"
+            @click="clientForm.showAdvanced = !clientForm.showAdvanced"
+          >
+            <span>{{ clientForm.showAdvanced ? '收起' : '代理配置' }}</span>
+          </el-button>
+        </el-divider>
 
         <transition name="fade">
           <div v-show="clientForm.showAdvanced">
@@ -465,7 +473,7 @@ const clientForm = ref({
   },
   webserver: {
     addr: '0.0.0.0',
-    port: 0,
+    port: 6400,
     user: '',
     password: '',
     showAdvanced: false,
@@ -1257,4 +1265,5 @@ fetchServerData()
     min-width: 28px;
   }
 }
+
 </style>
