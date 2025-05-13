@@ -469,7 +469,7 @@ const clientForm = ref({
     type: 'tcp',
     name: '',
     localIP: '0.0.0.0',
-    localPort: 0,
+    localPort: 6400,
     remotePort: 0,
   },
   webserver: {

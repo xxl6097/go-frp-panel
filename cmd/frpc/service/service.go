@@ -48,7 +48,7 @@ func (s *Service) OnVersion() string {
 	return ver
 }
 
-func (this Service) OnRun(i gore.IGService) error {
+func (this *Service) OnRun(i gore.IGService) error {
 	frpc.Assert()
 	glog.Printf("启动frpc_%s\n", pkg.AppVersion)
 	cfg := frpc.GetCfgModel()
@@ -65,10 +65,10 @@ func (this Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this Service) GetAny(binDir string) any {
+func (this *Service) GetAny(binDir string) any {
 	cfg := this.menu()
 	cfgPath := filepath.Join(binDir, "config.toml")
-	glog.Infof("WebServer %+v", cfg.Frpc.WebServer)
+	this.wsc = &cfg.Frpc.WebServer
 	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
 		glog.Warnf("write content to frpc config file error: %v", err)
 	} else {
@@ -76,34 +76,6 @@ func (this Service) GetAny(binDir string) any {
 	}
 	return cfg
 }
-
-//func (s *Service) OnInstall(binPath string) (bool, []string) {
-//	cfg := s.menu()
-//	//cfg.Frpc.Complete()
-//	newBufferBytes, err := ukey.GenConfig(cfg, false)
-//	if err != nil {
-//		panic(fmt.Errorf("构建签名信息错误: %v", err))
-//	}
-//	//glog.Printf("--->%s\n", string(newBufferBytes))
-//	currentBinPath, err := os.Executable()
-//	if err != nil {
-//		glog.Fatal("os.Executable() error", err)
-//	}
-//	//安装程序，需要对程序进行签名，那么需要传入两个参数：
-//	//1、最原始的key；
-//	//2、需写入的data
-//	buffer := ukey.GetBuffer()
-//	glog.Info("buffer大小", len(buffer))
-//	err = utils.GenerateBin(currentBinPath, binPath, buffer, newBufferBytes)
-//	if err != nil {
-//		glog.Fatal("签名错误：", err)
-//	}
-//	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
-//	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
-//		glog.Warnf("write content to frpc config file error: %v", err)
-//	}
-//	return false, nil
-//}
 
 func (this *Service) menu() *frpc.CfgModel {
 	var bindAddr, userName, token, id string
@@ -180,7 +152,5 @@ func (this *Service) menu() *frpc.CfgModel {
 	//v1.TCPProxyConfig{
 	//	v1.ProxyBaseConfig{Type: "tcp"},
 	//}
-	this.wsc = webServer
-	glog.Debugf("====>%+v", webServer)
 	return cfg
 }
