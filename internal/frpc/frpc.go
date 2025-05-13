@@ -15,6 +15,7 @@ import (
 	_ "github.com/xxl6097/go-frp-panel/assets/frpc"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -96,6 +97,9 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	if cfgModel.Cfg != nil {
 		this.cfgBuffer = cfgModel.Cfg
 	}
+
+	wsUrl := fmt.Sprintf("ws://%s/frp", cfg.ServerAddr)
+	ws.GetClientInstance().Init(wsUrl, cfg.WebServer.User, cfg.WebServer.Password)
 
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	if shouldGracefulClose {

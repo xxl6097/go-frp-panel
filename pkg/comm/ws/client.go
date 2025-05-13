@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"math"
 	"net/http"
 	"sync"
@@ -17,13 +18,14 @@ import (
 type websocketclient struct {
 	conn           *websocket.Conn // WebSocket连接
 	header         *http.Header
-	url            string            // 服务器地址
-	reconnectDelay time.Duration     // 重连延迟
-	maxReconnects  int               // 最大重连次数
-	isConnected    bool              // 连接状态
-	messageHandler func([]byte)      // 消息处理函数
-	errorHandler   func(error)       // 错误处理函数
-	closeHandler   func(int, string) // 关闭处理函数
+	url            string                                // 服务器地址
+	reconnectDelay time.Duration                         // 重连延迟
+	maxReconnects  int                                   // 最大重连次数
+	isConnected    bool                                  // 连接状态
+	openHandler    func(*websocket.Conn, *http.Response) // 消息处理函数
+	messageHandler func([]byte)                          // 消息处理函数
+	errorHandler   func(error)                           // 错误处理函数
+	closeHandler   func(int, string)                     // 关闭处理函数
 }
 
 // NewWebSocketClient 创建WebSocket客户端实例
@@ -44,6 +46,10 @@ func (c *websocketclient) SetReconnectConfig(delay time.Duration, maxReconnects 
 	c.maxReconnects = maxReconnects
 }
 
+func (c *websocketclient) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
+	c.openHandler = handler
+}
+
 // SetMessageHandler 设置消息处理回调
 func (c *websocketclient) SetMessageHandler(handler func([]byte)) {
 	c.messageHandler = handler
@@ -61,12 +67,15 @@ func (c *websocketclient) SetCloseHandler(handler func(int, string)) {
 
 // Connect 连接到WebSocket服务器
 func (c *websocketclient) Connect() error {
-	var err error
 	var reconnects int
 
 	for {
-		c.conn, _, err = websocket.DefaultDialer.Dial(c.url, *c.header)
+		conn, resp, err := websocket.DefaultDialer.Dial(c.url, *c.header)
+		c.conn = conn
 		if err == nil {
+			if c.openHandler != nil {
+				c.openHandler(conn, resp)
+			}
 			c.isConnected = true
 			glog.Printf("WebSocket连接成功: %s", c.url)
 			go c.readMessages()
@@ -169,7 +178,7 @@ func (c *websocketclient) reconnect() {
 
 // WSObserver 观察者接口，定义了更新方法
 type WSObserver interface {
-	WebSocketReceiver([]byte)
+	onWebSocketReceiver([]byte)
 }
 
 type client struct {
@@ -198,6 +207,22 @@ func (c *client) Init(baseUrl, user, pass string) {
 	// 设置消息处理函数
 	c.cls.SetMessageHandler(func(message []byte) {
 		glog.Printf("收到消息: %s", string(message))
+		for _, _observer := range c.observers {
+			_observer.onWebSocketReceiver(message)
+		}
+	})
+	// 设置错误处理函数
+	c.cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
+		glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
+		devInfo, err := utils.GetDeviceInfo()
+		if err != nil {
+			return
+		}
+		c.cls.SendJSON(Message[string]{
+			Action: "login",
+			DevIp:  conn.LocalAddr().String(),
+			DevMac: devInfo.MacAddress,
+		})
 	})
 
 	// 设置错误处理函数
@@ -219,6 +244,20 @@ func (c *client) Init(baseUrl, user, pass string) {
 			glog.Fatalf("连接失败: %v", err)
 		}
 	}()
+}
+
+// SendText 发送文本消息
+func (c *client) SendText(message string) error {
+	return c.cls.sendMessage(websocket.TextMessage, []byte(message))
+}
+
+// SendJSON 发送JSON消息
+func (c *client) SendJSON(data interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return c.cls.sendMessage(websocket.TextMessage, jsonData)
 }
 
 // RegisterObserver 添加观察者

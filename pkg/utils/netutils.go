@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"golang.org/x/net/icmp"
@@ -265,4 +266,203 @@ func ScanIP() []string {
 		}
 	}
 	return ips
+}
+
+func GetLocalMac() string {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		fmt.Println("获取网络接口失败：", err)
+		return ""
+	}
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp != 0 && iface.HardwareAddr != nil {
+			devMac := strings.ReplaceAll(iface.HardwareAddr.String(), ":", "")
+			fmt.Println(iface.Name, ":", devMac)
+			//return devMac
+		}
+	}
+	return ""
+}
+func GetLocalIp() string {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+	for _, iface := range interfaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return ""
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip != nil && ip.To4() != nil {
+				fmt.Println(ip)
+				//return ip.String()
+			}
+		}
+	}
+	return ""
+}
+
+// NetworkInterface 网络接口信息
+type NetworkInterface struct {
+	Name        string   `json:"name"`        // 接口名称
+	DisplayName string   `json:"displayName"` // 显示名称
+	MacAddress  string   `json:"macAddress"`  // MAC地址
+	Ipv4        string   `json:"ipv4"`        // MAC地址
+	IPAddresses []string `json:"ipAddresses"` // IP地址列表
+}
+
+// GetNetworkInterfaces 获取所有网络接口信息
+func GetNetworkInterfaces() ([]NetworkInterface, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("获取网络接口失败: %w", err)
+	}
+
+	var result []NetworkInterface
+	for _, iface := range ifaces {
+		// 忽略回环接口
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		// 忽略未激活的接口
+		if iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+
+		// 获取接口地址
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		var ipAddresses []string
+		var ipv4 string
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			// 忽略回环地址
+			if ip.IsLoopback() {
+				continue
+			}
+
+			// 获取IPv4和IPv6地址
+			if ip.To4() != nil {
+				ipAddresses = append(ipAddresses, ip.String())
+				ipv4 = ip.String()
+			} else if ip.To16() != nil {
+				ipAddresses = append(ipAddresses, "["+ip.String()+"]")
+			}
+		}
+
+		// 忽略没有IP地址的接口
+		if len(ipAddresses) == 0 {
+			continue
+		}
+
+		result = append(result, NetworkInterface{
+			Name:        iface.Name,
+			DisplayName: getInterfaceDisplayName(iface.Name),
+			MacAddress:  strings.ReplaceAll(iface.HardwareAddr.String(), ":", ""),
+			Ipv4:        ipv4,
+			IPAddresses: ipAddresses,
+		})
+	}
+
+	if len(result) == 0 {
+		return nil, errors.New("未找到可用的网络接口")
+	}
+
+	return result, nil
+}
+
+// getInterfaceDisplayName 获取接口的显示名称（跨平台适配）
+func getInterfaceDisplayName(name string) string {
+	// 为常见接口类型提供友好名称
+	switch {
+	case strings.HasPrefix(name, "eth"):
+		return "以太网"
+	case strings.HasPrefix(name, "wlan") || strings.HasPrefix(name, "wifi"):
+		return "无线局域网"
+	case strings.HasPrefix(name, "en"):
+		return "以太网"
+	case strings.HasPrefix(name, "wl"):
+		return "无线局域网"
+	case strings.HasPrefix(name, "vEthernet"):
+		return "虚拟以太网"
+	default:
+		return name
+	}
+}
+
+// GetPrimaryIP 获取主IP地址（默认网关所在接口的IP）
+func GetPrimaryIP() (string, error) {
+	ifaces, err := GetNetworkInterfaces()
+	if err != nil {
+		return "", err
+	}
+
+	if len(ifaces) == 0 {
+		return "", errors.New("未找到网络接口")
+	}
+
+	// 优先选择非虚拟接口
+	for _, iface := range ifaces {
+		if !strings.Contains(strings.ToLower(iface.Name), "virtual") &&
+			!strings.Contains(strings.ToLower(iface.Name), "vmware") &&
+			!strings.Contains(strings.ToLower(iface.Name), "docker") {
+
+			for _, ip := range iface.IPAddresses {
+				if !strings.Contains(ip, ":") { // 优先返回IPv4
+					return ip, nil
+				}
+			}
+
+			// 如果没有IPv4，返回第一个IP
+			if len(iface.IPAddresses) > 0 {
+				return iface.IPAddresses[0], nil
+			}
+		}
+	}
+
+	// 如果没有找到非虚拟接口，返回第一个接口的IP
+	return ifaces[0].IPAddresses[0], nil
+}
+
+// GetDeviceInfo 获取主IP地址、Mac地址（默认网关所在接口的IP）
+func GetDeviceInfo() (*NetworkInterface, error) {
+	ifaces, err := GetNetworkInterfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ifaces) == 0 {
+		return nil, errors.New("未找到网络接口")
+	}
+
+	// 优先选择非虚拟接口
+	for _, iface := range ifaces {
+		if !strings.Contains(strings.ToLower(iface.Name), "virtual") &&
+			!strings.Contains(strings.ToLower(iface.Name), "vmware") &&
+			!strings.Contains(strings.ToLower(iface.Name), "docker") {
+			return &iface, nil
+		}
+	}
+
+	// 如果没有找到非虚拟接口，返回第一个接口的IP
+	return &ifaces[0], nil
 }
