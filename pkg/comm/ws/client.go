@@ -146,11 +146,12 @@ func (c *websocketclient) readMessages() {
 			if c.errorHandler != nil {
 				c.errorHandler(err)
 			}
-
+			glog.Printf("WebSocket断开: %v", err)
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				glog.Printf("WebSocket意外关闭: %v", err)
-				go c.reconnect()
+				//go c.reconnect()
 			}
+			go c.reconnect()
 			return
 		}
 
@@ -218,11 +219,14 @@ func (c *client) Init(baseUrl, user, pass string) {
 		if err != nil {
 			return
 		}
-		c.cls.SendJSON(Message[string]{
+		jsonData, e := json.Marshal(Message[string]{
 			Action: "login",
-			DevIp:  conn.LocalAddr().String(),
+			DevIp:  devInfo.Ipv4,
 			DevMac: devInfo.MacAddress,
+			Data:   conn.RemoteAddr().String(),
 		})
+		e = conn.WriteMessage(websocket.TextMessage, jsonData)
+		glog.Warnf("WriteMessage:%+v", e)
 	})
 
 	// 设置错误处理函数

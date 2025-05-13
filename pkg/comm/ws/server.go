@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
@@ -45,8 +46,15 @@ func (this *FrpWebSocket) onMessageRecv(ws *websocket.Conn, r *http.Request) {
 			glog.Errorf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
 			break
 		} else {
-			glog.Printf("Received:%s %d %s\n", ws.RemoteAddr().String(), messageType, message)
+			glog.Printf("Received:%+v %+v %+v\n", ws.RemoteAddr().String(), messageType, message)
 			//this.clients[ws.RemoteAddr().String()] = ws
+			if messageType == websocket.TextMessage {
+				var msg Message[any]
+				e := json.Unmarshal(message, &msg)
+				if e == nil {
+					glog.Warnf("Received: %+v", msg)
+				}
+			}
 		}
 	}
 }
