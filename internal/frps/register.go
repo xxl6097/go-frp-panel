@@ -3,7 +3,7 @@ package frps
 import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/pkg"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
 	subRouter.PathPrefix("/fserver/").Handler(http.StripPrefix("/fserver/", http.FileServer(http.Dir("/"))))
-	subRouter.HandleFunc("/api/sse-stream", pkg.SseHandler(logQueue))
+	subRouter.HandleFunc("/api/sse-stream", utils.SseHandler(logQueue))
 	subRouter.HandleFunc("/api/files", this.upgrade.ApiFiles).Methods("PUT")
 
 	// apis
@@ -46,6 +46,7 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/client/get", this.apiClientGet).Methods("GET")
 	subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
+	subRouter.HandleFunc("/api/client/gen", this.apiClientGenPut).Methods("PUT")
 	subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
 	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
 	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")

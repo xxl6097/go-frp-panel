@@ -175,6 +175,136 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 //	glog.Error(u)
 //}
 
+func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
+	res := &comm2.GeneralResponse{Code: 0}
+
+	var body struct {
+		Addr      string               `json:"addr"`
+		Port      int                  `json:"port"`
+		User      User                 `json:"user"`
+		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+		WebServer *v1.WebServerConfig  `json:"webserver"`
+	}
+	jstr := r.FormValue("data")
+	err := json.Unmarshal([]byte(jstr), &body)
+	glog.Infof("data:%+v", body)
+
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		res.Error("body can't be empty")
+		glog.Error(res.Msg)
+		return
+	}
+	// 获取上传的文件
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		res.Error("body no file")
+		return
+	}
+	defer file.Close()
+
+	glog.Info(handler.Filename)
+
+	binPath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), handler.Filename)
+	dst, err := os.Create(binPath)
+	if err != nil {
+		res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+		return
+	}
+	defer utils2.DeleteAll(binPath, "upload gen file")
+	buf := this.upgrade.GetBuffer().Get().([]byte)
+	defer this.upgrade.GetBuffer().Put(buf)
+	_, err = io.CopyBuffer(dst, file, buf)
+	dst.Close()
+	if err != nil {
+		res.Error(err.Error())
+		return
+	}
+	glog.Info("上传成功", binPath)
+
+	tpl, err := os.Open(binPath)
+	if err != nil {
+		msg := fmt.Errorf("打开文件失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+		return
+	}
+	defer tpl.Close()
+
+	fileName := filepath.Base(binPath)
+	w.Header().Add("Content-Transfer-Encoding", "binary")
+	w.Header().Add("Content-Type", "application/octet-stream")
+	if stat, err := tpl.Stat(); err == nil {
+		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
+	}
+	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	//cfgBuffer := ukey.GetBuffer()
+	bindPort := GetCfgModel().Frps.BindPort
+	if body.Port > 0 {
+		bindPort = body.Port
+	}
+	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+	cfg := comm2.BufferConfig{
+		Addr:       body.Addr,
+		Port:       bindPort,
+		ID:         body.User.ID,
+		User:       body.User.User,
+		Token:      body.User.Token,
+		Comment:    body.User.Comment,
+		Ports:      body.User.Ports,
+		Domains:    body.User.Domains,
+		Subdomains: body.User.Subdomains,
+		Proxy:      body.Proxy,
+		WebServer:  body.WebServer,
+	}
+
+	glog.Infof("BufferConfig: %+v", cfg)
+	cfgNewBytes, err := ukey.GenConfig(cfg, false)
+	if err != nil {
+		msg := fmt.Errorf("文件签名失败：%v", err)
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
+		return
+	}
+
+	//err = frpc.TestLoadBuffer(cfgNewBytes)
+	//glog.Infof("TestLoadBuffer: %+v\n", err)
+
+	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+	outFile, err := os.Create(dstFile)
+	if err != nil {
+		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+		return
+	}
+	defer outFile.Close()
+	defer utils2.DeleteAll(dstFile, "gen file")
+
+	prevBuffer := make([]byte, 0)
+	for {
+		thisBuffer := make([]byte, 1024)
+		n, err := tpl.Read(thisBuffer)
+		thisBuffer = thisBuffer[:n]
+		tempBuffer := append(prevBuffer, thisBuffer...)
+		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
+		if bufIndex > -1 {
+			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
+		}
+		//w.Write(tempBuffer[:len(prevBuffer)])
+		outFile.Write(tempBuffer[:len(prevBuffer)])
+		prevBuffer = tempBuffer[len(prevBuffer):]
+		if err != nil {
+			break
+		}
+	}
+	if len(prevBuffer) > 0 {
+		//w.Write(prevBuffer)
+		outFile.Write(prevBuffer)
+		prevBuffer = nil
+	}
+	http.ServeFile(w, r, dstFile)
+}
+
 func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

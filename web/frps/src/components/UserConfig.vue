@@ -232,14 +232,17 @@
       width="500px"
     >
       <el-form label-width="130px">
-        <el-form-item label="服务器地址：">
-          <el-input v-model="clientForm.addr" placeholder="请输入服务器地址" />
+        <el-form-item label="Frps服务地址：">
+          <el-input
+            v-model="clientForm.addr"
+            placeholder="请输入Frps服务地址"
+          />
         </el-form-item>
-        <el-form-item label="服务器端口：">
+        <el-form-item label="Frps服务端口：">
           <el-input-number
             controls-position="right"
             v-model="clientForm.port"
-            placeholder="请输入服务器端口"
+            placeholder="请输入Frps服务端口"
           />
         </el-form-item>
 
@@ -269,7 +272,7 @@
             "
           >
             <span>{{
-              clientForm.webserver.showAdvanced ? '收起' : 'admin配置'
+              clientForm.webserver.showAdvanced ? '收起' : 'frpc dashborad配置'
             }}</span>
           </el-button>
         </el-divider>
@@ -311,7 +314,7 @@
             type="text"
             @click="clientForm.showAdvanced = !clientForm.showAdvanced"
           >
-            <span>{{ clientForm.showAdvanced ? '收起' : '代理配置' }}</span>
+            <span>{{ clientForm.showAdvanced ? '收起' : 'frpc 代理配置' }}</span>
           </el-button>
         </el-divider>
 
@@ -361,12 +364,26 @@
         </transition>
       </el-form>
       <template #footer>
+        <el-upload :http-request="handleGenClientByPut" :limit="1">
+          <template #trigger>
+            <el-button ref="innerGenBtn" style="display: none"></el-button>
+          </template>
+        </el-upload>
+
+        <el-button
+          type="warning"
+          plain
+          @click="handleGenClick"
+          v-if="!clientForm.ops"
+          >上传生成
+        </el-button>
+
         <el-button @click="downloadClientTomlFile">frpc toml配置</el-button>
         <el-button
-          type="primary"
+          type="danger"
           @click="downloadClientByGen"
           :loading="clientForm.loading"
-          >确定
+          >直接生成
         </el-button>
       </template>
     </el-dialog>
@@ -407,6 +424,7 @@ import {
   downloadByPost,
   showLoading,
   showTips,
+  DownLoadFile,
 } from '../utils/utils.ts'
 import { ElButton, FormInstance, FormRules } from 'element-plus'
 import router from '../router'
@@ -424,6 +442,7 @@ interface User {
 }
 
 const innerBtn = ref<InstanceType<typeof ElButton>>()
+const innerGenBtn = ref<InstanceType<typeof ElButton>>()
 // const ops = ref({})
 const options = ref([])
 // const isLoading = ref<boolean>(false)
@@ -462,7 +481,7 @@ const clientForm = ref({
   addr: '',
   port: 0,
   url: '',
-  ops: {},
+  ops: null,
   loading: false,
   showAdvanced: false,
   proxy: {
@@ -475,7 +494,7 @@ const clientForm = ref({
   webserver: {
     addr: '0.0.0.0',
     port: 6400,
-    user: '',
+    user: 'admin',
     password: '',
     showAdvanced: false,
   },
@@ -554,8 +573,13 @@ const resetForm = (formEl: FormInstance | undefined) => {
   formEl.resetFields()
 }
 const handleOptionChange = (value: any) => {
-  console.log(value)
+  console.log('handleOptionChange', clientForm.value.ops, value)
   //showSucessTips(JSON.stringify(node))
+  if (clientForm.value.ops) {
+    console.log('有值了', clientForm.value.ops)
+  } else {
+    console.log('没值了', clientForm.value.ops)
+  }
 }
 // 过滤后的表格数据（根据搜索关键字）
 const filteredTableData = computed<User[]>(() => {
@@ -614,6 +638,11 @@ const handleImportUsersClick = () => {
   innerBtn.value?.$el.click()
 }
 
+const handleGenClick = () => {
+  console.log('handleClientGenClick')
+  innerGenBtn.value?.$el.click()
+}
+
 const handleExportUsers = () => {
   console.log('配置导出中', selectData.value)
 
@@ -649,6 +678,48 @@ const handleImportUsers = (options: any) => {
 const handleSelectionChange = (rows: User[]) => {
   selectData.value = rows
   console.log('--->', rows)
+}
+
+const handleGenClientByPut = (options: any) => {
+  const { file } = options
+  const body = {
+    id: newUserForm.value.id,
+    user: newUserForm.value.user,
+    token: newUserForm.value.token,
+    comment: newUserForm.value.comment,
+    ports: toPorts(newUserForm.value.ports),
+    domains: newUserForm.value.domains.split(','),
+    subdomains: newUserForm.value.subdomains.split(','),
+    enable: newUserForm.value.enable,
+  }
+  const data = {
+    user: body,
+    binUrl: clientForm.value.url,
+    addr: clientForm.value.addr,
+    port: clientForm.value.port,
+    data: clientForm.value,
+    proxy: clientForm.value.proxy,
+    webserver: clientForm.value.webserver,
+  }
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('data', JSON.stringify(data))
+  //const loading = showLoading('用户导入中...')
+  // 使用 fetch 发送请求
+  // fetch('../api/client/gen', {
+  //   method: 'PUT',
+  //   body: formData,
+  // })
+  //   .then((response) => {
+  //     return response.json()
+  //   })
+  //   .finally(() => {
+  //     loading.close()
+  //   })
+
+  DownLoadFile('客户端生成中', 'PUT', '../api/client/gen', formData).finally(
+    () => {},
+  )
 }
 
 // 调用接口创建客户端
@@ -1267,5 +1338,4 @@ fetchServerData()
     min-width: 28px;
   }
 }
-
 </style>

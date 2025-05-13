@@ -308,6 +308,61 @@ export function downloadByPost(title: string, path: string, body: any) {
   })
 }
 
+export function DownLoadFile(
+  title: string,
+  method: string,
+  path: string,
+  body: any,
+) {
+  return new Promise((resolve, reject) => {
+    let loading: any
+    if (title !== undefined) {
+      loading = showLoading(title)
+    }
+
+    fetch(path, {
+      credentials: 'include',
+      method: method,
+      body: body,
+    })
+      .then(async (response) => {
+        //if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        if (response.ok) {
+          const disposition = response.headers.get('Content-Disposition')
+          const filename = getFilenameFromContentDisposition(
+            disposition as string,
+          )
+          return response.blob().then((blob) => ({ blob, filename }))
+        } else {
+          const text = await response.text()
+          console.log('DownLoadFile', text, response)
+          showErrorTips(text)
+          throw new Error(`HTTP ${response.statusText} ${text}`)
+        }
+      })
+      .then(({ blob, filename }) => {
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = filename as string
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        resolve(filename)
+      })
+      .catch((error) => {
+        console.log('DownLoadFile', path, error)
+        showErrorTips(error.message)
+        reject(error.message)
+      })
+      .finally(() => {
+        if (loading) {
+          loading.close()
+        }
+      })
+  })
+}
+
 export async function downloadByPost1(url: string, body: any) {
   try {
     const header = {

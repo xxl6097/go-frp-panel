@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-var logQueue = pkg.NewLogQueue()
+var logQueue = utils.NewLogQueue()
 
 func init() {
 	glog.Hook(func(bytes []byte) {

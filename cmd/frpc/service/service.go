@@ -28,10 +28,9 @@ func Bootstrap() {
 		glog.Error("程序启动出错了", err)
 	}
 	if svr.wsc != nil {
-		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", utils.GetLocalIp(), svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
 	}
-	glog.Warnf("OnFinish %+v", svr.wsc)
-	glog.Println("服务程序启动成功", os.Getegid())
+	//glog.Println("服务程序启动成功", os.Getegid())
 }
 
 func (s *Service) OnInit() *service.Config {

@@ -32,7 +32,7 @@ func Bootstrap() {
 		glog.Error("程序启动出错了", err)
 	}
 	if svr.webServer != nil {
-		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
 	}
 	glog.Warnf("OnFinish %+v", svr.webServer)
 	glog.Println("服务程序启动成功", os.Getegid())
@@ -63,7 +63,7 @@ func (s *Service) OnVersion() string {
 	return ver
 }
 
-func (this Service) OnRun(i gore.IGService) error {
+func (this *Service) OnRun(i gore.IGService) error {
 	frps.Assert()
 	glog.Printf("启动 %s %s\n", pkg.AppName, pkg.AppVersion)
 	cfg := frps.GetCfgModel()

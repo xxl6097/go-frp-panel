@@ -1,4 +1,4 @@
-package pkg
+package utils
 
 import (
 	"github.com/xxl6097/glog/glog"
@@ -6,40 +6,43 @@ import (
 	"sync"
 )
 
-// 定义日志队列
+// LogQueue 定义日志队列
 type LogQueue struct {
-	mu       sync.Mutex
-	messages []string
+	mu sync.Mutex
+	//messages []string
+	messages *FixedQueue[string]
 	clients  map[chan string]struct{}
 }
 
-// 初始化日志队列
+// NewLogQueue 初始化日志队列
 func NewLogQueue() *LogQueue {
 	return &LogQueue{
-		messages: make([]string, 0),
+		//messages: make([]string, 0),
+		messages: NewFixedQueue[string](100),
 		clients:  make(map[chan string]struct{}),
 	}
 }
 
-// 生产者添加日志消息
+// AddMessage 生产者添加日志消息
 func (q *LogQueue) AddMessage(message string) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	q.messages = append(q.messages, message)
+	//q.messages = append(q.messages, message)
+	q.messages.Enqueue(message)
 	// 通知所有客户端有新消息
 	for client := range q.clients {
 		client <- message
 	}
 }
 
-// 消费者注册客户端
+// RegisterClient 消费者注册客户端
 func (q *LogQueue) RegisterClient(client chan string) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.clients[client] = struct{}{}
 }
 
-// 消费者注销客户端
+// UnregisterClient 消费者注销客户端
 func (q *LogQueue) UnregisterClient(client chan string) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -72,7 +75,11 @@ func SseHandler(queue *LogQueue) http.HandlerFunc {
 
 		// 发送历史消息
 		queue.mu.Lock()
-		for _, message := range queue.messages {
+		//for _, message := range queue.messages {
+		//	w.Write([]byte("data: " + message + "\n\n"))
+		//	flusher.Flush()
+		//}
+		for _, message := range queue.messages.Items() {
 			w.Write([]byte("data: " + message + "\n\n"))
 			flusher.Flush()
 		}
