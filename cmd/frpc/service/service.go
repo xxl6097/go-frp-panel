@@ -94,8 +94,8 @@ func (this *Service) menu() *frpc.CfgModel {
 	var bindPort int
 	err := frpc.IsInit()
 	c := frpc.GetCfgModel()
-	//glog.Infof("Frpc: %+v", c.Frpc)
-	//glog.Infof("Cfg: %+v", c.Cfg)
+	glog.Infof("Frpc: %+v", c.Frpc)
+	glog.Infof("Cfg: %+v", c.Cfg)
 	//glog.Error(err)
 	if err != nil || c == nil {
 		bindAddr = utils2.InputString("Frps服务器地址:")
@@ -136,7 +136,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if c != nil && c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
+	if c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
 		proxies = append(proxies, c.Cfg.Proxy)
 	}
 

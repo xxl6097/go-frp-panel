@@ -34,6 +34,11 @@ func load() error {
 		glog.Println("cfgBytes解析错误", err)
 		return err
 	}
+
+	var proxies []v1.TypedProxyConfig
+	if c.Proxy.GetBaseConfig().LocalPort != 0 && c.Proxy.GetBaseConfig().LocalIP != "" {
+		proxies = append(proxies, c.Proxy)
+	}
 	cfgData = &CfgModel{
 		Frpc: v1.ClientConfig{
 			ClientCommonConfig: v1.ClientCommonConfig{
@@ -45,6 +50,7 @@ func load() error {
 					"id":    c.ID,
 				},
 			},
+			Proxies: proxies,
 		},
 		Cfg: &c}
 	//glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
