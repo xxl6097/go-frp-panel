@@ -287,13 +287,14 @@
               <el-input-number
                 controls-position="right"
                 v-model="clientForm.webserver.port"
+                @change="clientForm.proxy.localPort = clientForm.webserver.port"
                 placeholder="请输入port"
               />
             </el-form-item>
             <el-form-item label="管理用户：">
               <el-input
                 v-model="clientForm.webserver.user"
-                placeholder="请输入管理用户"
+                placeholder="请输入admin"
               />
             </el-form-item>
             <el-form-item label="管理密码：">
@@ -1145,6 +1146,7 @@ onMounted(() => {
     cloudApiForm.value.isShow = false
   }
 })
+
 fetchData()
 fetchOptions()
 fetchServerData()

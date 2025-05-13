@@ -27,7 +27,7 @@ func (this *Service) OnFinish() {
 	if this.webServer != nil {
 		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), this.webServer.Port, this.webServer.User, this.webServer.Password)
 	}
-	glog.Warnf("OnFinish %+v", this.webServer)
+	//glog.Warnf("OnFinish %+v", this.webServer)
 }
 
 func (s *Service) OnInit() *service.Config {
