@@ -26,14 +26,14 @@ func (this *Service) OnFinish() {
 	}
 }
 
-func (s Service) OnInit() *service.Config {
+func (s *Service) OnInit() *service.Config {
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,
 		Description: pkg.Description,
 	}
 }
-func (s Service) OnVersion() string {
+func (s *Service) OnVersion() string {
 	fmt.Println(string(ukey.GetBuffer()))
 	ver := fmt.Sprintf("frpc version:%s", version.Full())
 	pkg.Version()
@@ -68,7 +68,7 @@ func (this Service) GetAny(binDir string) any {
 	return cfg
 }
 
-//func (s Service) OnInstall(binPath string) (bool, []string) {
+//func (s *Service) OnInstall(binPath string) (bool, []string) {
 //	cfg := s.menu()
 //	//cfg.Frpc.Complete()
 //	newBufferBytes, err := ukey.GenConfig(cfg, false)

@@ -29,7 +29,7 @@ func (this *Service) OnFinish() {
 	}
 }
 
-func (s Service) OnInit() *service.Config {
+func (s *Service) OnInit() *service.Config {
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,
@@ -37,15 +37,15 @@ func (s Service) OnInit() *service.Config {
 	}
 }
 
-func (s Service) OnStop(ss service.Service) {
+func (s *Service) OnStop(ss service.Service) {
 	s.ifrps.Close()
 }
 
-func (s Service) ShutDown(ss service.Service) {
+func (s *Service) ShutDown(ss service.Service) {
 	s.ifrps.Close()
 }
 
-func (s Service) OnVersion() string {
+func (s *Service) OnVersion() string {
 	fmt.Println(string(ukey.GetBuffer()))
 	//这里需要打印config中buffer原始信息
 	ver := fmt.Sprintf("frps version:%s", version.Full())
@@ -93,7 +93,7 @@ func (this *Service) GetAny(binDir string) any {
 	return a
 }
 
-//func (s Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
+//func (s *Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
 //	//1、读取老文件特征数据；
 //	//2、下载新文件
 //	//3、替换新文件特征数据
@@ -135,7 +135,7 @@ func (this *Service) GetAny(binDir string) any {
 //	return false, nil
 //}
 //
-//func (s Service) OnInstall(binPath string) (bool, []string) {
+//func (s *Service) OnInstall(binPath string) (bool, []string) {
 //	if frps.IsInit() == nil {
 //		return false, nil
 //	}
