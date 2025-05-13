@@ -9,6 +9,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/gservice"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -20,11 +21,17 @@ type Service struct {
 	webServer *v1.WebServerConfig
 }
 
-func (this *Service) OnFinish() {
-	if this.webServer != nil {
-		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), this.webServer.Port, this.webServer.User, this.webServer.Password)
+func Bootstrap() {
+	svr := &Service{}
+	err := gservice.Run(svr)
+	if err != nil {
+		glog.Error("程序启动出错了", err)
 	}
-	//glog.Warnf("OnFinish %+v", this.webServer)
+	if svr.webServer != nil {
+		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
+	}
+	glog.Warnf("OnFinish %+v", svr.webServer)
+	glog.Println("服务程序启动成功", os.Getegid())
 }
 
 func (s *Service) OnInit() *service.Config {
