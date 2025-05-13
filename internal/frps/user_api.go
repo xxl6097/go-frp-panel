@@ -179,11 +179,12 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	body, err := utils.GetDataByJson[struct {
-		BinPath string `json:"binPath"`
-		BinUrl  string `json:"binUrl"`
-		Addr    string `json:"addr"`
-		Port    int    `json:"port"`
-		User    User   `json:"user"`
+		BinPath string              `json:"binPath"`
+		BinUrl  string              `json:"binUrl"`
+		Addr    string              `json:"addr"`
+		Port    int                 `json:"port"`
+		User    User                `json:"user"`
+		Proxy   v1.TypedProxyConfig `json:"proxy"`
 	}](r)
 	if err != nil {
 		glog.Error("解析Json对象失败", err)
@@ -259,12 +260,13 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tpl.Close()
 
+	fileName := filepath.Base(binPath)
 	w.Header().Add("Content-Transfer-Encoding", "binary")
 	w.Header().Add("Content-Type", "application/octet-stream")
 	if stat, err := tpl.Stat(); err == nil {
 		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
 	}
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
+	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	//cfgBuffer := ukey.GetBuffer()
 	bindPort := GetCfgModel().Frps.BindPort
 	if body.Port > 0 {
@@ -281,6 +283,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		Ports:      body.User.Ports,
 		Domains:    body.User.Domains,
 		Subdomains: body.User.Subdomains,
+		Proxy:      body.Proxy,
 	}
 
 	glog.Infof("BufferConfig: %+v", cfg)
@@ -291,6 +294,17 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
+
+	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+	outFile, err := os.Create(dstFile)
+	if err != nil {
+		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+		return
+	}
+	defer outFile.Close()
+	defer utils2.DeleteAll(dstFile, "gen file")
+
 	prevBuffer := make([]byte, 0)
 	for {
 		thisBuffer := make([]byte, 1024)
@@ -301,16 +315,19 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		if bufIndex > -1 {
 			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
 		}
-		w.Write(tempBuffer[:len(prevBuffer)])
+		//w.Write(tempBuffer[:len(prevBuffer)])
+		outFile.Write(tempBuffer[:len(prevBuffer)])
 		prevBuffer = tempBuffer[len(prevBuffer):]
 		if err != nil {
 			break
 		}
 	}
 	if len(prevBuffer) > 0 {
-		w.Write(prevBuffer)
+		//w.Write(prevBuffer)
+		outFile.Write(prevBuffer)
 		prevBuffer = nil
 	}
+	http.ServeFile(w, r, dstFile)
 }
 
 func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
@@ -772,12 +789,13 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tpl.Close()
 
+	fileName := filepath.Base(binPath)
 	w.Header().Add("Content-Transfer-Encoding", "binary")
 	w.Header().Add("Content-Type", "application/octet-stream")
 	if stat, err := tpl.Stat(); err == nil {
 		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
 	}
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(binPath)))
+	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 
 	cfg := &CfgModel{
 		Frps: v1.ServerConfig{
@@ -805,6 +823,17 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	glog.Debugf("配置信息:%+v", cfgNewBytes)
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	prevBuffer := make([]byte, 0)
+
+	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+	outFile, err := os.Create(dstFile)
+	if err != nil {
+		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+		return
+	}
+	defer outFile.Close()
+	defer utils2.DeleteAll(dstFile, "gen file")
+
 	for {
 		thisBuffer := make([]byte, 1024)
 		n, err := tpl.Read(thisBuffer)
@@ -814,7 +843,8 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		if bufIndex > -1 {
 			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
 		}
-		s, e := w.Write(tempBuffer[:len(prevBuffer)])
+		//s, e := w.Write(tempBuffer[:len(prevBuffer)])
+		s, e := outFile.Write(tempBuffer[:len(prevBuffer)])
 		if e != nil {
 			glog.Errorf("size:%v err:%v", s, e)
 		}
@@ -825,10 +855,13 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if len(prevBuffer) > 0 {
-		s, e := w.Write(prevBuffer)
+		//s, e := w.Write(prevBuffer)
+		s, e := outFile.Write(prevBuffer)
 		if e != nil {
 			glog.Errorf("size:%v err:%v", s, e)
 		}
 		prevBuffer = nil
 	}
+
+	http.ServeFile(w, r, dstFile)
 }

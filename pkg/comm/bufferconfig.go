@@ -1,20 +1,22 @@
 package comm
 
 import (
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"strconv"
 	"strings"
 )
 
 type BufferConfig struct {
-	Addr       string   `json:"addr"`
-	Port       int      `json:"port"`
-	User       string   `json:"user"`
-	Token      string   `json:"token"`
-	ID         string   `json:"id"`
-	Comment    string   `json:"comment,omitempty"`
-	Ports      []any    `json:"ports,omitempty"`
-	Domains    []string `json:"domains,omitempty"`
-	Subdomains []string `json:"subdomains,omitempty"`
+	Addr       string              `json:"addr"`
+	Port       int                 `json:"port"`
+	User       string              `json:"user"`
+	Token      string              `json:"token"`
+	ID         string              `json:"id"`
+	Comment    string              `json:"comment,omitempty"`
+	Ports      []any               `json:"ports,omitempty"`
+	Domains    []string            `json:"domains,omitempty"`
+	Subdomains []string            `json:"subdomains,omitempty"`
+	Proxy      v1.TypedProxyConfig `json:"proxy"`
 }
 
 func (u *BufferConfig) ParsePorts() []int {

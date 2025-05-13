@@ -52,23 +52,9 @@ func main() {
 		},
 	}
 
-	udpProxy := v1.TypedProxyConfig{
-		ProxyConfigurer: &v1.UDPProxyConfig{
-			RemotePort: 6503,
-			ProxyBaseConfig: v1.ProxyBaseConfig{
-				Name: "test-002",
-				Type: "udp",
-				ProxyBackend: v1.ProxyBackend{
-					LocalIP:   "0.0.0.0",
-					LocalPort: 6401,
-				},
-			},
-		},
-	}
-
 	glog.Infof("tcpProxy:%+v", tcpProxy)
 	var proxies []v1.TypedProxyConfig
-	proxies = append(proxies, tcpProxy, udpProxy)
+	proxies = append(proxies, tcpProxy)
 
 	cfg := &v1.ClientConfig{
 		ClientCommonConfig: *ccc,

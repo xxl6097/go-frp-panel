@@ -255,6 +255,58 @@
             placeholder="请输入客户端下载地址"
           />
         </el-form-item>
+
+        <el-button
+          type="text"
+          @click="clientForm.showAdvanced = !clientForm.showAdvanced"
+        >
+          <span>{{ clientForm.showAdvanced ? '收起' : '高级功能' }}</span>
+        </el-button>
+
+        <transition name="fade">
+          <div v-show="clientForm.showAdvanced">
+            <el-form-item label="代理类型：">
+              <el-select
+                v-model="clientForm.proxy.type"
+                placeholder="代理类型选择"
+                clearable
+              >
+                <el-option
+                  v-for="item in clientForm.options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="代理名称：">
+              <el-input
+                v-model="clientForm.proxy.name"
+                placeholder="请输入代理名称"
+              />
+            </el-form-item>
+            <el-form-item label="本地地址：">
+              <el-input
+                v-model="clientForm.proxy.localIP"
+                placeholder="请输入localIP"
+              />
+            </el-form-item>
+            <el-form-item label="本地端口：">
+              <el-input-number
+                controls-position="right"
+                v-model="clientForm.proxy.localPort"
+                placeholder="请输入localPort"
+              />
+            </el-form-item>
+            <el-form-item label="远程端口：">
+              <el-input-number
+                controls-position="right"
+                v-model="clientForm.proxy.remotePort"
+                placeholder="请输入remotePort"
+              />
+            </el-form-item>
+          </div>
+        </transition>
       </el-form>
       <template #footer>
         <el-button @click="downloadClientTomlFile">frpc toml配置</el-button>
@@ -360,6 +412,24 @@ const clientForm = ref({
   url: '',
   ops: {},
   loading: false,
+  showAdvanced: false,
+  proxy: {
+    type: 'tcp',
+    name: '',
+    localIP: '0.0.0.0',
+    localPort: 0,
+    remotePort: 0,
+  },
+  options: [
+    {
+      label: 'tcp',
+      value: 'tcp',
+    },
+    {
+      label: 'udp',
+      value: 'udp',
+    },
+  ],
 })
 
 const cloudApiForm = ref({
@@ -424,7 +494,6 @@ const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   formEl.resetFields()
 }
-
 const handleOptionChange = (value: any) => {
   console.log(value)
   //showSucessTips(JSON.stringify(node))
@@ -545,6 +614,7 @@ const downloadClientByGen = () => {
       addr: clientForm.value.addr,
       port: clientForm.value.port,
       user: body,
+      proxy: clientForm.value.proxy,
     }
     console.log('data1', data)
     downloadByPost(
@@ -565,6 +635,7 @@ const downloadClientByGen = () => {
         addr: clientForm.value.addr,
         port: clientForm.value.port,
         user: body,
+        proxy: clientForm.value.proxy,
       }
 
       console.log('data2', data)

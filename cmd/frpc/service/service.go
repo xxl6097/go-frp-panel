@@ -114,7 +114,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	adminUser := utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
 	adminPass := utils2.InputString("管理后台密码：")
 	temp := glog.GetCrossPlatformDataDir("frpc", "log")
-	fCfg := v1.ClientCommonConfig{
+	ccc := v1.ClientCommonConfig{
 		ServerAddr: bindAddr,
 		ServerPort: bindPort,
 		User:       userName,
@@ -134,8 +134,18 @@ func (this *Service) menu() *frpc.CfgModel {
 			Password: adminPass,
 		},
 	}
+
+	var proxies []v1.TypedProxyConfig
+	if c != nil && c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
+		proxies = append(proxies, c.Cfg.Proxy)
+	}
+
+	cc := v1.ClientConfig{
+		ClientCommonConfig: ccc,
+		Proxies:            proxies,
+	}
 	cfg := &frpc.CfgModel{
-		Frpc: fCfg,
+		Frpc: cc,
 	}
 
 	glog.Infof("menu: %+v", cfg)
