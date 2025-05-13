@@ -17,6 +17,13 @@ import (
 )
 
 type Service struct {
+	webServer *v1.WebServerConfig
+}
+
+func (this *Service) OnFinish() {
+	if this.webServer != nil {
+		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), this.webServer.Port, this.webServer.User, this.webServer.Password)
+	}
 }
 
 func (s Service) OnInit() *service.Config {
@@ -94,8 +101,8 @@ func (this *Service) menu() *frpc.CfgModel {
 	var bindPort int
 	err := frpc.IsInit()
 	c := frpc.GetCfgModel()
-	glog.Infof("Frpc: %+v", c.Frpc)
-	glog.Infof("Cfg: %+v", c.Cfg)
+	//glog.Infof("Frpc: %+v", c.Frpc)
+	//glog.Infof("Cfg: %+v", c.Cfg)
 	//glog.Error(err)
 	if err != nil || c == nil {
 		bindAddr = utils2.InputString("Frps服务器地址:")
@@ -157,12 +164,13 @@ func (this *Service) menu() *frpc.CfgModel {
 		Frpc: cc,
 	}
 
-	glog.Infof("menu: %+v", cfg)
+	//glog.Infof("menu: %+v", cfg)
 	//proxy := v1.TypedProxyConfig{
 	//	Type: "tcp",
 	//}
 	//v1.TCPProxyConfig{
 	//	v1.ProxyBaseConfig{Type: "tcp"},
 	//}
+	this.webServer = webServer
 	return cfg
 }

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -330,4 +331,31 @@ func GetFirstPathSegment(path string) string {
 		return trimmed[:idx]
 	}
 	return trimmed
+}
+
+func GetLocalIp() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		panic(err)
+	}
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			panic(err)
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip != nil && ip.To4() != nil {
+				fmt.Println(ip)
+				return ip.String()
+			}
+		}
+	}
+	return ""
 }

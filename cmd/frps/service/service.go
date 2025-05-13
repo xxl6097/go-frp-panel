@@ -11,6 +11,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -18,7 +19,14 @@ import (
 )
 
 type Service struct {
-	ifrps iface.IFrps
+	ifrps     iface.IFrps
+	webServer *v1.WebServerConfig
+}
+
+func (this *Service) OnFinish() {
+	if this.webServer != nil {
+		glog.Infof("登录信息：\nhttp://%s:%d\n用户名密码：%s/%s", utils.GetLocalIp(), this.webServer.Port, this.webServer.User, this.webServer.Password)
+	}
 }
 
 func (s Service) OnInit() *service.Config {
@@ -76,13 +84,13 @@ func (this Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this Service) GetAny(binDir string) any {
-	frps.Assert()
-	cfg := frps.GetCfgModel()
-	if cfg != nil && cfg.Frps.BindPort > 0 {
+func (this *Service) GetAny(binDir string) any {
+	a := this.menu()
+	if a == nil {
 		return nil
 	}
-	return this.menu()
+	this.webServer = &a.Frps.WebServer
+	return a
 }
 
 //func (s Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
@@ -158,13 +166,22 @@ func (this Service) GetAny(binDir string) any {
 //}
 
 func (this *Service) menu() *frps.CfgModel {
+	frps.Assert()
+	cfg := frps.GetCfgModel()
+	if cfg != nil {
+		this.webServer = &cfg.Frps.WebServer
+		if cfg.Frps.BindPort > 0 {
+			return nil
+		}
+	}
+
 	bindPort := utils2.InputIntDefault("Frps绑定端口(默认:6000):", 6000)
 	adminPort := utils2.InputIntDefault("管理后台端口(默认:6500):", 6500)
 	addr := utils2.InputStringEmpty("管理后台地址(默认:0.0.0.0)：", "0.0.0.0")
 	username := utils2.InputStringEmpty("管理后台用户名(默认:admin)：", "admin")
 	password := utils2.InputString("管理后台密码：")
 	temp := glog.GetCrossPlatformDataDir("frps", "log")
-	cfg := &frps.CfgModel{
+	cm := &frps.CfgModel{
 		Frps: v1.ServerConfig{
 			BindPort: bindPort,
 			WebServer: v1.WebServerConfig{
@@ -180,5 +197,5 @@ func (this *Service) menu() *frps.CfgModel {
 			},
 		},
 	}
-	return cfg
+	return cm
 }
