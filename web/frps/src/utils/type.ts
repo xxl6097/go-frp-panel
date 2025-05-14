@@ -21,3 +21,11 @@ export interface Version {
   usedSize: string
   freeSize: string
 }
+
+export interface Client {
+  osType: string
+  secKey: string
+  devMac: string
+  devIp: string
+  frpId: string
+}

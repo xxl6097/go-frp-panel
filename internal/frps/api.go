@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/sse"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -27,7 +28,8 @@ type frps struct {
 	install                gore.IGService
 	upgrade                iface2.IComm
 	cloudApi               *model.CloudApi
-	webSocket              iface2.IWebSocket
+	webSocketApi           iface2.IWebSocket
+	sseApi                 iface2.ISSE
 	binDir                 string
 	cfgFilePath            string
 	frpcGithubDownloadUrls []string
@@ -96,21 +98,26 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 		glog.Fatalf("new frps err: %v", err)
 	}
 	f := &frps{
-		cfg:       cfg,
-		webServer: webServer,
-		svr:       svr,
-		cloudApi:  nil,
-		install:   install,
-		upgrade:   comm.NewCommApi(install, GetCfgModel()),
-		binDir:    filepath.Dir(binPath),
-		webSocket: ws.NewWebSocket(),
+		cfg:          cfg,
+		webServer:    webServer,
+		svr:          svr,
+		cloudApi:     nil,
+		install:      install,
+		upgrade:      comm.NewCommApi(install, GetCfgModel()),
+		binDir:       filepath.Dir(binPath),
+		webSocketApi: ws.NewWebSocket(),
+		sseApi:       sse.NewServer(),
 	}
+	f.webSocketApi.SetWebSocket(f)
+	f.sseApi.SetSSECallBack(f)
+	f.sseApi.Start()
 	f.InitClientsConfig()
 	//webServer.RouteRegister(f.proxyHandlers)
 	webServer.RouteRegister(f.handlers)
 	webServer.RouteRegister(f.adminHandlers)
 	webServer.RouteRegister(f.userHandlers)
 	webServer.RouteRegister(f.webSocketHandler)
+	webServer.RouteRegister(f.sseHandler)
 	f.CheckClients()
 	return f, nil
 }

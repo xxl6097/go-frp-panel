@@ -44,6 +44,8 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/token/chg", this.apiUserUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/token/all", this.apiUserAll).Methods("GET")
 
+	subRouter.HandleFunc("/api/client/list", this.apiClientListGet).Methods("POST")
+
 	subRouter.HandleFunc("/api/client/get", this.apiClientGet).Methods("GET")
 	subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
 	subRouter.HandleFunc("/api/client/gen", this.apiClientGenPut).Methods("PUT")
@@ -60,5 +62,11 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 func (this *frps) webSocketHandler(helper *httppkg.RouterRegisterHelper) {
 	subRouter := helper.Router.NewRoute().Name("frpwebsocket").Subrouter()
 	subRouter.Use(helper.AuthMiddleware)
-	subRouter.HandleFunc("/frp", this.webSocket.HandleConnections).Methods("GET")
+	subRouter.HandleFunc("/frp", this.webSocketApi.HandleConnections).Methods("GET")
+}
+
+func (this *frps) sseHandler(helper *httppkg.RouterRegisterHelper) {
+	subRouter := helper.Router.NewRoute().Name("sse").Subrouter()
+	subRouter.Use(helper.AuthMiddleware)
+	subRouter.Handle("/api/client/sse", this.sseApi)
 }

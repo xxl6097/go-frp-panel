@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
@@ -19,21 +18,69 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type WSSession struct {
-	Conn   *websocket.Conn `json:"conn"`
-	DevMac string          `json:"devMac"`
-	DevIp  string          `json:"devIp"`
-}
-
 type FrpWebSocket struct {
-	clients map[string]map[string]*WSSession
+	clients  map[string]map[string]*iface.WSSession
+	callback iface.OnWebSocketCallBack
 }
 
-func (this *FrpWebSocket) Send(id string, payload []byte) error {
+func (this *FrpWebSocket) GetList(key string) []*iface.WSSession {
+	if this.clients != nil {
+		v, ok := this.clients[key]
+		if ok {
+			var list []*iface.WSSession
+			for _, vv := range v {
+				list = append(list, vv)
+			}
+			return list
+		}
+	}
+	return nil
+}
+
+func (this *FrpWebSocket) GetListSize() map[string]int {
+	if this.clients != nil {
+		var list = make(map[string]int)
+		for id, c := range this.clients {
+			list[id] = len(c)
+		}
+		return list
+	}
+	return nil
+}
+
+func (this *FrpWebSocket) GetDetail(id, key string) *iface.WSSession {
+	if this.clients != nil {
+		v, ok := this.clients[id]
+		if ok {
+			return v[key]
+		}
+	}
+	return nil
+}
+
+func (this *FrpWebSocket) SetWebSocket(back iface.OnWebSocketCallBack) {
+	this.callback = back
+}
+
+func (this *FrpWebSocket) Send(id string, messageType int, payload []byte) error {
 	v, ok := this.clients[id]
 	if ok && v != nil && len(v) > 0 {
 		for _, conn := range v {
-			err := conn.Conn.WriteMessage(websocket.TextMessage, payload)
+			err := conn.Conn.WriteMessage(messageType, payload)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (this *FrpWebSocket) SendByKey(id, secKey string, messageType int, payload []byte) error {
+	v, ok := this.clients[id]
+	if ok && v != nil && len(v) > 0 {
+		conn, okk := v[secKey]
+		if okk && conn != nil {
+			err := conn.Conn.WriteMessage(messageType, payload)
 			if err != nil {
 				return err
 			}
@@ -47,19 +94,13 @@ func (this *FrpWebSocket) onMessageRecv(ws *websocket.Conn, r *http.Request) {
 		// 读取消息
 		messageType, message, err := ws.ReadMessage()
 		if err != nil {
-			//delete(this.clients, ws.RemoteAddr().String())
 			pointAddress := fmt.Sprintf("%p", ws)
 			glog.Errorf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
 			break
 		} else {
 			glog.Printf("Received:%+v %+v %+v\n", ws.RemoteAddr().String(), messageType, message)
-			//this.clients[ws.RemoteAddr().String()] = ws
-			if messageType == websocket.TextMessage {
-				var msg Message[any]
-				e := json.Unmarshal(message, &msg)
-				if e == nil {
-					glog.Warnf("Received: %+v", msg)
-				}
+			if this.callback != nil {
+				this.callback.OnServerWebSocketMessageReceive(messageType, message)
 			}
 		}
 	}
@@ -75,9 +116,16 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	//	//	fmt.Printf("Value: %s\n", v)
 	//	//}
 	//}
+	osType := r.Header.Get("OsType")
+	id := r.Header.Get("ClientID")
 	localMacAddress := r.Header.Get("LocalMacAddress")
 	localIpv4 := r.Header.Get("LocalIpv4")
 	secKey := r.Header.Get("Sec-Websocket-Key")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		glog.Errorf("ClientID空：%+v", r)
+		return
+	}
 	if secKey == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		glog.Errorf("Sec-Websocket-Key空：%+v", r)
@@ -89,20 +137,29 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	defer ws.Close()
-	pointAddress := fmt.Sprintf("%p", ws)
-	glog.Warn("websocket客户端连接成功", secKey, pointAddress, localMacAddress, localIpv4)
-	childMap := this.clients[secKey]
-	defer delete(childMap, pointAddress)
+	glog.Warn("websocket客户端连接成功", secKey, localMacAddress, localIpv4, id)
+	childMap := this.clients[id]
+	defer func() {
+		session := childMap[secKey]
+		if this.callback != nil {
+			this.callback.OnServerWebSocketDisconnect(session)
+		}
+		delete(childMap, secKey)
+	}()
+	session := iface.WSSession{Conn: ws, SecKey: secKey, DevMac: localMacAddress, DevIp: localIpv4, ID: id, OsType: osType}
 	if childMap == nil {
-		childMap = make(map[string]*WSSession)
-		childMap[pointAddress] = &WSSession{Conn: ws, DevMac: secKey, DevIp: localIpv4}
-		this.clients[secKey] = childMap
+		childMap = make(map[string]*iface.WSSession)
+		childMap[secKey] = &session
+		this.clients[id] = childMap
 	} else {
-		childMap[pointAddress] = &WSSession{Conn: ws, DevMac: secKey, DevIp: localIpv4}
+		childMap[secKey] = &session
+	}
+	if this.callback != nil {
+		this.callback.OnServerWebSocketNewConnection(&session)
 	}
 	this.onMessageRecv(ws, r)
 }
 
 func NewWebSocket() iface.IWebSocket {
-	return &FrpWebSocket{clients: make(map[string]map[string]*WSSession)}
+	return &FrpWebSocket{clients: make(map[string]map[string]*iface.WSSession)}
 }

@@ -1,4 +1,5 @@
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
+import { EventAwareSSEClient } from "./sseclient.ts";
 
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
@@ -684,3 +685,11 @@ export async function piecesUpload(
 //         console.error('请求失败', error);
 //       });
 // }
+
+export function testSSEClient() {
+  // 使用示例
+  const client = new EventAwareSSEClient('http://api.example.com/sse')
+  client.addEventListener('stockUpdate', (data) => {
+    console.log('股票更新:', data.price)
+  })
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"math"
 	"net/http"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -86,7 +87,7 @@ func (c *websocketclient) Connect() error {
 			return err
 		}
 
-		glog.Printf("连接失败，尝试重连 (%d/%d): %v", reconnects, c.maxReconnects, err)
+		glog.Printf("%s 连接失败，尝试重连 (%d/%d): %v", c.url, reconnects, c.maxReconnects, err)
 		time.Sleep(c.reconnectDelay)
 	}
 }
@@ -201,16 +202,20 @@ func GetClientInstance() *client {
 	return instance
 }
 
-func (c *client) Init(baseUrl, user, pass string) {
+func (c *client) Init(id, serverAddress, user, pass string) {
+	baseUrl := fmt.Sprintf("ws://%s/frp", serverAddress)
 	header := &http.Header{}
 	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
+		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 		header.Set("LocalMacAddress", devInfo.MacAddress)
 		header.Set("LocalIpv4", devInfo.Ipv4)
 		header.Set("InterfaceName", devInfo.Name)
 		header.Set("DisplayName", devInfo.DisplayName)
+		header.Set("ClientID", id)
 	}
+	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
 	c.cls = NewWebSocketClient(baseUrl, header)
 	// 设置消息处理函数
 	c.cls.SetMessageHandler(func(message []byte) {

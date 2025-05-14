@@ -18,6 +18,7 @@ type User struct {
 	User       string   `json:"user,omitempty"`
 	Token      string   `json:"token,omitempty"`
 	Comment    string   `json:"comment,omitempty"`
+	Count      int      `json:"count,omitempty"`
 	Ports      []any    `json:"ports,omitempty"`
 	Domains    []string `json:"domains,omitempty"`
 	Subdomains []string `json:"subdomains,omitempty"`
@@ -105,7 +106,7 @@ func DeleteUser(id string) error {
 	return os.Remove(GetJsonPath(id))
 }
 
-func GetUserAll() ([]User, error) {
+func (this *frps) GetUserAll() ([]User, error) {
 	binpath, err := os.Executable()
 	if err != nil {
 		return nil, err
@@ -114,10 +115,21 @@ func GetUserAll() ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var obj map[string]int
+	if this.webSocketApi != nil {
+		obj = this.webSocketApi.GetListSize()
+	}
 	var users []User
 	for _, file := range files {
-		user, err := Read(file)
-		if err == nil {
+		user, e := Read(file)
+		if e == nil {
+			if obj != nil && len(obj) > 0 {
+				n, ok := obj[user.ID]
+				if ok {
+					user.Count = n
+				}
+			}
 			users = append(users, *user)
 		}
 	}
@@ -161,8 +173,8 @@ func GetUserAll() ([]User, error) {
 //
 //	func (this *UserRepository) Update(u *UserGorm) error {
 //		//fmt.Printf("update token %+v\n", obj)
-//		//return this.db.Model(&Token{}).Omit("enable").Where("id = ?", obj.ID).Updates(obj).Error
-//		//return this.db.Model(&Token{}).Where("id = ?", obj.ID).Save(obj).Error
+//		//return this.db.Model(&Token{}).Omit("enable").Where("id = ?", obj.SseId).Updates(obj).Error
+//		//return this.db.Model(&Token{}).Where("id = ?", obj.SseId).Save(obj).Error
 //		return this.db.Model(&UserGorm{}).Where("name = ?", u.Name).Updates(u).Error
 //	}
 //
@@ -197,7 +209,7 @@ func JudgeToken(id, token string) (bool, error) {
 		return false, fmt.Errorf("[token校验]frps服务器不存在该用户ID:%v,err: %v", id, err)
 	}
 	if u.Token != token {
-		return false, fmt.Errorf("[token校验]ID【%s】的token【%s】校验错误❌", id, token)
+		return false, fmt.Errorf("[token校验]SseId【%s】的token【%s】校验错误❌", id, token)
 	}
 	if !u.Enable {
 		return false, fmt.Errorf("[token校验]用户【%s】被禁用", id)

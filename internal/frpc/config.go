@@ -2,6 +2,7 @@ package frpc
 
 import (
 	"encoding/json"
+	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
@@ -46,8 +47,9 @@ func load() error {
 				ServerPort: c.Port,
 				User:       c.User,
 				Metadatas: map[string]string{
-					"token": c.Token,
-					"id":    c.ID,
+					"token":   c.Token,
+					"id":      c.ID,
+					"apiPort": fmt.Sprintf("%d", c.ApiPort),
 				},
 			},
 			Proxies: proxies,
@@ -117,8 +119,9 @@ func TestLoadBuffer(buffer []byte) error {
 				ServerPort: c.Port,
 				User:       c.User,
 				Metadatas: map[string]string{
-					"token": c.Token,
-					"id":    c.ID,
+					"token":   c.Token,
+					"id":      c.ID,
+					"apiPort": fmt.Sprintf("%d", c.ApiPort),
 				},
 			},
 			Proxies: proxies,

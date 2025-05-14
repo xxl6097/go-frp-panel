@@ -8,6 +8,7 @@ import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -116,13 +117,13 @@ func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res.Ok("密钥更新成功")
-	a, _ := GetUserAll()
+	a, _ := this.GetUserAll()
 	fmt.Printf("结果：%+v\n", a)
 }
 func (this *frps) apiUserAll(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	datas, err := GetUserAll()
+	datas, err := this.GetUserAll()
 	if err != nil {
 		res.Error("无数据")
 		glog.Error(err)
@@ -152,6 +153,28 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("扫描结果:%v", res.Data)
 }
 
+func (this *frps) apiClientListGet(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	if this.webSocketApi == nil {
+		res.Error("webSocketApi is nil")
+		return
+	}
+	timeObj, err := utils.GetDataByJson[struct {
+		FrpID string `json:"frpId"`
+	}](r)
+	if err != nil {
+		res.Err(err)
+		return
+	}
+	if timeObj == nil {
+		res.Error("timeObj is nil")
+		return
+	}
+	sessions := this.webSocketApi.GetList(timeObj.FrpID)
+	res.Data = sessions
+}
+
 func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
@@ -165,7 +188,7 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 //	u := User{
 //		User:       data["user"].(string),
 //		Token:      data["token"].(string),
-//		ID:         data["id"].(string),
+//		SseId:         data["id"].(string),
 //		Comment:    data["comment"].(string),
 //		Ports:      ToPorts(data["ports"].([]any)),
 //		Domains:    data["domains"].([]string),
@@ -181,6 +204,7 @@ func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Addr      string               `json:"addr"`
 		Port      int                  `json:"port"`
+		ApiPort   int                  `json:"apiPort"`
 		User      User                 `json:"user"`
 		Proxy     *v1.TypedProxyConfig `json:"proxy"`
 		WebServer *v1.WebServerConfig  `json:"webserver"`
@@ -247,6 +271,7 @@ func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
 	cfg := comm2.BufferConfig{
 		Addr:       body.Addr,
 		Port:       bindPort,
+		ApiPort:    body.ApiPort,
 		ID:         body.User.ID,
 		User:       body.User.User,
 		Token:      body.User.Token,
@@ -313,6 +338,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 		BinUrl    string               `json:"binUrl"`
 		Addr      string               `json:"addr"`
 		Port      int                  `json:"port"`
+		ApiPort   int                  `json:"apiPort"`
 		User      User                 `json:"user"`
 		Proxy     *v1.TypedProxyConfig `json:"proxy"`
 		WebServer *v1.WebServerConfig  `json:"webserver"`
@@ -406,6 +432,7 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	cfg := comm2.BufferConfig{
 		Addr:       body.Addr,
+		ApiPort:    body.ApiPort,
 		Port:       bindPort,
 		ID:         body.User.ID,
 		User:       body.User.User,
@@ -644,11 +671,14 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	body, err := utils.GetDataByJson[struct {
-		BinPath string `json:"binPath"`
-		BinUrl  string `json:"binUrl"`
-		Addr    string `json:"addr"`
-		Port    int    `json:"port"`
-		User    User   `json:"user"`
+		BinPath   string               `json:"binPath"`
+		BinUrl    string               `json:"binUrl"`
+		Addr      string               `json:"addr"`
+		Port      int                  `json:"port"`
+		ApiPort   int                  `json:"apiPort"`
+		User      User                 `json:"user"`
+		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+		WebServer *v1.WebServerConfig  `json:"webserver"`
 	}](r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -673,20 +703,49 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	if body.Port > 0 {
 		bindPort = body.Port
 	}
+	///////////////
+	ccc := v1.ClientCommonConfig{
+		ServerAddr: body.Addr,
+		ServerPort: bindPort,
+		User:       body.User.User,
+		Metadatas: map[string]string{
+			"token":   body.User.Token,
+			"id":      body.User.ID,
+			"apiPort": fmt.Sprintf("%d", body.ApiPort),
+		},
+	}
+	if body.WebServer != nil && body.WebServer.Port != 0 && body.WebServer.User != "" && body.WebServer.Password != "" && body.WebServer.Addr != "" {
+		ccc.WebServer = *body.WebServer
+	}
 
-	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", body.Addr))
-	sb.WriteString(fmt.Sprintf("serverPort = %d\n", bindPort))
-	sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
-	sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
-	sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.ID))
-	size := sb.Len()
+	var proxies []v1.TypedProxyConfig
+	if body.Proxy != nil && body.Proxy.GetBaseConfig().LocalPort != 0 && body.Proxy.GetBaseConfig().LocalIP != "" {
+		proxies = append(proxies, *body.Proxy)
+	}
 
+	cc := v1.ClientConfig{
+		ClientCommonConfig: ccc,
+		Proxies:            proxies,
+	}
+	cfg := &frpc.CfgModel{
+		Frpc: cc,
+	}
+	buffer := utils.ObjectToTomlText(cfg.Frpc)
+
+	//sb := strings.Builder{}
+	//sb.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", body.Addr))
+	//sb.WriteString(fmt.Sprintf("serverPort = %d\n", bindPort))
+	//sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
+	//sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
+	//sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.SseId))
+	//size := sb.Len()
+	//
 	w.Header().Add("Content-Transfer-Encoding", "binary")
 	w.Header().Add("Content-Type", "application/octet-stream")
-	w.Header().Add(`Content-Length`, strconv.Itoa(size))
+	w.Header().Add(`Content-Length`, strconv.Itoa(len(buffer)))
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	w.Write([]byte(sb.String()))
+	//w.Write([]byte(sb.String()))
+	_, _ = w.Write(buffer)
 }
 
 func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,0 @@
-[[proxies]]
-localIP = '0.0.0.0'
-localPort = 6400
-name = 'frpc.ui'
-remotePort = 6509
-type = 'tcp'

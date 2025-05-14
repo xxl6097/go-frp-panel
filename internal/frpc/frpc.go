@@ -97,10 +97,7 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	if cfgModel.Cfg != nil {
 		this.cfgBuffer = cfgModel.Cfg
 	}
-
-	wsUrl := fmt.Sprintf("ws://%s/frp", cfg.ServerAddr)
-	ws.GetClientInstance().Init(wsUrl, cfg.WebServer.User, cfg.WebServer.Password)
-
+	ws.GetClientInstance().Init(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	if shouldGracefulClose {
 		go this.handleTermSignal(svr)

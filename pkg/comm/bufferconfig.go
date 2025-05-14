@@ -9,6 +9,7 @@ import (
 type BufferConfig struct {
 	Addr       string               `json:"addr"`
 	Port       int                  `json:"port"`
+	ApiPort    int                  `json:"apiPort"`
 	User       string               `json:"user"`
 	Token      string               `json:"token"`
 	ID         string               `json:"id"`

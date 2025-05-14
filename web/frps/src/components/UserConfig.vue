@@ -101,6 +101,11 @@
         <el-table-column prop="ports" label="允许端口" />
         <el-table-column prop="domains" label="允许域名" />
         <el-table-column prop="subdomains" label="允许子域名" />
+        <el-table-column prop="count" label="数量">
+          <template #default="{ row }">
+            {{ row.count }}
+          </template>
+        </el-table-column>
         <el-table-column prop="enable" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.enable ? 'success' : 'danger'">
@@ -130,8 +135,14 @@
                   <el-dropdown-item @click="handleClientDialog(row)"
                     >生成客户端
                   </el-dropdown-item>
-                  <el-dropdown-item @click="router.push({ path: '/user/list' })"
-                    >列表
+                  <el-dropdown-item
+                    @click="
+                      router.push({
+                        path: '/user/list',
+                        query: { frpId: row.id },
+                      })
+                    "
+                    >查看客户端
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -245,6 +256,13 @@
             placeholder="请输入Frps服务端口"
           />
         </el-form-item>
+        <el-form-item label="Frps Admin端口：">
+          <el-input-number
+            controls-position="right"
+            v-model="clientForm.apiPort"
+            placeholder="请输入Frps Admin端口"
+          />
+        </el-form-item>
 
         <el-form-item label="操作系统/架构" v-if="options.length > 0">
           <el-cascader
@@ -314,7 +332,9 @@
             type="text"
             @click="clientForm.showAdvanced = !clientForm.showAdvanced"
           >
-            <span>{{ clientForm.showAdvanced ? '收起' : 'frpc 代理配置' }}</span>
+            <span>{{
+              clientForm.showAdvanced ? '收起' : 'frpc 代理配置'
+            }}</span>
           </el-button>
         </el-divider>
 
@@ -438,6 +458,7 @@ interface User {
   subdomains: string
   enable: boolean
   editable: boolean
+  count: number
   id: string
 }
 
@@ -455,7 +476,7 @@ const currentPage = ref<number>(1)
 //const filteredTableData = ref<User[]>([])
 
 // 表格数据{user:'admin'}
-//const tableData = ref<User[]>([{user: 'admin'}])
+// const tableData = ref<User[]>([{ user: 'admin',count: 11 }])
 const tableData = ref<User[]>([])
 const selectData = ref<User[]>([])
 // const clientDownUrl = ref<string>()
@@ -473,6 +494,7 @@ const newUserForm = ref({
   domains: '',
   subdomains: '',
   enable: true,
+  count: 0,
   editable: false,
   id: '',
 })
@@ -480,6 +502,7 @@ const newUserForm = ref({
 const clientForm = ref({
   addr: '',
   port: 0,
+  apiPort: window.location.port,
   url: '',
   ops: null,
   loading: false,
@@ -616,7 +639,7 @@ const handleDeleteUsers = () => {
     })
     .finally(() => {
       clearVariables()
-      fetchData()
+      fetchListData()
     })
 }
 
@@ -629,7 +652,7 @@ const handleDeleteAll = () => {
     })
     .finally(() => {
       clearVariables()
-      fetchData()
+      fetchListData()
     })
 }
 
@@ -697,6 +720,7 @@ const handleGenClientByPut = (options: any) => {
     binUrl: clientForm.value.url,
     addr: clientForm.value.addr,
     port: clientForm.value.port,
+    apiPort: clientForm.value.apiPort,
     data: clientForm.value,
     proxy: clientForm.value.proxy,
     webserver: clientForm.value.webserver,
@@ -745,6 +769,7 @@ const downloadClientByGen = () => {
       port: clientForm.value.port,
       user: body,
       data: clientForm.value,
+      apiPort: clientForm.value.apiPort,
       proxy: clientForm.value.proxy,
       webserver: clientForm.value.webserver,
     }
@@ -768,6 +793,7 @@ const downloadClientByGen = () => {
         port: clientForm.value.port,
         user: body,
         data: clientForm.value,
+        apiPort: clientForm.value.apiPort,
         proxy: clientForm.value.proxy,
         webserver: clientForm.value.webserver,
       }
@@ -791,6 +817,7 @@ const downloadClientTomlFile = () => {
   const data = {
     addr: clientForm.value.addr,
     port: clientForm.value.port,
+    apiPort: clientForm.value.apiPort,
     user: {
       id: newUserForm.value.id,
       user: newUserForm.value.user,
@@ -801,6 +828,9 @@ const downloadClientTomlFile = () => {
       subdomains: newUserForm.value.subdomains.split(','),
       enable: newUserForm.value.enable,
     },
+    data: clientForm.value,
+    proxy: clientForm.value.proxy,
+    webserver: clientForm.value.webserver,
   }
 
   console.log('downloadClientTomlFile', clientForm.value, data)
@@ -841,7 +871,7 @@ const handlePageChange = (page: number) => {
 }
 
 const handleRefresh = () => {
-  fetchData()
+  fetchListData()
   fetchOptions()
 }
 
@@ -865,7 +895,7 @@ const handleUpgradeCloud = () => {
       .finally(() => {
         localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
         clearVariables()
-        fetchData()
+        fetchListData()
       })
   } else {
     fetch('../api/config/upgrade', {
@@ -887,7 +917,7 @@ const handleUpgradeCloud = () => {
       })
       .finally(() => {
         clearVariables()
-        fetchData()
+        fetchListData()
       })
   }
 }
@@ -912,7 +942,7 @@ const handleUploadCloud = () => {
       .finally(() => {
         localStorage.setItem('cloudApi', JSON.stringify(cloudApiForm.value))
         clearVariables()
-        fetchData()
+        fetchListData()
       })
   } else {
     fetch('../api/config/upload', {
@@ -934,7 +964,7 @@ const handleUploadCloud = () => {
       })
       .finally(() => {
         clearVariables()
-        fetchData()
+        fetchListData()
       })
   }
 }
@@ -1010,7 +1040,7 @@ const handleDelete = (row: User) => {
         })
         .finally(() => {
           clearVariables()
-          fetchData()
+          fetchListData()
         })
     },
     () => {
@@ -1050,7 +1080,7 @@ const addUser = () => {
     })
     .finally(() => {
       clearVariables()
-      fetchData()
+      fetchListData()
     })
 }
 
@@ -1064,7 +1094,7 @@ const updateUser = () => {
     })
     .finally(() => {
       clearVariables()
-      fetchData()
+      fetchListData()
     })
 }
 
@@ -1073,6 +1103,7 @@ const createUser = (row: User) => {
     user: row.user,
     token: row.token,
     comment: row.comment,
+    count: row.count,
     ports: toPorts(row.ports),
     domains: row.domains.split(','),
     subdomains: row.subdomains.split(','),
@@ -1094,6 +1125,7 @@ const createNewUser = () => {
     ports: '',
     domains: '',
     subdomains: '',
+    count: 0,
     enable: true,
     editable: false,
     id: `${new Date().getTime()}`,
@@ -1106,6 +1138,7 @@ const createEmptyUser = () => {
     comment: '',
     ports: '',
     domains: '',
+    count: 0,
     subdomains: '',
     enable: true,
     editable: false,
@@ -1173,13 +1206,15 @@ const fetchServerData = () => {
 }
 
 // 获取数据
-const fetchData = () => {
+const fetchListData = () => {
   get('数据请求', '../api/token/all', null).then((data: any) => {
     if (data) {
+      console.log('fetchListData', data)
       const obj = JSON.parse(JSON.stringify(data))
       tableData.value = obj.map((item: any) => ({
         user: item.user,
         token: item.token,
+        count: item.count,
         comment: item.comment,
         ports: item.ports.join(','),
         domains: item.domains.join(','),
@@ -1218,7 +1253,7 @@ onMounted(() => {
   }
 })
 
-fetchData()
+fetchListData()
 fetchOptions()
 fetchServerData()
 </script>

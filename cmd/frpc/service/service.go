@@ -77,7 +77,7 @@ func (this *Service) GetAny(binDir string) any {
 }
 
 func (this *Service) menu() *frpc.CfgModel {
-	var bindAddr, userName, token, id string
+	var bindAddr, userName, token, id, apiPort string
 	var bindPort int
 	err := frpc.IsInit()
 	c := frpc.GetCfgModel()
@@ -96,6 +96,7 @@ func (this *Service) menu() *frpc.CfgModel {
 		userName = c.Frpc.User
 		token = c.Frpc.Metadatas["token"]
 		id = c.Frpc.Metadatas["id"]
+		apiPort = c.Frpc.Metadatas["apiPort"]
 	}
 	webServer := &v1.WebServerConfig{}
 	if c.Cfg != nil && c.Cfg.WebServer != nil && c.Cfg.WebServer.Port != 0 && c.Cfg.WebServer.Addr != "" && c.Cfg.WebServer.User != "" && c.Cfg.WebServer.Password != "" {
@@ -120,8 +121,9 @@ func (this *Service) menu() *frpc.CfgModel {
 		ServerPort: bindPort,
 		User:       userName,
 		Metadatas: map[string]string{
-			"token": token,
-			"id":    id,
+			"token":   token,
+			"id":      id,
+			"apiPort": apiPort,
 		},
 		Log: v1.LogConfig{
 			To:      filepath.Join(temp, "frpc.log"),
