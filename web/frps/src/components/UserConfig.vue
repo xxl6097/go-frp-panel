@@ -72,9 +72,9 @@
             </template>
           </el-popconfirm>
 
-          <el-button type="info" plain @click="genClientDialogVisible = true"
-            >测试
-          </el-button>
+          <!--          <el-button type="info" plain @click="genClientDialogVisible = true"-->
+          <!--            >测试-->
+          <!--          </el-button>-->
         </el-button-group>
       </div>
     </el-header>

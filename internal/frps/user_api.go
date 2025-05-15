@@ -179,8 +179,8 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
 	res.Data = utils.ToTree("", this.frpsGithubDownloadUrls)
-	glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
-	glog.Infof("frps地址扫描:%v", res.Data)
+	//glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
+	//glog.Infof("frps地址扫描:%v", res.Data)
 }
 
 //func (this *frps) parseUser(data map[string]interface{}) {

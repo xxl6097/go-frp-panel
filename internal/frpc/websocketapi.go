@@ -17,12 +17,31 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			glog.Error(err)
 			return
 		}
+		glog.Debugf("msg:%+v", msg)
 		switch msg.Action {
 		case "clientInfo":
 			this.getClientInfo(msg.SseID)
 			break
 		case "mainTomlUpgrade":
 			this.recvMainTomlUpgrade(msg.Data)
+			break
+		case "reboot":
+			if this.install == nil {
+				return
+			}
+			err = this.install.Restart()
+			if err != nil {
+				glog.Error(err)
+			}
+			break
+		case "uninstall":
+			if this.install == nil {
+				return
+			}
+			err = this.install.Uninstall()
+			if err != nil {
+				glog.Error(err)
+			}
 			break
 		}
 	}

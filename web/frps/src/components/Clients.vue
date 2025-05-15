@@ -20,7 +20,11 @@
         <el-table-column prop="devIp" label="设备IP" />
         <el-table-column label="操作">
           <template #default="{ row }">
-            <el-button size="small" @click="handleGoToDetail(row)"
+            <el-button
+              size="small"
+              type="danger"
+              plain
+              @click="handleGoToDetail(row)"
               >查看
             </el-button>
           </template>

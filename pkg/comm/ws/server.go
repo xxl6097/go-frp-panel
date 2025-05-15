@@ -161,12 +161,12 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 		this.callback.OnServerWebSocketNewConnection(&session)
 	}
 
-	for k, v := range this.clients {
-		glog.Warnf("websocket %s %+v", k, v)
-		for kk, vv := range v {
-			glog.Warnf("%s %+v", kk, vv)
-		}
-	}
+	//for k, v := range this.clients {
+	//	glog.Warnf("websocket %s %+v", k, v)
+	//	for kk, vv := range v {
+	//		glog.Warnf("%s %+v", kk, vv)
+	//	}
+	//}
 	this.onMessageRecv(ws, r)
 }
 
