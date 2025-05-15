@@ -106,6 +106,18 @@ func GetFrpcTomlDir() (string, error) {
 	return GetFrpcTomlDirByDir(filepath.Dir(binpath))
 }
 
+func GetFrpcTomlPath(name string) (string, error) {
+	binpath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("get executable path err: %v", err)
+	}
+	cfgDir, err := GetFrpcTomlDirByDir(filepath.Dir(binpath))
+	if err != nil {
+		return "", fmt.Errorf("get executable path err: %v", err)
+	}
+	return filepath.Join(cfgDir, name), nil
+}
+
 func GetFrpcTomlDirByDir(bindir string) (string, error) {
 	cfgDir := filepath.Join(bindir, "config")
 	err := utils.MakeDir(cfgDir)

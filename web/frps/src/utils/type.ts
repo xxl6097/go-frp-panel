@@ -29,3 +29,8 @@ export interface Client {
   devIp: string
   frpId: string
 }
+
+export interface Option {
+  value: string
+  label: string
+}

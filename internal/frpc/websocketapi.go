@@ -6,7 +6,11 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 func (this *frpc) onWebSocketMessageHandle(data []byte) {
@@ -19,13 +23,16 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 		}
 		glog.Debugf("msg:%+v", msg)
 		switch msg.Action {
-		case "clientInfo":
+		case ws.CLIENT_INFO:
 			this.getClientInfo(msg.SseID)
 			break
-		case "mainTomlUpgrade":
-			this.recvMainTomlUpgrade(msg.Data)
+		case ws.CONFIG_LIST:
+			this.getConfigs(msg.SseID)
 			break
-		case "reboot":
+		case ws.TOML_UPGRADE:
+			this.recvTomlUpgrade(msg.Data)
+			break
+		case ws.REBOOT:
 			if this.install == nil {
 				return
 			}
@@ -34,7 +41,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 				glog.Error(err)
 			}
 			break
-		case "uninstall":
+		case ws.UNINSTALL:
 			if this.install == nil {
 				return
 			}
@@ -58,7 +65,7 @@ func (this *frpc) getClientInfo(sseId string) {
 		return
 	}
 	msg := iface.Message[string]{
-		Action: "clientInfo",
+		Action: ws.CLIENT_INFO,
 		Data:   string(body),
 		SseID:  sseId,
 	}
@@ -70,15 +77,58 @@ func (this *frpc) getClientInfo(sseId string) {
 	}
 }
 
-func (this *frpc) recvMainTomlUpgrade(data any) {
-	body, ok := data.(string)
+func (this *frpc) recvTomlUpgrade(data any) {
+	body, ok := data.(map[string]interface{})
 	if !ok {
-		glog.Error("data is not []byte")
+		glog.Error("data is not Toml")
 		return
 	}
-	err := this.upgradeMainTomlContent(body)
+	err := this.upgradeTomlContent(body["label"].(string), body["content"].(string))
 	if err != nil {
 		glog.Error(err)
+		return
 	}
-	glog.Debug("ConfigUpgrade sucess", body)
+	glog.Debug("ConfigUpgrade sucess")
+}
+
+func (this *frpc) getConfigs(sseId string) {
+	cfgDir, err := frp.GetFrpcTomlDir()
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	files, err := os.ReadDir(cfgDir)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	type Option struct {
+		Label   string `json:"label"`
+		Value   string `json:"value"`
+		Content string `json:"content"`
+	}
+	var list []Option
+	for _, file := range files {
+		fileName := file.Name()
+		buffer, e := utils.Read(filepath.Join(cfgDir, fileName))
+		if e == nil {
+			item := Option{
+				Label:   fileName,
+				Value:   fileName,
+				Content: string(buffer),
+			}
+			list = append(list, item)
+		}
+	}
+	msg := iface.Message[[]Option]{
+		Action: ws.CONFIG_LIST,
+		Data:   list,
+		SseID:  sseId,
+	}
+	err = ws.GetClientInstance().SendJSON(msg)
+	if err != nil {
+		glog.Error(err)
+	} else {
+		glog.Debugf("getClients sucess")
+	}
 }

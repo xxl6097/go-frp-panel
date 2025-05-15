@@ -9,27 +9,52 @@
     @closed="onClosed"
   >
     <div class="upgrade-popup-content">
-      <el-button-group class="ml-4">
-        <el-popconfirm
-          title="确定卸载客户端吗，会导致不可恢复？"
-          @confirm="handleUninstall"
-        >
-          <template #reference>
-            <el-button type="danger" plain>卸载</el-button>
-          </template>
-        </el-popconfirm>
-        <el-popconfirm title="确定重启客户端吗？" @confirm="handleReboot">
-          <template #reference>
-            <el-button type="warning" plain>重启</el-button>
-          </template>
-        </el-popconfirm>
-        <el-button type="info" plain @click="handleTest">测试</el-button>
-      </el-button-group>
+      <el-page-header :icon="null" style="width: 100%; margin-bottom: 20px">
+        <template #title>
+          <el-select
+            v-model="selectValue"
+            @change="handleSelectChange"
+            placeholder="多客户端配置"
+            clearable
+            :fit-input-width="true"
+            size="default"
+            class="autoWidth"
+          >
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item"
+            />
+          </el-select>
+        </template>
+        <template #content>
+          <div style="display: flex">
+            <el-button-group class="ml-4">
+              <el-popconfirm
+                title="确定卸载客户端吗，会导致不可恢复？"
+                @confirm="handleUninstall"
+              >
+                <template #reference>
+                  <el-button type="danger" plain>卸载</el-button>
+                </template>
+              </el-popconfirm>
+              <el-popconfirm title="确定重启客户端吗？" @confirm="handleReboot">
+                <template #reference>
+                  <el-button type="warning" plain>重启</el-button>
+                </template>
+              </el-popconfirm>
+              <el-button type="info" plain @click="handleTest">测试</el-button>
+            </el-button-group>
+          </div>
+        </template>
+        <template #extra></template>
+      </el-page-header>
 
       <el-row style="margin-top: 10px">
         <el-col :span="10">
           <el-input
-            v-model="frpcTomlContent"
+            v-model="selectValue.content"
             :autosize="{ minRows: 2, maxRows: 23.5 }"
             placeholder="frpc configure file, can not be empty..."
             type="textarea"
@@ -62,13 +87,36 @@ import { Client } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
 import { showLoading, showTips } from '../../utils/utils.ts'
 
+export interface Option {
+  label: string
+  value: string
+  content: string
+}
+
 const logContainer = ref<HTMLDivElement | null>(null)
 const logs = ref<string[]>([])
 const showClientDialog = ref(false)
 const client = ref<Client>()
 const title = ref<string>()
-const frpcTomlContent = ref<string>()
 const source = ref<EventAwareSSEClient | null>()
+
+const selectValue = ref<Option>({
+  label: '',
+  value: '',
+  content: '',
+})
+const options = ref<Option[]>([
+  {
+    label: 'test',
+    value: 'test',
+    content: 'hello world',
+  },
+])
+
+const handleSelectChange = (value: any) => {
+  console.log('handleSelectChange---->', value)
+  console.log('selectValue---->', selectValue.value)
+}
 
 const onClosed = () => {
   if (source.value) {
@@ -109,8 +157,12 @@ const connectSSE = (row: Client) => {
     source.value.addEventListener('detail', (data) => {
       addLog(JSON.stringify(data))
     })
+    source.value.addEventListener('config-list', (data) => {
+      console.log('config-list', data)
+      addLog(JSON.stringify(data))
+      options.value = data
+    })
     source.value.addEventListener('client-info', (data) => {
-      frpcTomlContent.value = data
       addLog(JSON.stringify(data))
     })
     source.value.connect()
@@ -161,10 +213,12 @@ const handleClose = () => {
 const upgradeFrpcToml = () => {
   const loading = showLoading('配置修改中...')
   const data = {
-    toml: `${frpcTomlContent.value}`,
+    name: `${selectValue.value?.label}`,
+    content: `${selectValue.value?.content}`,
     frpId: client.value?.frpId,
     secKey: client.value?.secKey,
   }
+  console.log('upgradeFrpcToml', data)
   fetch('../api/client/config/upgrade', {
     credentials: 'include',
     method: 'POST',
@@ -183,6 +237,19 @@ const upgradeFrpcToml = () => {
       loading.close()
     })
 }
+
+// const fetchListData = () => {
+//   fetch('../api/client/list', { credentials: 'include' })
+//     .then((res) => {
+//       return res.json()
+//     })
+//     .then((json) => {
+//       console.log('list', json)
+//       if (json.code === 0) {
+//         options.value = json.data
+//       }
+//     })
+// }
 
 const fetchApi = (data: any) => {
   data.frpId = client.value?.frpId
@@ -207,51 +274,11 @@ const fetchApi = (data: any) => {
       loading.close()
     })
 }
-
-// checkVersion()
 </script>
 <style scoped>
-.client-detail-dialog {
-  width: 98%;
-  height: 90%;
-}
-
-.upgrade-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999; /* 设置较高的 z-index 值，确保在最顶部 */
-}
-
-.upgrade-popup {
-  border-radius: 4px;
-  width: 30%;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.upgrade-popup-header {
-  padding: 5px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e4e7ed;
-}
-
 .upgrade-popup-header h3 {
   line-height: 2.5;
   margin: 0;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 30px;
-  cursor: pointer;
 }
 
 .upgrade-popup-content {
@@ -259,45 +286,8 @@ const fetchApi = (data: any) => {
   padding-right: 20px;
 }
 
-.upgrade-popup-footer {
-  padding: 10px 20px;
-  text-align: right;
-  border-top: 1px solid #e4e7ed;
-}
-
 .upgrade-popup-footer button {
   margin-left: 10px;
-}
-
-/* 亮色模式 */
-@media (prefers-color-scheme: light) {
-  .upgrade-popup-overlay {
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  .upgrade-popup {
-    background-color: white;
-  }
-}
-
-/* 暗色模式 */
-@media (prefers-color-scheme: dark) {
-  .upgrade-popup-overlay {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .upgrade-popup {
-    background-color: #333;
-    color: white;
-  }
-
-  .upgrade-popup-header {
-    border-bottom: 1px solid #555;
-  }
-
-  .upgrade-popup-footer {
-    border-top: 1px solid #555;
-  }
 }
 
 .log-container {
@@ -309,5 +299,12 @@ const fetchApi = (data: any) => {
 
 .log-item {
   margin-bottom: 5px;
+}
+
+.autoWidth {
+  width: auto;
+  min-width: 250px; /* 初始最小宽度 */
+  max-width: 400px; /* 初始最小宽度 */
+  margin-left: 10px;
 }
 </style>

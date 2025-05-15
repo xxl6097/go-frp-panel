@@ -278,6 +278,23 @@ func (this *frpc) upgradeMainTomlContent(content string) error {
 	return nil
 }
 
+func (this *frpc) upgradeTomlContent(name, content string) error {
+	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	cfgPath, err := frp.GetFrpcTomlPath(name)
+	if err != nil {
+		return fmt.Errorf("get executable path err: %v", err)
+	}
+	err = frp.WriteFrpToml(cfgPath, content)
+	if err != nil {
+		return fmt.Errorf("write http body err: %v", err)
+	}
+	err = this.updateClient(cfgPath)
+	if err != nil {
+		return fmt.Errorf("run client err: %v", err)
+	}
+	return nil
+}
+
 func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)

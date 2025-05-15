@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
 )
@@ -19,9 +20,10 @@ func (this *frps) OnServerWebSocketMessageReceive(messageType int, payload []byt
 			glog.Error(err)
 			return
 		}
+		glog.Debugf("OnServerWebSocketMessageReceive:%+v", msg)
 		switch msg.Action {
-		case "clientInfo":
-			this.recvClientInfo(msg.SseID, msg.Data)
+		case ws.CLIENT_INFO, ws.CONFIG_LIST:
+			this.recvClientInfo(msg.SseID, msg.Action, msg.Data)
 			break
 		}
 	}
@@ -33,26 +35,33 @@ func (this *frps) OnServerWebSocketDisconnect(session *iface2.WSSession) {
 func (this *frps) OnServerWebSocketNewConnection(session *iface2.WSSession) {
 }
 
-func (this *frps) recvClientInfo(sseId string, data any) {
+func (this *frps) recvClientInfo(sseId, event string, data any) {
 	if data == nil {
 		glog.Error("data is nil")
 		return
 	}
-	body, ok := data.(string)
-	if !ok {
-		glog.Error("data is not []byte")
-		return
-	}
+	//body, ok := data.(string)
+	//if !ok {
+	//	glog.Error("data is not string")
+	//	return
+	//}
+
+	//switch v := data.(type) {
+	//case string:
+	//	fmt.Printf("Received an TCPProxyConfig.RemotePort: %d\n", v.RemotePort)
+	//default:
+	//	fmt.Println()
+	//}
 	if this.sseApi != nil {
 		eve := iface2.SSEEvent{
-			Event:   CLIENT_INFO,
-			Payload: body,
+			Event:   event,
+			Payload: data,
 		}
 		okk := this.sseApi.BroadcastTo(sseId, eve)
 		if !okk {
 			glog.Errorf("Send error: %v", okk)
 		} else {
-			glog.Infof("Send success %s %v", CLIENT_INFO, sseId)
+			glog.Infof("Send success %s %v", ws.CLIENT_INFO, sseId)
 		}
 	}
 }
@@ -61,9 +70,10 @@ func (this *frps) apiClientConfigUpgrade(w http.ResponseWriter, r *http.Request)
 	res, f := comm.Response(r)
 	defer f(w)
 	body, err := utils.GetDataByJson[struct {
-		Toml   string `json:"toml"`
-		FrpId  string `json:"frpId"`
-		SecKey string `json:"secKey"`
+		Name    string `json:"name"`
+		Content string `json:"content"`
+		FrpId   string `json:"frpId"`
+		SecKey  string `json:"secKey"`
 	}](r)
 	if err != nil {
 		glog.Error("解析Json对象失败", err)
@@ -80,10 +90,17 @@ func (this *frps) apiClientConfigUpgrade(w http.ResponseWriter, r *http.Request)
 		res.Error(fmt.Sprintf("webSocketApi is nil"))
 	}
 
+	type Option struct {
+		Label   string `json:"label"`
+		Content string `json:"content"`
+	}
 	if this.webSocketApi != nil {
-		msg := iface2.Message[string]{
-			Action: "mainTomlUpgrade",
-			Data:   body.Toml,
+		msg := iface2.Message[Option]{
+			Action: ws.TOML_UPGRADE,
+			Data: Option{
+				Label:   body.Name,
+				Content: body.Content,
+			},
 		}
 		b, e := json.Marshal(msg)
 		if e != nil {
