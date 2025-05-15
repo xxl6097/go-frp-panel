@@ -12,6 +12,7 @@ import (
 	"github.com/fatedier/frp/pkg/config/v1/validation"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io/fs"
@@ -25,6 +26,9 @@ import (
 func (this *frpc) runMultipleClients(cfgDir string) {
 	err := filepath.WalkDir(cfgDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
+			return nil
+		}
+		if strings.Compare(strings.ToLower(d.Name()), strings.ToLower(frp.GetFrpcMainTomlFileName())) == 0 {
 			return nil
 		}
 		ext := strings.ToLower(filepath.Ext(d.Name()))
@@ -276,6 +280,6 @@ func (this *frpc) runClient(cfgFilePath string) error {
 	})
 	if e == nil {
 	}
-	glog.Errorf("运行客户端: %s %v\n", cfgFilePath, e)
+	glog.Warnf("运行客户端: %s %v\n", cfgFilePath, e)
 	return e
 }

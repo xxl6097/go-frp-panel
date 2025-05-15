@@ -48,4 +48,7 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/proxy/port/check", this.apiProxyPortCheck).Methods("GET")
 	subRouter.HandleFunc("/api/proxy/remote/ports", this.apiProxyRemotePorts).Methods("GET")
 	subRouter.HandleFunc("/api/proxy/tcp/add", this.apiProxyTCPAdd).Methods("PUT")
+
+	subRouter.HandleFunc("/api/client/config/import", this.apiClientConfigImport).Methods("POST")
+	subRouter.HandleFunc("/api/client/config/export", this.apiClientConfigExport).Methods("POST")
 }

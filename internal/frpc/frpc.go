@@ -16,12 +16,11 @@ import (
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -42,13 +41,18 @@ type frpc struct {
 }
 
 func NewFrpc(i gore.IGService) (*frpc, error) {
-	baseDir, err := os.Executable()
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		return nil, err
 	}
-	cfgFilePath := filepath.Join(filepath.Dir(baseDir), "config.toml")
-	if !utils2.FileExists(cfgFilePath) {
-		return nil, fmt.Errorf("config file %s not exists", cfgFilePath)
+	//cfgFilePath := filepath.Join(filepath.Dir(baseDir), frp.GetFrpcMainTomlFileName())
+	//if !utils2.FileExists(cfgFilePath) {
+	//	return nil, fmt.Errorf("config file %s not exists", cfgFilePath)
+	//}
+
+	cfgFilePath, err := frp.GetFrpcMainTomlFilePath()
+	if err != nil {
+		return nil, err
 	}
 	glog.Debug("加载配置文件", cfgFilePath)
 	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)
@@ -113,7 +117,7 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 		return nil, fmt.Errorf("can't find webServer")
 	}
 	webServer.RouteRegister(this.adminHandlers)
-	go this.runMultipleClients(filepath.Join(filepath.Dir(baseDir), "config"))
+	go this.runMultipleClients(cfgDir)
 	return this, nil
 }
 

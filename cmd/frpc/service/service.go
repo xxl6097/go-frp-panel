@@ -8,12 +8,12 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice"
 	"github.com/xxl6097/go-service/gservice/gore"
 	"github.com/xxl6097/go-service/gservice/ukey"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
-	"os"
 	"path/filepath"
 )
 
@@ -66,13 +66,23 @@ func (this *Service) OnRun(i gore.IGService) error {
 
 func (this *Service) GetAny(binDir string) any {
 	cfg := this.menu()
-	cfgPath := filepath.Join(binDir, "config.toml")
 	this.wsc = &cfg.Frpc.WebServer
-	if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg.Frpc), 0o600); err != nil {
+	err := frp.WriteFrpcMainConfigWithDir(binDir, cfg.Frpc)
+	if err != nil {
 		glog.Warnf("write content to frpc config file error: %v", err)
-	} else {
-		glog.Infof("write content to frpc config file success %s", cfgPath)
+		return nil
 	}
+	//dir, err := frp.GetFrpcTomlDirByDir(binDir)
+	//if err != nil {
+	//	return nil
+	//}
+	//cfgPath := filepath.Join(dir, frp.GetFrpcMainTomlFileName())
+	//if err := frp.WriteFrpToml(cfgPath, cfg.Frpc); err != nil {
+	//	glog.Warnf("write content to frpc config file error: %v", err)
+	//	return nil
+	//} else {
+	//	glog.Infof("write content to frpc config file success %s", cfgPath)
+	//}
 	return cfg
 }
 

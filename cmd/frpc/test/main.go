@@ -6,10 +6,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
-	"os"
-	"path/filepath"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
 )
 
 func main() {
@@ -64,24 +61,14 @@ func main() {
 	glog.Infof("ClientConfig:%+v", cfg)
 	frpc.SetCfgModel(&frpc.CfgModel{Frpc: *cfg, Cfg: cfgBuffer})
 
-	binPath, err := os.Executable()
+	err := frp.WriteFrpcMainConfigWithOut(cfg)
+	//err = frp.WriteFrpcMainConfig(cfg)
 	if err != nil {
-		glog.Fatal("os.Executable() error", err)
+		glog.Warnf("write content to frpc config file error: %v", err)
 	}
-	cfgPath := filepath.Join(filepath.Dir(binPath), "config.toml")
-	glog.Infof("cfgPath: %s", cfgPath)
 
-	if !utils2.FileExists(cfgPath) {
-		if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg), 0o600); err != nil {
-			glog.Warnf("write content to frpc config file error: %v", err)
-		}
-	}
-	//if err := os.WriteFile(cfgPath, utils.ObjectToTomlText(cfg), 0o600); err != nil {
-	//	glog.Warnf("write content to frpc config file error: %v", err)
-	//}
-
-	fmt.Println(cfgPath)
-	fmt.Println(string(utils.ObjectToTomlText(cfg)))
+	//fmt.Println(cfgPath)
+	//fmt.Println(string(utils.ObjectToTomlText(cfg)))
 	cls, err := frpc.NewFrpc(nil)
 	if err != nil {
 		panic(err)

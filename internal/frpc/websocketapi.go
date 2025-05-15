@@ -29,7 +29,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 }
 
 func (this *frpc) onWebSocketOpenHandle(conn *websocket.Conn, response *http.Response) {
-	glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
+	glog.Debugf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
 }
 
 func (this *frpc) getClientInfo(sseId string) {

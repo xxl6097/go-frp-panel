@@ -27,28 +27,47 @@
           <el-button type="success" @click="refresh" :loading="loading" plain
             >刷新
           </el-button>
-          <el-button
-            type="warning"
-            @click="handleShowNewFrpc"
-            :loading="loading"
-            plain
-            >新建客户端
-          </el-button>
-          <div
-            v-if="selectValue !== '' && selectValue !== undefined"
-            style="margin-left: 10px; margin-right: 10px"
-          >
-            <el-popconfirm title="确定删除客户端吗？" @confirm="deleteClient">
+
+          <el-button-group class="ml-4">
+            <el-button
+              type="warning"
+              @click="handleShowNewFrpc"
+              :loading="loading"
+              plain
+              >新建客户端
+            </el-button>
+            <el-popconfirm
+              title="确定删除客户端吗？"
+              @confirm="deleteClient"
+              v-if="selectValue !== '' && selectValue !== undefined"
+            >
               <template #reference>
                 <el-button type="danger" :loading="loading" plain
                   >删除客户端
                 </el-button>
               </template>
             </el-popconfirm>
-          </div>
-          <el-button type="warning" @click="handleShowNewProxyDrawer" plain
-            >新建代理
-          </el-button>
+
+            <el-button type="warning" @click="handleShowNewProxyDrawer" plain
+              >新建代理
+            </el-button>
+
+            <el-button type="warning" plain @click="handleImportConfigClick"
+              >导入配置
+            </el-button>
+            <el-button type="warning" plain @click="handleExportConfig"
+              >导出配置
+            </el-button>
+            <el-upload
+              :http-request="handleImportConfigs"
+              :limit="1"
+              accept=".zip"
+            >
+              <template #trigger>
+                <el-button ref="innerBtn" style="display: none"></el-button>
+              </template>
+            </el-upload>
+          </el-button-group>
         </div>
       </template>
       <template #extra></template>
@@ -256,8 +275,15 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import {
+  ElButton,
+  ElMessage,
+  ElMessageBox,
+  FormInstance,
+  FormRules,
+} from 'element-plus'
+import {
+  downloadByPost,
   getProxyName,
   getTimestamp,
   put,
@@ -272,6 +298,7 @@ interface Option {
   label: string
 }
 
+const innerBtn = ref<InstanceType<typeof ElButton>>()
 const drawer = ref(false)
 const checkPortErr = ref({
   code: -1,
@@ -448,6 +475,33 @@ const handleGenProxyName = (prefix: string) => {
 const handleShowNewFrpc = () => {
   newClientFormVisible.value = true
   newClientForm.value.name = `${getTimestamp()}.toml`
+}
+
+const handleImportConfigClick = () => {
+  innerBtn.value?.$el.click()
+}
+
+const handleExportConfig = () => {
+  console.log('配置导出中')
+  downloadByPost('../api/client/config/export', {}).finally(() => {})
+}
+
+const handleImportConfigs = (options: any) => {
+  const { file } = options
+  const formData = new FormData()
+  formData.append('file', file)
+  const loading = showLoading('用户导入中...')
+  // 使用 fetch 发送请求
+  fetch('../api/client/config/import', {
+    method: 'POST',
+    body: formData,
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .finally(() => {
+      loading.close()
+    })
 }
 
 const handleShowNewProxyDrawer = () => {

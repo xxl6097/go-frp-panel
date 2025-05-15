@@ -5,12 +5,14 @@ import (
 	"github.com/fatedier/frp/pkg/config"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
+	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -24,13 +26,8 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
 	var newFilePath string
-	binpath, err := os.Executable()
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
-		res.Err(fmt.Errorf("get executable path err: %v", err))
-		return
-	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	if err = utils.DirCheck(cfgDir); err != nil {
 		res.Err(fmt.Errorf("check config dir err: %v", err))
 		return
 	}
@@ -67,7 +64,8 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			res.Err(fmt.Errorf("客户端已经存在"))
 			return
 		}
-		err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
+		//err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
+		err = frp.WriteFrpToml(cfgFilePath, body.Toml)
 		if err != nil {
 			res.Err(fmt.Errorf("write http body err: %v", err))
 			utils.Delete(cfgFilePath)
@@ -157,12 +155,13 @@ func (this *frpc) apiClientDelete(w http.ResponseWriter, r *http.Request) {
 		res.Error("cfg file path is empty")
 		return
 	}
-	binpath, err := os.Executable()
+
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
+
 	cfgFilePath := filepath.Join(cfgDir, cfgName)
 	err = os.Remove(cfgFilePath)
 	if err != nil {
@@ -185,12 +184,13 @@ func (this *frpc) apiClientStatus(w http.ResponseWriter, r *http.Request) {
 		res.Error("cfg file path is empty")
 		return
 	}
-	binpath, err := os.Executable()
+
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
+
 	cfgFilePath := filepath.Join(cfgDir, cfgName)
 	buf, err := this.statusClient(cfgFilePath)
 	if err != nil {
@@ -203,12 +203,13 @@ func (this *frpc) apiClientStatus(w http.ResponseWriter, r *http.Request) {
 func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
-	binpath, err := os.Executable()
+
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
+
 	if utils.IsDirectoryExist(cfgDir) {
 		files, err := os.ReadDir(cfgDir)
 		if err != nil {
@@ -234,25 +235,16 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frpc) getClientMainConfig() ([]byte, error) {
-	body, err := utils.ReadToml(this.cls.configFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("write http body err: %v", err)
-	}
-	return body, nil
+	//body, err := utils.ReadToml(this.cls.configFilePath)
+	//if err != nil {
+	//	return nil, fmt.Errorf("write http body err: %v", err)
+	//}
+	//return body, nil
+	return frp.ReadFrpToml(frp.GetFrpcMainTomlFileName())
 }
 
 func (this *frpc) getClientChildConfig(cfgName string) ([]byte, error) {
-	binpath, err := os.Executable()
-	if err != nil {
-		return nil, fmt.Errorf("get executable path err: %v", err)
-	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	cfgFilePath := filepath.Join(cfgDir, cfgName)
-	body, err := utils.ReadToml(cfgFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("write http body err: %v", err)
-	}
-	return body, nil
+	return frp.ReadFrpToml(cfgName)
 }
 
 func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
@@ -264,18 +256,6 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	//binpath, err := os.Executable()
-	//if err != nil {
-	//	res.Err(fmt.Errorf("get executable path err: %v", err))
-	//	return
-	//}
-	//cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	//cfgFilePath := filepath.Join(cfgDir, cfgName)
-	//body, err := utils.ReadToml(cfgFilePath)
-	//if err != nil {
-	//	res.Err(fmt.Errorf("write http body err: %v", err))
-	//	return
-	//}
 	body, err := this.getClientChildConfig(cfgName)
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
@@ -286,7 +266,8 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frpc) upgradeMainTomlContent(content string) error {
-	err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	err := frp.WriteFrpToml(this.cls.configFilePath, content)
 	if err != nil {
 		return fmt.Errorf("write http body err: %v", err)
 	}
@@ -309,18 +290,19 @@ func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	binpath, err := os.Executable()
+
+	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
 	cfgFilePath := filepath.Join(cfgDir, body.Name)
 	if !utils2.FileExists(cfgFilePath) {
 		res.Err(fmt.Errorf("客户端不存在: %v", err))
 		return
 	}
-	err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
+	//err = utils.WriteToml(cfgFilePath, []byte(body.Toml))
+	err = frp.WriteFrpToml(cfgFilePath, body.Toml)
 	if err != nil {
 		res.Err(fmt.Errorf("write http body err: %v", err))
 		return
@@ -331,4 +313,106 @@ func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res.Ok("更新成功～")
+}
+
+func (this *frpc) apiClientConfigExport(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	cfgDir, err := frp.GetFrpcTomlDir()
+	if err != nil {
+		res.Err(err)
+		return
+	}
+	var zipFilePath string
+	fileName := fmt.Sprintf("config_%s.zip", utils.GetFileNameByTime())
+	tempDir := glog.GetCrossPlatformDataDir("config")
+	zipFilePath = filepath.Join(tempDir, fileName)
+	err = utils.Zip(cfgDir, zipFilePath)
+	if err != nil {
+		res.Err(err)
+		return
+	}
+
+	defer utils2.Delete(zipFilePath, "frpc配置")
+	tpl, err := os.Open(zipFilePath)
+	if err != nil {
+		res.Err(err)
+		return
+	}
+	defer tpl.Close()
+
+	w.Header().Add("Content-Transfer-Encoding", "binary")
+	w.Header().Add("Content-Type", "application/octet-stream")
+	if stat, err := tpl.Stat(); err == nil {
+		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
+	}
+	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+
+	prevBuffer := make([]byte, 0)
+	for {
+		thisBuffer := make([]byte, 1024)
+		n, err := tpl.Read(thisBuffer)
+		thisBuffer = thisBuffer[:n]
+		tempBuffer := append(prevBuffer, thisBuffer...)
+		w.Write(tempBuffer[:len(prevBuffer)])
+		prevBuffer = tempBuffer[len(prevBuffer):]
+		if err != nil {
+			break
+		}
+	}
+	if len(prevBuffer) > 0 {
+		w.Write(prevBuffer)
+		prevBuffer = nil
+	}
+}
+func (this *frpc) apiClientConfigImport(w http.ResponseWriter, r *http.Request) {
+	res := &comm.GeneralResponse{Code: 0}
+	err := r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		res.Error("body can't be empty")
+		glog.Error(res.Msg)
+		return
+	}
+	// 获取上传的文件
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		res.Error("body no file")
+		return
+	}
+	defer file.Close()
+
+	cfgDir, err := frp.GetFrpcTomlDir()
+	if err != nil {
+		res.Err(err)
+		return
+	}
+
+	glog.Info(handler.Filename)
+	ext := strings.ToLower(filepath.Ext(handler.Filename)) // 统一转为小写
+	switch ext {
+	case ".zip":
+		dstFilePath := filepath.Join(os.TempDir(), handler.Filename)
+		dst, err := os.Create(dstFilePath)
+		if err != nil {
+			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			return
+		}
+		buf := this.upgrade.GetBuffer().Get().([]byte)
+		defer this.upgrade.GetBuffer().Put(buf)
+		_, err = io.CopyBuffer(dst, file, buf)
+		dst.Close()
+
+		if err != nil {
+			res.Error(err.Error())
+			return
+		}
+		err = utils.UnzipToRoot(dstFilePath, cfgDir, true)
+		if err == nil {
+			utils.Delete(dstFilePath, "用户文件")
+			glog.Info("解压成功", cfgDir)
+		}
+		break
+	default:
+		res.Error("file type not support")
+	}
 }
