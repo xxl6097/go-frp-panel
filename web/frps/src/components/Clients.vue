@@ -8,7 +8,7 @@
         class="custom-border-table"
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
-        <el-table-column prop="id" label="FrpID" />
+        <el-table-column prop="frpId" label="FrpID" />
         <el-table-column
           prop="secKey"
           label="会话ID"
@@ -138,7 +138,7 @@ const fetchListData = () => {
           secKey: item.secKey,
           devMac: item.devMac,
           devIp: item.devIp,
-          frpId: item.id,
+          frpId: item.frpId,
         }))
       }
     })

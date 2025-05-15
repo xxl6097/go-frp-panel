@@ -202,6 +202,30 @@ func (this *frpc) updateClient(cfgFilePath string) error {
 	cls.visitorCfg = visitorCfgs
 	return nil
 }
+
+func (this *frpc) upgradeMainConfig() error {
+	if this.cls == nil {
+		return fmt.Errorf("can't find client")
+	}
+	svr := this.cls.svr
+	if svr == nil {
+		return fmt.Errorf("can't find service")
+	}
+	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(this.cls.configFilePath, true)
+	if err != nil {
+		return fmt.Errorf("reload frpc config error: %v", err)
+	}
+	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
+		return fmt.Errorf("validate frpc proxy config error: %v", err)
+	}
+
+	if err := svr.UpdateAllConfigurer(proxyCfgs, visitorCfgs); err != nil {
+		return fmt.Errorf("update frpc proxy config error: %v", err)
+	}
+	glog.Infof("success reload conf")
+	return nil
+}
+
 func (this *frpc) getPort(i interface{}) int {
 	switch v := i.(type) {
 	case *v1.TCPProxyConfig:

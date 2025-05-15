@@ -5,13 +5,20 @@
     :close-on-press-escape="false"
     width="80%"
     v-model="showClientDialog"
-    :title="client?.devMac"
+    :title="title"
     @closed="onClosed"
   >
-    <div class="upgrade-popup-content" v-html="updateContent"></div>
+    <div class="upgrade-popup-content">
+      <el-input
+        v-model="frpcTomlContent"
+        autosize
+        placeholder="frpc configure file, can not be empty..."
+        type="textarea"
+      ></el-input>
+    </div>
     <template #footer>
-      <el-button @click="handleClose">稍后提醒</el-button>
-      <el-button type="primary" @click="handleConfirm">立即升级</el-button>
+      <el-button @click="handleClose">取消</el-button>
+      <el-button type="primary" @click="handleConfirm">下发配置</el-button>
     </template>
   </el-dialog>
 </template>
@@ -21,9 +28,12 @@ import { ref, defineExpose } from 'vue'
 import { ElButton } from 'element-plus'
 import { Client } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
+import { showLoading, showTips } from '../../utils/utils.ts'
 
 const showClientDialog = ref(false)
 const client = ref<Client>()
+const title = ref<string>()
+const frpcTomlContent = ref<string>()
 const source = ref<EventAwareSSEClient | null>()
 
 const onClosed = () => {
@@ -41,8 +51,9 @@ const openClientDetailDialog = (row: Client) => {
   connectSSE(row)
 }
 
-const connectSSE = (row: any) => {
+const connectSSE = (row: Client) => {
   try {
+    title.value = `${row?.devMac} (${row?.osType})`
     const sseUrl = `../api/client/sse?type=detail&frpId=${row.frpId}&secKey=${row.secKey}`
     console.log('connectSSE', sseUrl)
     source.value = new EventAwareSSEClient(sseUrl)
@@ -52,6 +63,10 @@ const connectSSE = (row: any) => {
     source.value.addEventListener('detail', (data) => {
       console.log('detail:', data)
       console.log('detail:', data.data)
+    })
+    source.value.addEventListener('client-info', (data) => {
+      console.log('client-info:', data)
+      frpcTomlContent.value = data
     })
     source.value.connect()
     //
@@ -76,15 +91,41 @@ const connectSSE = (row: any) => {
 defineExpose({
   openClientDialog: openClientDetailDialog,
 })
-const updateContent = ref<string>()
 
 const handleConfirm = () => {
   showClientDialog.value = false
+  upgradeFrpcToml()
 }
 
 const handleClose = () => {
   showClientDialog.value = false
   console.log('handleClose', showClientDialog.value)
+}
+
+const upgradeFrpcToml = () => {
+  const loading = showLoading('配置修改中...')
+  const data = {
+    toml: `${frpcTomlContent.value}`,
+    frpId: client.value?.frpId,
+    secKey: client.value?.secKey,
+  }
+  fetch('../api/client/config/upgrade', {
+    credentials: 'include',
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+    .then((res) => {
+      return res.json()
+    })
+    .then((json) => {
+      showTips(json.code, json.msg)
+    })
+    .catch(() => {
+      //showErrorTips('配置失败')
+    })
+    .finally(() => {
+      loading.close()
+    })
 }
 
 // checkVersion()

@@ -32,6 +32,7 @@ type ISSE interface {
 	Broadcast(SSEEvent)
 	BroadcastTo(string, SSEEvent) bool
 	BroadcastByType(string, SSEEvent) bool
+	Send(client *SSEClient, event SSEEvent) error
 	GetClientCount() int
 	GetClientIDs() []string
 	CloseClient(clientID string) bool

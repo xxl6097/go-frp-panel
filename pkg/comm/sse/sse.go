@@ -64,6 +64,13 @@ func (s *SSEServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	headers.Set("Connection", "keep-alive")
 	headers.Set("Access-Control-Allow-Origin", "*")
 
+	// 处理客户端断开连接
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
 	frpId := r.URL.Query().Get("frpId")
 	secKey := r.URL.Query().Get("secKey")
 
@@ -83,13 +90,6 @@ func (s *SSEServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		s.unregister <- client
 	}()
-
-	// 处理客户端断开连接
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
-		return
-	}
 
 	// 发送心跳包保持连接
 	ticker := time.NewTicker(15 * time.Second)
@@ -130,6 +130,41 @@ func (s *SSEServer) sendEvent(w http.ResponseWriter, event iface.SSEEvent) {
 	fmt.Fprintf(w, "data: %s\n\n", data)
 }
 
+// Send 发送事件到客户端
+func (s *SSEServer) Send(client *iface.SSEClient, event iface.SSEEvent) error {
+	//if w == nil {
+	//	return fmt.Errorf("ResponseWriter is nil")
+	//}
+	//// 处理客户端断开连接
+	//flusher, ok := w.(http.Flusher)
+	//if !ok {
+	//	return fmt.Errorf("ResponseWriter to Flusher not supported")
+	//}
+	//if flusher == nil {
+	//	return fmt.Errorf("flusher is nil")
+	//}
+	//defer flusher.Flush()
+	//data, err := json.Marshal(event)
+	//if err != nil {
+	//	fmt.Fprintf(w, "data: %s\n\n", err.Error())
+	//	return err
+	//}
+	//fmt.Fprintf(w, "data: %s\n\n", data)
+	//return nil
+
+	if client == nil {
+		return fmt.Errorf("client is nil")
+	}
+	select {
+	case client.Send <- event:
+		return nil
+	default:
+		close(client.Send)
+		delete(s.clients, client.SseId)
+		return fmt.Errorf("send fail")
+	}
+}
+
 // Start 启动服务器循环
 func (s *SSEServer) Start() {
 	go s.run()
@@ -142,7 +177,7 @@ func (s *SSEServer) run() {
 		case client := <-s.register:
 			s.mu.Lock()
 			s.clients[client.SseId] = client
-			glog.Debug("register client id:", client.SseId, s.callback)
+			glog.Debugf("register:%s,%p", client.SseId, s.callback)
 			if s.callback != nil {
 				s.callback.OnSseNewConnection(client)
 			}
@@ -179,11 +214,11 @@ func (s *SSEServer) Broadcast(event iface.SSEEvent) {
 }
 
 // BroadcastTo 向特定客户端广播事件
-func (s *SSEServer) BroadcastTo(clientID string, event iface.SSEEvent) bool {
+func (s *SSEServer) BroadcastTo(sseId string, event iface.SSEEvent) bool {
 	//s.mu.RLock()
 	//defer s.mu.RUnlock()
 
-	client, ok := s.clients[clientID]
+	client, ok := s.clients[sseId]
 	if !ok {
 		return false
 	}
@@ -193,7 +228,7 @@ func (s *SSEServer) BroadcastTo(clientID string, event iface.SSEEvent) bool {
 		return true
 	default:
 		close(client.Send)
-		delete(s.clients, clientID)
+		delete(s.clients, sseId)
 		return false
 	}
 }

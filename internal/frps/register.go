@@ -63,6 +63,7 @@ func (this *frps) webSocketHandler(helper *httppkg.RouterRegisterHelper) {
 	subRouter := helper.Router.NewRoute().Name("frpwebsocket").Subrouter()
 	subRouter.Use(helper.AuthMiddleware)
 	subRouter.HandleFunc("/frp", this.webSocketApi.HandleConnections).Methods("GET")
+	subRouter.HandleFunc("/api/client/config/upgrade", this.apiClientConfigUpgrade).Methods("POST")
 }
 
 func (this *frps) sseHandler(helper *httppkg.RouterRegisterHelper) {

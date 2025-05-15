@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/avast/retry-go/v4 v4.6.1
 	github.com/fatedier/frp v0.61.2
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/kardianos/service v1.2.2

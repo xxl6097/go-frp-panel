@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -176,14 +177,8 @@ func (c *websocketclient) reconnect() {
 	}()
 }
 
-// WSObserver 观察者接口，定义了更新方法
-type WSObserver interface {
-	onWebSocketReceiver([]byte)
-}
-
 type client struct {
-	cls       *websocketclient
-	observers []WSObserver
+	cls *websocketclient
 }
 
 var (
@@ -194,9 +189,7 @@ var (
 // GetClientInstance 返回单例实例
 func GetClientInstance() *client {
 	once.Do(func() {
-		instance = &client{
-			observers: make([]WSObserver, 0),
-		}
+		instance = &client{}
 		glog.Println("Singleton client instance created")
 	})
 	return instance
@@ -208,21 +201,20 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
+		wsid := uuid.New().String() // 生成版本4的随机UUID
 		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 		header.Set("LocalMacAddress", devInfo.MacAddress)
 		header.Set("LocalIpv4", devInfo.Ipv4)
 		header.Set("InterfaceName", devInfo.Name)
 		header.Set("DisplayName", devInfo.DisplayName)
-		header.Set("ClientID", id)
+		header.Set("FrpID", id)
+		header.Set("WebSocketID", wsid)
 	}
 	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
 	c.cls = NewWebSocketClient(baseUrl, header)
 	// 设置消息处理函数
 	c.cls.SetMessageHandler(func(message []byte) {
 		glog.Printf("收到消息: %s", string(message))
-		for _, _observer := range c.observers {
-			_observer.onWebSocketReceiver(message)
-		}
 	})
 	// 设置错误处理函数
 	c.cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
@@ -275,20 +267,18 @@ func (c *client) SendJSON(data interface{}) error {
 	}
 	return c.cls.sendMessage(websocket.TextMessage, jsonData)
 }
-
-// RegisterObserver 添加观察者
-func (s *client) RegisterObserver(observer WSObserver) {
-	s.observers = append(s.observers, observer)
-}
-
-// RemoveObserver 移除观察者
-func (s *client) RemoveObserver(observer WSObserver) {
-	for i, o := range s.observers {
-		if o == observer {
-			s.observers = append(s.observers[:i], s.observers[i+1:]...)
-			break
-		}
+func (c *client) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
+	if c.cls != nil && handler != nil {
+		c.cls.SetOpenHandler(handler)
 	}
+}
+func (c *client) SetMessageHandler(handler func([]byte)) {
+	if c.cls != nil && handler != nil {
+		c.cls.SetMessageHandler(handler)
+	}
+}
+func (c *client) GetClient() *websocketclient {
+	return c.cls
 }
 
 func Connect(baseUrl, user, pass string) {

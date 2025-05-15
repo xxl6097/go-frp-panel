@@ -233,6 +233,28 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (this *frpc) getClientMainConfig() ([]byte, error) {
+	body, err := utils.ReadToml(this.cls.configFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("write http body err: %v", err)
+	}
+	return body, nil
+}
+
+func (this *frpc) getClientChildConfig(cfgName string) ([]byte, error) {
+	binpath, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("get executable path err: %v", err)
+	}
+	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
+	cfgFilePath := filepath.Join(cfgDir, cfgName)
+	body, err := utils.ReadToml(cfgFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("write http body err: %v", err)
+	}
+	return body, nil
+}
+
 func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
@@ -242,20 +264,37 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 		glog.Error(res.Msg)
 		return
 	}
-	binpath, err := os.Executable()
+	//binpath, err := os.Executable()
+	//if err != nil {
+	//	res.Err(fmt.Errorf("get executable path err: %v", err))
+	//	return
+	//}
+	//cfgDir := filepath.Join(filepath.Dir(binpath), "config")
+	//cfgFilePath := filepath.Join(cfgDir, cfgName)
+	//body, err := utils.ReadToml(cfgFilePath)
+	//if err != nil {
+	//	res.Err(fmt.Errorf("write http body err: %v", err))
+	//	return
+	//}
+	body, err := this.getClientChildConfig(cfgName)
 	if err != nil {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
-	cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-	cfgFilePath := filepath.Join(cfgDir, cfgName)
-	body, err := utils.ReadToml(cfgFilePath)
-	if err != nil {
-		res.Err(fmt.Errorf("write http body err: %v", err))
-		return
-	}
 	//res.Raw = body
 	res.Any(string(body))
+}
+
+func (this *frpc) upgradeMainTomlContent(content string) error {
+	err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	if err != nil {
+		return fmt.Errorf("write http body err: %v", err)
+	}
+	err = this.upgradeMainConfig()
+	if err != nil {
+		return fmt.Errorf("run client err: %v", err)
+	}
+	return nil
 }
 
 func (this *frpc) apiClientConfigSet(w http.ResponseWriter, r *http.Request) {
