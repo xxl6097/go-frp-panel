@@ -136,6 +136,7 @@
                     >生成客户端
                   </el-dropdown-item>
                   <el-dropdown-item
+                    v-if="row.count > 0"
                     @click="
                       router.push({
                         path: '/user/list',

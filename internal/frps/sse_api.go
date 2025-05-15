@@ -49,7 +49,7 @@ func (this *frps) OnSseNewConnection(client *iface2.SSEClient) {
 				if err != nil {
 					glog.Errorf("Send error: %s", err)
 				} else {
-					glog.Infof("Send success %v", client.SseId)
+					//glog.Infof("Send success %v", client.SseId)
 				}
 			} else {
 				glog.Errorf("No Detail: %v", client.SseId)

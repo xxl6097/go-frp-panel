@@ -52,7 +52,7 @@ func (this *frps) recvClientInfo(sseId string, data any) {
 		if !okk {
 			glog.Errorf("Send error: %v", okk)
 		} else {
-			glog.Infof("Send success %v", sseId)
+			glog.Infof("Send success %s %v", CLIENT_INFO, sseId)
 		}
 	}
 }

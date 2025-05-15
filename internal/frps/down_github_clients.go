@@ -68,6 +68,7 @@ func (this *frps) checkFrpc() {
 	if err == nil {
 		this.githubProxys = utils.ParseMarkdownCodeToStringArray(result.Body)
 		isFrpcLatest := this.isLocalFrpcIsLatest(result.TagName, clientsDir)
+		isMacOS := utils.IsMacOs()
 		hasSpace := utils.HasDiskSpace()
 		var wg sync.WaitGroup
 		frpcUrls := make([]string, 0)
@@ -86,8 +87,8 @@ func (this *frps) checkFrpc() {
 					newUrl := fmt.Sprintf("%s%s", proxy, asset.BrowserDownloadUrl)
 					newProxy = append(newProxy, newUrl)
 				}
-				glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
-				if hasSpace && isFrpcLatest {
+				if hasSpace && isFrpcLatest && !isMacOS {
+					glog.Debug("开始下载frpc", asset.BrowserDownloadUrl)
 					go this.downloadFrpc(newProxy, clientsDir, &wg)
 				}
 			} else if strings.Contains(asset.Name, "acfrps") {

@@ -187,7 +187,7 @@ func (s *SSEServer) run() {
 			if _, ok := s.clients[client.SseId]; ok {
 				glog.Error("unregister client id:", client.SseId)
 				if s.callback != nil {
-					s.callback.OnSseNewConnection(client)
+					s.callback.OnSseDisconnect(client)
 				}
 				close(client.Send)
 				delete(s.clients, client.SseId)

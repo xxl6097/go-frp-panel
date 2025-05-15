@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path"
@@ -50,7 +49,7 @@ func ToTree(dir string, entries []string) []Option {
 			fileUri = filepath.Join(dir, name)
 		}
 		result := SplitLastTwoByUnderscore(name)
-		fmt.Printf("%-30s => %v\n", name, result)
+		//fmt.Printf("%-30s => %v\n", name, result)
 		if len(result) == 2 {
 			nodeArray := maps[result[0]]
 			if nodeArray == nil {
@@ -94,7 +93,7 @@ func GetNodes1(dir string) []Option {
 	for _, entry := range entries {
 		name := entry.Name()
 		result := SplitLastTwoByUnderscore(name)
-		fmt.Printf("%-30s => %v\n", name, result)
+		//fmt.Printf("%-30s => %v\n", name, result)
 		if len(result) == 2 {
 			nodeArray := maps[result[0]]
 			if nodeArray == nil {
