@@ -28,7 +28,12 @@ func Bootstrap() {
 		glog.Error("程序启动出错了", err)
 	}
 	if svr.wsc != nil {
-		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", utils.GetLocalIp(), svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
+		face, e := utils.GetDeviceInfo()
+		var ip string
+		if e == nil {
+			ip = face.Ipv4
+		}
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
 	}
 	//glog.Println("服务程序启动成功", os.Getegid())
 }
@@ -144,7 +149,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
+	if c.Cfg != nil && c.Cfg.Proxy != nil && c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
 		proxies = append(proxies, *c.Cfg.Proxy)
 	}
 

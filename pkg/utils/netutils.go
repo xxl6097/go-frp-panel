@@ -278,7 +278,7 @@ func GetLocalMac() string {
 		if iface.Flags&net.FlagUp != 0 && iface.HardwareAddr != nil {
 			devMac := strings.ReplaceAll(iface.HardwareAddr.String(), ":", "")
 			fmt.Println(iface.Name, ":", devMac)
-			//return devMac
+			return devMac
 		}
 	}
 	return ""
@@ -303,7 +303,7 @@ func GetLocalIp() string {
 			}
 			if ip != nil && ip.To4() != nil {
 				fmt.Println(ip)
-				//return ip.String()
+				return ip.String()
 			}
 		}
 	}

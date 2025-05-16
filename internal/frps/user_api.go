@@ -130,7 +130,7 @@ func (this *frps) apiUserAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res.Sucess("全部数据获取成功", datas)
-	glog.Infof("%+v\n", datas)
+	//glog.Infof("%+v\n", datas)
 }
 
 func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
@@ -144,13 +144,13 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	}
 	configDir := filepath.Dir(binPath)
 	configPath := filepath.Join(configDir, "clients")
-	glog.Infof("扫描路径:%s", configPath)
+	//glog.Infof("扫描路径:%s", configPath)
 	nodes := utils.GetNodes(configPath)
 	if nodes == nil || len(nodes) == 0 {
 		nodes = utils.ToTree("", this.frpcGithubDownloadUrls)
 	}
 	res.Data = nodes
-	glog.Infof("扫描结果:%v", res.Data)
+	//glog.Infof("扫描结果:%v", res.Data)
 }
 
 func (this *frps) apiClientListGet(w http.ResponseWriter, r *http.Request) {
