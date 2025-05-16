@@ -4,11 +4,11 @@ import "net/http"
 
 // SSEClient 表示一个客户端连接
 type SSEClient struct {
-	SseId     string
-	Send      chan SSEEvent
-	CloseConn chan struct{}
-	SecKey    string
-	FrpID     string
+	SseId     string        `json:"sseId,omitempty"`
+	SecKey    string        `json:"secKey,omitempty"`
+	FrpID     string        `json:"frpId,omitempty"`
+	Send      chan SSEEvent `json:"-"`
+	CloseConn chan struct{} `json:"-"`
 }
 
 // SSEEvent 表示一个SSE事件

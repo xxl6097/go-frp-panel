@@ -31,6 +31,15 @@
         <template #content>
           <div style="display: flex">
             <el-button-group class="ml-4">
+              <el-button type="warning" plain @click="handleRefrsh"
+                >刷新
+              </el-button>
+              <el-popconfirm title="确定保存配置吗？" @confirm="handleChange">
+                <template #reference>
+                  <el-button type="warning" plain>保存</el-button>
+                </template>
+              </el-popconfirm>
+
               <el-popconfirm
                 title="确定卸载客户端吗，会导致不可恢复？"
                 @confirm="handleUninstall"
@@ -45,7 +54,21 @@
                 </template>
               </el-popconfirm>
               <el-button type="info" plain @click="handleTest">测试</el-button>
-              <el-button type="primary" plain @click="handleShowNewFrpcDialog"
+              <el-popconfirm
+                title="确定删除客户端吗，会导致不可恢复？"
+                @confirm="handleDelete"
+                v-if="
+                  selectValue.label !== '' && selectValue.label !== 'frpc.toml'
+                "
+              >
+                <template #reference>
+                  <el-button type="danger" plain>删除客户端</el-button>
+                </template>
+              </el-popconfirm>
+              <el-button
+                type="primary"
+                plain
+                @click="newClientForm.showClientDialog = true"
                 >新建客户端
               </el-button>
             </el-button-group>
@@ -76,10 +99,6 @@
         </el-col>
       </el-row>
     </div>
-    <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="danger" @click="handleConfirm">下发配置</el-button>
-    </template>
   </el-dialog>
 
   <!--新建客户端-->
@@ -87,14 +106,14 @@
     <template #header><span>创建客户端</span></template>
     <template #default>
       <el-form :model="newClientForm">
-        <el-form-item label="配置文件名：" required>
+        <el-form-item label="配置文件名：" prop="label">
           <el-input
             v-model="newClientForm.data.label"
             placeholder="请输入toml配置文件名"
           />
         </el-form-item>
 
-        <el-form-item prop="toml">
+        <el-form-item prop="content">
           <el-input
             type="textarea"
             v-model="newClientForm.data.content"
@@ -107,9 +126,9 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="newClientForm.showClientDialog = false"
-          >取消</el-button
-        >
-        <el-button type="primary" @click="handleNewFrpc">确定</el-button>
+          >取消
+        </el-button>
+        <el-button type="primary" @click="handleNew">确定</el-button>
       </div>
     </template>
   </el-dialog>
@@ -120,7 +139,7 @@ import { ref, defineExpose } from 'vue'
 import { ElButton } from 'element-plus'
 import { Client } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
-import { put, showLoading, showTips } from '../../utils/utils.ts'
+import { showLoading, showMessageDialog, showTips } from '../../utils/utils.ts'
 
 export interface Option {
   label: string
@@ -158,6 +177,62 @@ const options = ref<Option[]>([
   },
 ])
 
+const connectSSE = (row: Client) => {
+  try {
+    title.value = `${row?.devMac} (${row?.osType})`
+    const sseUrl = `../api/client/sse?type=detail&frpId=${row.frpId}&secKey=${row.secKey}`
+    console.log('connectSSE', sseUrl)
+    source.value = new EventAwareSSEClient(sseUrl)
+    source.value.addEventListener('connected', (data) => {
+      addLog(JSON.stringify(data))
+    })
+    source.value.addEventListener('client-refresh', (data) => {
+      console.log('config-refresh', data)
+      addLog(JSON.stringify(data))
+      if (data) {
+        options.value = data
+        if (options.value && options.value.length > 0) {
+          const target = options.value.find(
+            (item) => item.label === 'frpc.toml',
+          )
+          if (target) {
+            selectValue.value = target
+          }
+        }
+      }
+    })
+
+    source.value.addEventListener('sse-connect', (data) => {
+      addLog(JSON.stringify(data))
+      console.log('sse-connect', data)
+      if (data && client && client.value) {
+        client.value.sseId = data.sseId
+        console.log('sse-connect client', client.value)
+      }
+    })
+    source.value.addEventListener('disconnect', (data) => {
+      addLog(JSON.stringify(data))
+      console.log('disconnect', data)
+      if (data && data.frpId === client.value?.frpId) {
+        const message = `
+<font color="red">设备已经断开，信息如下：</font>
+frpc连接ID：${client.value?.frpId}<br>
+设备MAC：${client.value?.devMac}<br>
+操作系统：${client.value?.osType}<br>
+websocketID：${client.value?.secKey}<br>
+设备IP：${client.value?.devIp}<br>
+`
+        showMessageDialog('设备警告⚠️', '确定', message)
+        showClientDialog.value = false
+      }
+    })
+    source.value.connect()
+  } catch (e) {
+    console.error('connectSSE err', e)
+    addLog(JSON.stringify(e))
+  }
+}
+
 const handleSelectChange = (value: any) => {
   console.log('handleSelectChange---->', value)
   console.log('selectValue---->', selectValue)
@@ -182,18 +257,6 @@ const handleTest = () => {
   addLog('wahahaha')
 }
 
-const handleShowNewFrpcDialog = () => {
-  addLog('handleNewFrpc')
-  newClientForm.value.showClientDialog = true
-}
-
-const handleNewFrpc = () => {
-  addLog('客户端创建中...')
-  const body = JSON.stringify(newClientForm.value.data)
-  put('客户端创建中...', '../api/client/create', body).finally(() => {
-    newClientForm.value.showClientDialog = false
-  })
-}
 const addLog = (context: string): void => {
   const newLog = `${new Date().toLocaleString()}: ${context}\r\n`
   logs.value.unshift(newLog)
@@ -204,56 +267,10 @@ const addLog = (context: string): void => {
 }
 
 const openClientDetailDialog = (row: Client) => {
+  console.log('打开对话框，row:', row)
   client.value = row
   showClientDialog.value = true
-  console.log('openClientDetailDialog', row)
   connectSSE(row)
-}
-
-const connectSSE = (row: Client) => {
-  try {
-    title.value = `${row?.devMac} (${row?.osType})`
-    const sseUrl = `../api/client/sse?type=detail&frpId=${row.frpId}&secKey=${row.secKey}`
-    console.log('connectSSE', sseUrl)
-    source.value = new EventAwareSSEClient(sseUrl)
-    source.value.addEventListener('connected', (data) => {
-      addLog(JSON.stringify(data))
-    })
-    source.value.addEventListener('detail', (data) => {
-      addLog(JSON.stringify(data))
-    })
-    source.value.addEventListener('config-list', (data) => {
-      console.log('config-list', data)
-      addLog(JSON.stringify(data))
-      options.value = data
-      if (options.value && options.value.length > 0) {
-        const target = options.value.find((item) => item.label === 'frpc.toml')
-        if (target) {
-          selectValue.value = target
-        }
-      }
-    })
-    source.value.addEventListener('client-info', (data) => {
-      addLog(JSON.stringify(data))
-    })
-    source.value.connect()
-    //
-    // console.log('connectSSE:', sseUrl)
-    // source.value = new EventSource(sseUrl)
-    // source.value.onmessage = (event) => {
-    //   console.log('收到消息:', event.data)
-    // }
-    // source.value.onopen = (e) => {
-    //   console.log('SSE连接已建立', e, source?.value?.readyState) // readyState=1表示连接正常
-    // }
-    // source.value.onerror = (e) => {
-    //   console.log('onerror received a message', e)
-    //   source.value = null
-    // }
-  } catch (e) {
-    console.error('connectSSE err', e)
-    addLog(JSON.stringify(e))
-  }
 }
 
 // 暴露方法供父组件调用
@@ -261,75 +278,54 @@ defineExpose({
   openClientDialog: openClientDetailDialog,
 })
 
-const handleConfirm = () => {
-  showClientDialog.value = false
-  upgradeFrpcToml()
-}
-
 const handleReboot = () => {
-  console.log('handleReboot', showClientDialog.value)
-  fetchApi({ cmd: 'reboot' })
+  fetchApi('client-reboot', {})
 }
 
 const handleUninstall = () => {
-  console.log('handleUninstall', showClientDialog.value)
-  fetchApi({ cmd: 'uninstall' })
+  fetchApi('client-uninstall', {})
 }
 
-const handleClose = () => {
-  showClientDialog.value = false
-  console.log('handleClose', showClientDialog.value)
+const handleNew = () => {
+  fetchApi('client-new', {
+    name: newClientForm.value.data.label,
+    content: newClientForm.value.data.content,
+  })
+  newClientForm.value.showClientDialog = false
 }
 
-const upgradeFrpcToml = () => {
-  const loading = showLoading('配置修改中...')
-  const data = {
-    name: `${selectValue.value?.label}`,
-    content: `${selectValue.value?.content}`,
+const handleDelete = () => {
+  fetchApi('client-delete', { name: selectValue.value.label })
+}
+
+const handleChange = () => {
+  fetchApi('client-change', {
+    name: selectValue.value.label,
+    content: selectValue.value.content,
+  })
+}
+
+const handleRefrsh = () => {
+  fetchApi('client-refresh', {})
+}
+
+const fetchApi = (action: string, data: any) => {
+  const body = {
+    action: action,
+    devIp: client.value?.devIp,
+    devMac: client.value?.devMac,
     frpId: client.value?.frpId,
     secKey: client.value?.secKey,
+    sseId: client.value?.sseId,
+    data: data,
   }
-  console.log('upgradeFrpcToml', data)
-  fetch('../api/client/config/upgrade', {
-    credentials: 'include',
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
-    .then((res) => {
-      return res.json()
-    })
-    .then((json) => {
-      showTips(json.code, json.msg)
-    })
-    .catch(() => {
-      //showErrorTips('配置失败')
-    })
-    .finally(() => {
-      loading.close()
-    })
-}
-
-// const fetchListData = () => {
-//   fetch('../api/client/list', { credentials: 'include' })
-//     .then((res) => {
-//       return res.json()
-//     })
-//     .then((json) => {
-//       console.log('list', json)
-//       if (json.code === 0) {
-//         options.value = json.data
-//       }
-//     })
-// }
-
-const fetchApi = (data: any) => {
-  data.frpId = client.value?.frpId
-  data.secKey = client.value?.secKey
+  console.log('client', client.value)
   const loading = showLoading('请求中...')
+  console.log('fetchApi', body)
   fetch('../api/client/cmd', {
     credentials: 'include',
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   })
     .then((res) => {
       return res.json()

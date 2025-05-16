@@ -29,54 +29,31 @@ func (this *frps) OnSseNewConnection(client *iface2.SSEClient) {
 		}
 	} else if strings.HasPrefix(client.SseId, ws.CLIENT_DETAIL) {
 		//详情
-		if this.webSocketApi != nil && this.sseApi != nil {
-			//this.getClientInfo(client)
-			this.getConfigs(client)
-			detail := this.webSocketApi.GetDetail(client.FrpID, client.SecKey)
-			if detail != nil {
-				eve := iface2.SSEEvent{
-					Event: ws.CLIENT_DETAIL,
-					Payload: map[string]interface{}{
-						"id":   client.SseId,
-						"data": detail,
-					},
-				}
-				err := this.sseApi.Send(client, eve)
-				if err != nil {
-					glog.Errorf("Send error: %s", err)
-				} else {
-					//glog.Infof("Send success %v", client.SseId)
-				}
+		if this.sseApi != nil {
+			this.clientRefresh(client)
+			eve := iface2.SSEEvent{
+				Event:   ws.SSE_CONNECT,
+				Payload: client,
+			}
+			glog.Debugf("---->%+v", client)
+			err := this.sseApi.Send(client, eve)
+			if err != nil {
+				glog.Errorf("Send error: %s", err)
 			} else {
-				glog.Errorf("No Detail: %v", client.SseId)
+				//glog.Infof("Send success %v", client.SseId)
 			}
 		}
 
 	}
 }
 
-func (this *frps) getClientInfo(client *iface2.SSEClient) {
-	if this.webSocketApi != nil {
+func (this *frps) clientRefresh(client *iface2.SSEClient) {
+	if this.webSocketApi != nil && client != nil {
 		msg := iface2.Message[any]{
-			Action: ws.CLIENT_INFO,
+			Action: ws.CLIENT_REFRESH,
 			SseID:  client.SseId,
-		}
-		b, e := json.Marshal(msg)
-		if e != nil {
-			glog.Errorf("getClientInfo error: %v", e)
-			return
-		}
-		e = this.webSocketApi.SendByKey(client.FrpID, client.SecKey, websocket.TextMessage, b)
-		if e != nil {
-			glog.Errorf("getClientInfo error: %v", e)
-		}
-	}
-}
-func (this *frps) getConfigs(client *iface2.SSEClient) {
-	if this.webSocketApi != nil {
-		msg := iface2.Message[any]{
-			Action: ws.CONFIG_LIST,
-			SseID:  client.SseId,
+			SecKey: client.SecKey,
+			FrpId:  client.FrpID,
 		}
 		b, e := json.Marshal(msg)
 		if e != nil {

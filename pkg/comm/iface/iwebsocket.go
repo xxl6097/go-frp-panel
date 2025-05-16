@@ -20,6 +20,8 @@ type Message[T any] struct {
 	DevMac string `json:"devMac"`
 	SseID  string `json:"sseId"`
 	DevIp  string `json:"devIp"`
+	FrpId  string `json:"frpId"`
+	SecKey string `json:"secKey"`
 	Data   T      `json:"data"`
 }
 

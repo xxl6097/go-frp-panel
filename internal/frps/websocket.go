@@ -8,28 +8,32 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"io"
 	"net/http"
 )
 
 func (this *frps) OnServerWebSocketMessageReceive(messageType int, payload []byte) {
 	if payload != nil {
+		glog.Debugf("ws msg %s", string(payload))
 		var msg iface2.Message[any]
 		err := json.Unmarshal(payload, &msg)
 		if err != nil {
 			glog.Error(err)
 			return
 		}
-		glog.Debugf("OnServerWebSocketMessageReceive:%+v", msg)
-		switch msg.Action {
-		case ws.CLIENT_INFO, ws.CONFIG_LIST:
-			this.recvClientInfo(msg.SseID, msg.Action, msg.Data)
-			break
-		}
+		//glog.Debugf("ws recv:%+v", msg)
+		this.recvClientInfo(msg.SseID, msg.Action, msg.Data)
 	}
 }
 
 func (this *frps) OnServerWebSocketDisconnect(session *iface2.WSSession) {
+	if this.sseApi != nil {
+		eve := iface2.SSEEvent{
+			Event:   ws.DISCONNECT,
+			Payload: session,
+		}
+		this.sseApi.Broadcast(eve)
+	}
 }
 
 func (this *frps) OnServerWebSocketNewConnection(session *iface2.WSSession) {
@@ -40,18 +44,6 @@ func (this *frps) recvClientInfo(sseId, event string, data any) {
 		glog.Error("data is nil")
 		return
 	}
-	//body, ok := data.(string)
-	//if !ok {
-	//	glog.Error("data is not string")
-	//	return
-	//}
-
-	//switch v := data.(type) {
-	//case string:
-	//	fmt.Printf("Received an TCPProxyConfig.RemotePort: %d\n", v.RemotePort)
-	//default:
-	//	fmt.Println()
-	//}
 	if this.sseApi != nil {
 		eve := iface2.SSEEvent{
 			Event:   event,
@@ -59,59 +51,9 @@ func (this *frps) recvClientInfo(sseId, event string, data any) {
 		}
 		okk := this.sseApi.BroadcastTo(sseId, eve)
 		if !okk {
-			glog.Errorf("Send error: %v", okk)
+			glog.Errorf("Send error: %s sseId:%v", event, sseId)
 		} else {
-			glog.Infof("Send success %s %v", ws.CLIENT_INFO, sseId)
-		}
-	}
-}
-
-func (this *frps) apiClientConfigUpgrade(w http.ResponseWriter, r *http.Request) {
-	res, f := comm.Response(r)
-	defer f(w)
-	body, err := utils.GetDataByJson[struct {
-		Name    string `json:"name"`
-		Content string `json:"content"`
-		FrpId   string `json:"frpId"`
-		SecKey  string `json:"secKey"`
-	}](r)
-	if err != nil {
-		glog.Error("解析Json对象失败", err)
-		return
-	}
-	if body == nil {
-		msg := "json对象nil"
-		glog.Error(msg)
-		http.Error(w, "json对象nil", http.StatusInternalServerError)
-		return
-	}
-	glog.Debugf("body:%+v", body)
-	if this.webSocketApi == nil {
-		res.Error(fmt.Sprintf("webSocketApi is nil"))
-	}
-
-	type Option struct {
-		Label   string `json:"label"`
-		Content string `json:"content"`
-	}
-	if this.webSocketApi != nil {
-		msg := iface2.Message[Option]{
-			Action: ws.TOML_UPGRADE,
-			Data: Option{
-				Label:   body.Name,
-				Content: body.Content,
-			},
-		}
-		b, e := json.Marshal(msg)
-		if e != nil {
-			glog.Errorf("getClientInfo error: %v", e)
-			return
-		}
-		e = this.webSocketApi.SendByKey(body.FrpId, body.SecKey, websocket.TextMessage, b)
-		if e != nil {
-			glog.Errorf("getClientInfo error: %v", e)
-		} else {
-			glog.Infof("Send success %v", body.FrpId)
+			glog.Infof("Send success %s %v", event, sseId)
 		}
 	}
 }
@@ -119,43 +61,104 @@ func (this *frps) apiClientConfigUpgrade(w http.ResponseWriter, r *http.Request)
 func (this *frps) apiClientCMD(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
-	body, err := utils.GetDataByJson[struct {
-		Cmd    string `json:"cmd"`
-		FrpId  string `json:"frpId"`
-		SecKey string `json:"secKey"`
-	}](r)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		glog.Error("body读取失败", err)
+		res.Err(err)
+		return
+	}
+	if body == nil {
+		msg := "body is nil"
+		glog.Error(msg)
+		res.Err(fmt.Errorf(msg))
+		return
+	}
+	var msg iface2.Message[any]
+	err = json.Unmarshal(body, &msg)
 	if err != nil {
 		glog.Error("解析Json对象失败", err)
 		res.Err(err)
 		return
 	}
-	if body == nil {
-		msg := "json对象nil"
-		glog.Error(msg)
-		res.Err(fmt.Errorf(msg))
-		return
-	}
-	glog.Debugf("body:%+v", body)
+	glog.Debugf("body:%s", string(body))
 	if this.webSocketApi == nil {
 		res.Error(fmt.Sprintf("webSocketApi is nil"))
 		return
 	}
-
-	msg := iface2.Message[string]{
-		Action: body.Cmd,
-	}
-	b, e := json.Marshal(msg)
-	if e != nil {
-		glog.Errorf("apiClientCMD error: %v", e)
-		res.Err(e)
-		return
-	}
-	e = this.webSocketApi.SendByKey(body.FrpId, body.SecKey, websocket.TextMessage, b)
+	e := this.webSocketApi.SendByKey(msg.FrpId, msg.SecKey, websocket.TextMessage, body)
 	if e != nil {
 		glog.Errorf("apiClientCMD error: %v", e)
 		res.Err(e)
 	} else {
-		glog.Infof("Send success %v", body.FrpId)
+		glog.Infof("Send success %v", msg.FrpId)
 		res.Ok("执行成功～")
 	}
 }
+
+//func (this *frps) apiClientCreate(w http.ResponseWriter, r *http.Request) {
+//	res, f := comm.Response(r)
+//	defer f(w)
+//
+//	body, err := utils.GetDataByJson[struct {
+//		Label   string `json:"label"`
+//		Content string `json:"content"`
+//		FrpId   string `json:"frpId"`
+//		SecKey  string `json:"secKey"`
+//		SseId   string `json:"sseId"`
+//	}](r)
+//	if err != nil {
+//		res.Err(err)
+//		glog.Error(res.Msg)
+//		return
+//	}
+//	if body == nil {
+//		res.Error("body is empty")
+//		glog.Error(res.Msg)
+//		return
+//	}
+//	if body.Label == "" {
+//		res.Error("名称不能为空～")
+//		glog.Error(res.Msg)
+//		return
+//	}
+//	if body.Content == "" {
+//		res.Error("toml配置空")
+//		glog.Error(res.Msg)
+//		return
+//	}
+//
+//	if filepath.Ext(body.Label) != ".toml" {
+//		body.Label = fmt.Sprintf("%s.toml", body.Label)
+//	}
+//
+//	if this.webSocketApi == nil {
+//		res.Error(fmt.Sprintf("webSocketApi is nil"))
+//	}
+//
+//	type Option struct {
+//		Label   string `json:"label"`
+//		Content string `json:"content"`
+//	}
+//	if this.webSocketApi != nil {
+//		msg := iface2.Message[Option]{
+//			Action: ws.CLIENT_NEW,
+//			Data: Option{
+//				Label:   body.Label,
+//				Content: body.Content,
+//			},
+//		}
+//		b, e := json.Marshal(msg)
+//		if e != nil {
+//			glog.Errorf("getClientInfo error: %v", e)
+//			return
+//		}
+//		e = this.webSocketApi.SendByKey(body.FrpId, body.SecKey, websocket.TextMessage, b)
+//		if e != nil {
+//			glog.Errorf("getClientInfo error: %v", e)
+//		} else {
+//			glog.Infof("Send success %v", body.FrpId)
+//			// 请求一次客户端列表
+//			this.getConfigs(body.SseId, body.FrpId, body.SecKey)
+//		}
+//	}
+//}

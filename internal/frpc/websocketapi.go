@@ -2,6 +2,7 @@ package frpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
@@ -11,28 +12,21 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func (this *frpc) onWebSocketMessageHandle(data []byte) {
 	if data != nil {
+		//glog.Debugf("recv:%+v", string(data))
 		var msg iface.Message[any]
 		err := json.Unmarshal(data, &msg)
 		if err != nil {
 			glog.Error(err)
 			return
 		}
-		glog.Debugf("msg:%+v", msg)
+		glog.Debugf("recv msg:%+v", msg)
 		switch msg.Action {
-		case ws.CLIENT_INFO:
-			this.getClientInfo(msg.SseID)
-			break
-		case ws.CONFIG_LIST:
-			this.getConfigs(msg.SseID)
-			break
-		case ws.TOML_UPGRADE:
-			this.recvTomlUpgrade(msg.Data)
-			break
-		case ws.REBOOT:
+		case ws.CLIENT_REBOOT:
 			if this.install == nil {
 				return
 			}
@@ -41,7 +35,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 				glog.Error(err)
 			}
 			break
-		case ws.UNINSTALL:
+		case ws.CLIENT_UNINSTALL:
 			if this.install == nil {
 				return
 			}
@@ -49,6 +43,10 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			if err != nil {
 				glog.Error(err)
 			}
+			break
+		default:
+			//glog.Debugf("msg:%+v", msg)
+			this.recvClientEvent(&msg)
 			break
 		}
 	}
@@ -58,77 +56,118 @@ func (this *frpc) onWebSocketOpenHandle(conn *websocket.Conn, response *http.Res
 	glog.Debugf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
 }
 
-func (this *frpc) getClientInfo(sseId string) {
-	body, err := this.getClientMainConfig()
-	if err != nil {
-		glog.Error(err)
+func (this *frpc) recvClientEvent(msg *iface.Message[any]) {
+	if msg == nil {
+		glog.Error("msg is nil")
 		return
 	}
-	msg := iface.Message[string]{
-		Action: ws.CLIENT_INFO,
-		Data:   string(body),
-		SseID:  sseId,
+	defer this.clientRefresh(msg)
+	data := msg.Data
+	if data == nil {
+		glog.Error("data is nil")
+		return
 	}
-	err = ws.GetClientInstance().SendJSON(msg)
-	if err != nil {
-		glog.Error(err)
-	} else {
-		glog.Debug("getClientInfo sucess")
-	}
-}
-
-func (this *frpc) recvTomlUpgrade(data any) {
 	body, ok := data.(map[string]interface{})
 	if !ok {
-		glog.Error("data is not Toml")
+		glog.Errorf("body is err, the value is %+v", data)
 		return
 	}
-	err := this.upgradeTomlContent(body["label"].(string), body["content"].(string))
-	if err != nil {
-		glog.Error(err)
-		return
+	switch msg.Action {
+	case ws.CLIENT_NEW:
+		if body["content"] != nil && body["name"] != nil {
+			err := this.clientNew(body["name"].(string), body["content"].(string))
+			if err != nil {
+				glog.Error(err)
+				return
+			}
+			glog.Debug("new sucess")
+		}
+		break
+	case ws.CLIENT_DELETE:
+		if body["name"] != nil {
+			err := this.clientDelete(body["name"].(string))
+			if err != nil {
+				glog.Error(err)
+				return
+			}
+			glog.Debug("delete sucess")
+		}
+		break
+	case ws.CLIENT_CHANGE:
+		if body["content"] != nil && body["name"] != nil {
+			err := this.upgradeTomlContent(body["name"].(string), body["content"].(string))
+			if err != nil {
+				glog.Error(err)
+				return
+			}
+			glog.Debug("change sucess")
+		}
+		break
 	}
-	glog.Debug("ConfigUpgrade sucess")
+
 }
 
-func (this *frpc) getConfigs(sseId string) {
+func (this *frpc) getClientConfigs() (any, error) {
 	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		glog.Error(err)
-		return
+		return nil, err
 	}
 	files, err := os.ReadDir(cfgDir)
 	if err != nil {
 		glog.Error(err)
-		return
+		return nil, err
 	}
+
+	glog.Debugf("files %+v", files)
 	type Option struct {
 		Label   string `json:"label"`
 		Value   string `json:"value"`
 		Content string `json:"content"`
 	}
+
 	var list []Option
-	for _, file := range files {
-		fileName := file.Name()
-		buffer, e := utils.Read(filepath.Join(cfgDir, fileName))
-		if e == nil {
-			item := Option{
-				Label:   fileName,
-				Value:   fileName,
-				Content: string(buffer),
+	for _, f := range files {
+		ext := strings.ToLower(filepath.Ext(f.Name()))
+		if !f.IsDir() && ext == ".toml" {
+			buffer, e := utils.Read(filepath.Join(cfgDir, f.Name()))
+			if e == nil {
+				list = append(list, Option{
+					Label:   f.Name(),
+					Value:   f.Name(),
+					Content: string(buffer),
+				})
 			}
-			list = append(list, item)
+
 		}
 	}
-	msg := iface.Message[[]Option]{
-		Action: ws.CONFIG_LIST,
-		Data:   list,
-		SseID:  sseId,
+	return list, nil
+}
+
+func (this *frpc) clientRefresh(obj *iface.Message[any]) {
+	if obj == nil {
+		glog.Error("obj is nil")
 	}
-	err = ws.GetClientInstance().SendJSON(msg)
+	data, err := this.getClientConfigs()
 	if err != nil {
 		glog.Error(err)
 	} else {
-		glog.Debugf("getClients sucess")
+		obj.Data = data
 	}
+	obj.Action = ws.CLIENT_REFRESH
+	_ = this.sendMessageToWebSocketServer(obj)
+}
+
+func (this *frpc) sendMessageToWebSocketServer(obj *iface.Message[any]) error {
+	if obj == nil {
+		return fmt.Errorf("obj is nil")
+	}
+	//glog.Debugf("send %+v", *obj)
+	err := ws.GetClientInstance().SendJSON(obj)
+	if err != nil {
+		glog.Error(err)
+	} else {
+		glog.Debugf("send sucess")
+	}
+	return err
 }

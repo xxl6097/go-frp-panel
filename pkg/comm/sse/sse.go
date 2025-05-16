@@ -96,7 +96,10 @@ func (s *SSEServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ticker.Stop()
 
 	// 发送初始连接确认
-	s.sendEvent(w, iface.SSEEvent{Event: "connected", Payload: map[string]string{"client_id": client.SseId}})
+	//s.sendEvent(w, iface.SSEEvent{
+	//	Event: ws.SSE_CONNECT,
+	//	Payload: iface.Message[]{}
+	//})
 	flusher.Flush()
 
 	// 监听客户端发送通道和关闭信号
@@ -132,26 +135,6 @@ func (s *SSEServer) sendEvent(w http.ResponseWriter, event iface.SSEEvent) {
 
 // Send 发送事件到客户端
 func (s *SSEServer) Send(client *iface.SSEClient, event iface.SSEEvent) error {
-	//if w == nil {
-	//	return fmt.Errorf("ResponseWriter is nil")
-	//}
-	//// 处理客户端断开连接
-	//flusher, ok := w.(http.Flusher)
-	//if !ok {
-	//	return fmt.Errorf("ResponseWriter to Flusher not supported")
-	//}
-	//if flusher == nil {
-	//	return fmt.Errorf("flusher is nil")
-	//}
-	//defer flusher.Flush()
-	//data, err := json.Marshal(event)
-	//if err != nil {
-	//	fmt.Fprintf(w, "data: %s\n\n", err.Error())
-	//	return err
-	//}
-	//fmt.Fprintf(w, "data: %s\n\n", data)
-	//return nil
-
 	if client == nil {
 		return fmt.Errorf("client is nil")
 	}

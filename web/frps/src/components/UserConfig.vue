@@ -86,24 +86,28 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
         class="custom-border-table"
+        :border="true"
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
         <el-table-column type="selection" width="55" />
+        <el-table-column type="expand">
+          <template #default="props">
+            <div m="4">
+              <p m="t-0 b-2">Frp连接ID: {{ props.row.id }}</p>
+              <p m="t-0 b-2">Frp连接凭证: {{ props.row.token }}</p>
+              <p m="t-0 b-2">允许端口: {{ props.row.ports }}</p>
+              <p m="t-0 b-2">允许域名: {{ props.row.domains }}</p>
+              <p m="t-0 b-2">允许子域名: {{ props.row.subdomains }}</p>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="comment" label="备注" />
         <el-table-column prop="user" label="名称" />
-        <el-table-column prop="id" label="ID" />
-        <el-table-column
-          prop="token"
-          label="凭证"
-          width="150"
-          :show-overflow-tooltip="true"
-        />
-        <el-table-column prop="ports" label="允许端口" />
-        <el-table-column prop="domains" label="允许域名" />
-        <el-table-column prop="subdomains" label="允许子域名" />
-        <el-table-column prop="count" label="数量">
+        <el-table-column prop="count" label="数量" width="100">
           <template #default="{ row }">
-            {{ row.count }}
+            <el-text size="large" v-if="row.count > 0" class="mx-1" type="danger">{{
+              row.count
+            }}</el-text>
           </template>
         </el-table-column>
         <el-table-column prop="enable" label="状态">
@@ -113,41 +117,52 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column label="操作" width="400">
           <template #default="{ row }">
-            <el-dropdown
-              :type="row.enable ? 'danger' : 'success'"
-              size="small"
-              placement="bottom"
-              split-button
-              plain
-              @click="showDialog('ToggleStatus', row)"
-            >
-              {{ row.enable ? '禁用' : '启用' }}
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="showDialog('update', row)"
-                    >编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="handleDelete(row)"
-                    >删除
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="handleClientDialog(row)"
-                    >生成客户端
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="row.count > 0"
-                    @click="
-                      router.push({
-                        path: '/user/list',
-                        query: { frpId: row.id },
-                      })
-                    "
-                    >查看客户端
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button-group class="ml-4">
+              <el-button
+                plain
+                :type="row.enable ? 'danger' : 'success'"
+                @click="showDialog('ToggleStatus', row)"
+                size="small"
+              >
+                {{ row.enable ? '禁用' : '启用' }}
+              </el-button>
+              <el-button
+                type="primary"
+                plain
+                @click="showDialog('update', row)"
+                size="small"
+                >编辑
+              </el-button>
+              <el-button
+                type="primary"
+                plain
+                @click="handleDelete(row)"
+                size="small"
+                >删除
+              </el-button>
+              <el-button
+                type="primary"
+                plain
+                @click="handleClientDialog(row)"
+                size="small"
+                >生成客户端
+              </el-button>
+              <el-button
+                type="primary"
+                plain
+                size="small"
+                v-if="row.count > 0"
+                @click="
+                  router.push({
+                    path: '/user/list',
+                    query: { frpId: row.id },
+                  })
+                "
+                >查看客户端
+              </el-button>
+            </el-button-group>
           </template>
         </el-table-column>
       </el-table>

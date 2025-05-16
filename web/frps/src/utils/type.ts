@@ -28,6 +28,7 @@ export interface Client {
   devMac: string
   devIp: string
   frpId: string
+  sseId: string
 }
 
 export interface Option {

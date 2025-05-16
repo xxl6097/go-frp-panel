@@ -36,7 +36,7 @@ func (this *frpc) runMultipleClients(cfgDir string) {
 			return nil
 		}
 		time.Sleep(time.Millisecond)
-		err = this.runClient(path)
+		err = this.newClient(path)
 		if err != nil {
 			glog.Errorf("创建客户端【%s】失败:%v", d.Name(), err)
 		} else {
@@ -115,7 +115,7 @@ func (this *frpc) startService(
 
 func (this *frpc) deleteClient(cfgFilePath string) error {
 	name := path.Base(cfgFilePath)
-	glog.Debug("delete frpc", name)
+	glog.Debug("delete", name)
 	cls := this.svrs[name]
 	if cls == nil {
 		return fmt.Errorf("can't find client")
@@ -257,7 +257,7 @@ func (this *frpc) getTcpProxyArray(name string) []int {
 	return nil
 }
 
-func (this *frpc) runClient(cfgFilePath string) error {
+func (this *frpc) newClient(cfgFilePath string) error {
 	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)
 	if err != nil {
 		return err

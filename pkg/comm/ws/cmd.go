@@ -1,12 +1,14 @@
 package ws
 
 var (
-	CLIENT_LIST       = "list"
-	CLIENT_DETAIL     = "detail"
-	CLIENT_INFO       = "client-info"
-	CONFIG_LIST       = "config-list"
-	MAIN_TOML_UPGRADE = "mainTomlUpgrade"
-	TOML_UPGRADE      = "TomlUpgrade"
-	REBOOT            = "reboot"
-	UNINSTALL         = "uninstall"
+	CLIENT_LIST      = "list"
+	CLIENT_DETAIL    = "detail"
+	SSE_CONNECT      = "sse-connect"
+	CLIENT_NEW       = "client-new"
+	CLIENT_DELETE    = "client-delete"
+	CLIENT_CHANGE    = "client-change"
+	CLIENT_REFRESH   = "client-refresh"
+	CLIENT_REBOOT    = "client-reboot"
+	CLIENT_UNINSTALL = "client-uninstall"
+	DISCONNECT       = "disconnect"
 )

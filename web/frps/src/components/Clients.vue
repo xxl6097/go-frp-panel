@@ -5,19 +5,23 @@
       <el-table
         :data="paginatedTableData"
         style="width: 100%"
-        class="custom-border-table"
+        :border="true"
+        :preserve-expanded-content="true"
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
-        <el-table-column prop="frpId" label="FrpID" />
-        <el-table-column
-          prop="secKey"
-          label="会话ID"
-          width="150"
-          :show-overflow-tooltip="true"
-        />
-        <el-table-column prop="osType" label="操作系统" />
+        <el-table-column type="expand">
+          <template #default="props">
+            <div m="4">
+              <p m="t-0 b-2">Frp连接ID: {{ props.row.frpId }}</p>
+              <p m="t-0 b-2">操作系统: {{ props.row.osType }}</p>
+              <p m="t-0 b-2">设备Mac地址: {{ props.row.devMac }}</p>
+              <p m="t-0 b-2">设备IP地址: {{ props.row.devIp }}</p>
+              <p m="t-0 b-2">客户端websocket连接ID: {{ props.row.secKey }}</p>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="frpId" label="Frp连接ID" />
         <el-table-column prop="devMac" label="设备Mac" />
-        <el-table-column prop="devIp" label="设备IP" />
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button
@@ -98,7 +102,6 @@ const handleGoToDetail = (row: Client) => {
     clientDetailDialogRef.value.openClientDialog(row)
   }
 }
-
 // 响应式布局相关
 const mobileLayout = ref(false)
 const checkMobile = () => {
@@ -180,6 +183,7 @@ fetchListData()
 </script>
 
 <style scoped>
+
 .custom-border-table {
   border: 1px solid var(--el-border-color);
   transform: translateZ(0);

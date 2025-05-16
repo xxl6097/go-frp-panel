@@ -55,9 +55,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if filepath.Ext(body.Name) != ".toml" {
-			res.Error("文件必须是toml后缀～")
-			glog.Error(res.Msg)
-			return
+			body.Name = fmt.Sprintf("%s.toml", body.Name)
 		}
 		cfgFilePath := filepath.Join(cfgDir, body.Name)
 		if utils2.FileExists(cfgFilePath) {
@@ -87,12 +85,11 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
+		var fileName string = handler.Filename
 		if filepath.Ext(handler.Filename) != ".toml" {
-			res.Error("文件必须是toml后缀～")
-			glog.Error(res.Msg)
-			return
+			fileName = fmt.Sprintf("%s.toml", handler.Filename)
 		}
-		dstFilePath := filepath.Join(cfgDir, handler.Filename)
+		dstFilePath := filepath.Join(cfgDir, fileName)
 		if utils2.FileExists(dstFilePath) {
 			res.Err(fmt.Errorf("客户端已经存在"))
 			return
@@ -100,7 +97,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		//dstFilePath 名称为上传文件的原始名称
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
-			res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+			res.Error(fmt.Sprintf("create file %s error: %v", fileName, err))
 			utils.Delete(dstFilePath)
 			return
 		}
@@ -129,13 +126,13 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//err = retry.Do(func() error {
-		//	e := this.runClient(newFilePath)
+		//	e := this.newClient(newFilePath)
 		//	if e != nil {
 		//		glog.Errorf("创建frpc客户端失败: %s %v\n", newFilePath, e)
 		//	}
 		//	return e
 		//}, retry.Delay(time.Second*5), retry.Attempts(10))
-		err = this.runClient(newFilePath)
+		err = this.newClient(newFilePath)
 		glog.Error(err)
 		if err != nil {
 			res.Err(err)
@@ -278,8 +275,47 @@ func (this *frpc) upgradeMainTomlContent(content string) error {
 	return nil
 }
 
+func (this *frpc) clientNew(name, content string) error {
+	if filepath.Ext(name) != ".toml" {
+		name = fmt.Sprintf("%s.toml", name)
+	}
+	cfgPath, err := frp.GetFrpcTomlPath(name)
+	if err != nil {
+		return fmt.Errorf("get executable path err: %v", err)
+	}
+	err = frp.WriteFrpToml(cfgPath, content)
+	if err != nil {
+		return fmt.Errorf("write http body err: %v", err)
+	}
+	glog.Infof("create config file: %s", cfgPath)
+	err = this.newClient(cfgPath)
+	if err != nil {
+		return fmt.Errorf("run client err: %v", err)
+	}
+	return nil
+}
+
+func (this *frpc) clientDelete(name string) error {
+	if filepath.Ext(name) != ".toml" {
+		name = fmt.Sprintf("%s.toml", name)
+	}
+	cfgPath, err := frp.GetFrpcTomlPath(name)
+	if err != nil {
+		return fmt.Errorf("get executable path err: %v", err)
+	}
+	glog.Infof("delete config file: %s", cfgPath)
+	err = this.deleteClient(cfgPath)
+	if err != nil {
+		return fmt.Errorf("run client err: %v", err)
+	}
+	return nil
+}
+
 func (this *frpc) upgradeTomlContent(name, content string) error {
 	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	if filepath.Ext(name) != ".toml" {
+		name = fmt.Sprintf("%s.toml", name)
+	}
 	cfgPath, err := frp.GetFrpcTomlPath(name)
 	if err != nil {
 		return fmt.Errorf("get executable path err: %v", err)
