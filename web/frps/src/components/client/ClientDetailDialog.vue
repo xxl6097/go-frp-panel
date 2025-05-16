@@ -169,13 +169,7 @@ const selectValue = ref<Option>({
   value: '',
   content: '',
 })
-const options = ref<Option[]>([
-  {
-    label: 'test',
-    value: 'test',
-    content: 'hello world',
-  },
-])
+const options = ref<Option[]>([])
 
 const connectSSE = (row: Client) => {
   try {
