@@ -45,6 +45,9 @@
                 </template>
               </el-popconfirm>
               <el-button type="info" plain @click="handleTest">测试</el-button>
+              <el-button type="primary" plain @click="handleShowNewFrpcDialog"
+                >新建客户端
+              </el-button>
             </el-button-group>
           </div>
         </template>
@@ -78,6 +81,38 @@
       <el-button type="danger" @click="handleConfirm">下发配置</el-button>
     </template>
   </el-dialog>
+
+  <!--新建客户端-->
+  <el-dialog v-model="newClientForm.showClientDialog" width="700">
+    <template #header><span>创建客户端</span></template>
+    <template #default>
+      <el-form :model="newClientForm">
+        <el-form-item label="配置文件名：" required>
+          <el-input
+            v-model="newClientForm.data.label"
+            placeholder="请输入toml配置文件名"
+          />
+        </el-form-item>
+
+        <el-form-item prop="toml">
+          <el-input
+            type="textarea"
+            v-model="newClientForm.data.content"
+            rows="13"
+            placeholder="请在此输入toml格式配置内容"
+          />
+        </el-form-item>
+      </el-form>
+    </template>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="newClientForm.showClientDialog = false"
+          >取消</el-button
+        >
+        <el-button type="primary" @click="handleNewFrpc">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -85,12 +120,17 @@ import { ref, defineExpose } from 'vue'
 import { ElButton } from 'element-plus'
 import { Client } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
-import { showLoading, showTips } from '../../utils/utils.ts'
+import { put, showLoading, showTips } from '../../utils/utils.ts'
 
 export interface Option {
   label: string
   value: string
   content: string
+}
+
+interface NewOption {
+  showClientDialog: boolean
+  data: Option
 }
 
 const logContainer = ref<HTMLDivElement | null>(null)
@@ -99,6 +139,11 @@ const showClientDialog = ref(false)
 const client = ref<Client>()
 const title = ref<string>()
 const source = ref<EventAwareSSEClient | null>()
+
+const newClientForm = ref<NewOption>({
+  showClientDialog: false,
+  data: { label: '', value: '', content: '' },
+})
 
 const selectValue = ref<Option>({
   label: '',
@@ -135,6 +180,19 @@ const onClosed = () => {
 
 const handleTest = () => {
   addLog('wahahaha')
+}
+
+const handleShowNewFrpcDialog = () => {
+  addLog('handleNewFrpc')
+  newClientForm.value.showClientDialog = true
+}
+
+const handleNewFrpc = () => {
+  addLog('客户端创建中...')
+  const body = JSON.stringify(newClientForm.value.data)
+  put('客户端创建中...', '../api/client/create', body).finally(() => {
+    newClientForm.value.showClientDialog = false
+  })
 }
 const addLog = (context: string): void => {
   const newLog = `${new Date().toLocaleString()}: ${context}\r\n`
