@@ -8,6 +8,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
+	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice"
@@ -149,7 +150,7 @@ func (this *Service) menu() *frpc.CfgModel {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if c.Cfg != nil && c.Cfg.Proxy != nil && c.Cfg.Proxy.GetBaseConfig().LocalPort != 0 && c.Cfg.Proxy.GetBaseConfig().LocalIP != "" {
+	if c.Cfg != nil && c.Cfg.Proxy != nil && comm.HasProxyes(c.Cfg.Proxy) {
 		proxies = append(proxies, *c.Cfg.Proxy)
 	}
 

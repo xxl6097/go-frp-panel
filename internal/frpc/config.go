@@ -37,7 +37,7 @@ func load() error {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if c.Proxy != nil && c.Proxy.GetBaseConfig().LocalPort != 0 && c.Proxy.GetBaseConfig().LocalIP != "" {
+	if c.Proxy != nil && comm.HasProxyes(c.Proxy) {
 		proxies = append(proxies, *c.Proxy)
 	}
 	cfgData = &CfgModel{
@@ -109,7 +109,7 @@ func TestLoadBuffer(buffer []byte) error {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if c.Proxy != nil && c.Proxy.GetBaseConfig().LocalPort != 0 && c.Proxy.GetBaseConfig().LocalIP != "" {
+	if c.Proxy != nil && comm.HasProxyes(c.Proxy) {
 		proxies = append(proxies, *c.Proxy)
 	}
 	cfgData = &CfgModel{

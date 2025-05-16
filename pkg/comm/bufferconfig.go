@@ -62,3 +62,46 @@ func (u *BufferConfig) ParsePorts() []int {
 	}
 	return ports
 }
+
+func HasProxyes(p *v1.TypedProxyConfig) bool {
+	if p == nil {
+		return false
+	}
+	pc := p.ProxyConfigurer
+	if pc == nil {
+		return false
+	}
+	switch v := pc.(type) {
+	case *v1.TCPProxyConfig:
+		if v == nil {
+			return false
+		}
+		if v.RemotePort == 0 {
+			return false
+		}
+	case *v1.UDPProxyConfig:
+		if v == nil {
+			return false
+		}
+		if v.RemotePort == 0 {
+			return false
+		}
+	}
+	bc := pc.GetBaseConfig()
+	if bc == nil {
+		return false
+	}
+	if bc.Name == "" {
+		return false
+	}
+	if bc.Type == "" {
+		return false
+	}
+	if bc.LocalIP == "" {
+		return false
+	}
+	if bc.LocalPort == 0 {
+		return false
+	}
+	return true
+}

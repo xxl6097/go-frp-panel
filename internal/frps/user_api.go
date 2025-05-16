@@ -719,7 +719,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var proxies []v1.TypedProxyConfig
-	if body.Proxy != nil && body.Proxy.GetBaseConfig().LocalPort != 0 && body.Proxy.GetBaseConfig().LocalIP != "" {
+	if body.Proxy != nil && comm2.HasProxyes(body.Proxy) {
 		proxies = append(proxies, *body.Proxy)
 	}
 
