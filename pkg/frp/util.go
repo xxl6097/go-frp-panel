@@ -58,11 +58,15 @@ func WriteFrpcMainConfig(data any) error {
 }
 
 func WriteFrpcMainConfigWithDir(dir string, data any) error {
-	err := utils.MakeDir(dir)
+	cfgDir, err := GetFrpcTomlDirByDir(dir)
+	if err != nil {
+		return err
+	}
+	err = utils.MakeDir(dir)
 	if err != nil {
 		return fmt.Errorf("make dir err: %v", err)
 	}
-	cfgPath := filepath.Join(dir, GetFrpcMainTomlFileName())
+	cfgPath := filepath.Join(cfgDir, GetFrpcMainTomlFileName())
 	fmt.Println(cfgPath)
 	return WriteFrpToml(cfgPath, data)
 }
