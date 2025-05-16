@@ -22,7 +22,7 @@
           <template #default="{ row }">
             <el-button
               size="small"
-              type="danger"
+              type="success"
               plain
               @click="handleGoToDetail(row)"
               >查看

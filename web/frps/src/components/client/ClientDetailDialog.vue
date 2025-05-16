@@ -115,7 +115,14 @@ const options = ref<Option[]>([
 
 const handleSelectChange = (value: any) => {
   console.log('handleSelectChange---->', value)
-  console.log('selectValue---->', selectValue.value)
+  console.log('selectValue---->', selectValue)
+  if (!value || value === '') {
+    selectValue.value = {
+      label: '',
+      value: '',
+      content: '',
+    }
+  }
 }
 
 const onClosed = () => {
@@ -161,6 +168,12 @@ const connectSSE = (row: Client) => {
       console.log('config-list', data)
       addLog(JSON.stringify(data))
       options.value = data
+      if (options.value && options.value.length > 0) {
+        const target = options.value.find((item) => item.label === 'frpc.toml')
+        if (target) {
+          selectValue.value = target
+        }
+      }
     })
     source.value.addEventListener('client-info', (data) => {
       addLog(JSON.stringify(data))
