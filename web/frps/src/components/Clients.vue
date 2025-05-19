@@ -151,6 +151,7 @@ const fetchListData = () => {
           devIp: item.devIp,
           frpId: item.frpId,
           appVersion: item.appVersion,
+          devName: item.devName,
         }))
       }
     })
