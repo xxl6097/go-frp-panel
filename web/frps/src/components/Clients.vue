@@ -12,6 +12,7 @@
         <el-table-column type="expand">
           <template #default="props">
             <div m="4">
+              <p m="t-0 b-2">设备名称: {{ props.row.hostName }}</p>
               <p m="t-0 b-2">版本号: {{ props.row.appVersion }}</p>
               <p m="t-0 b-2">Frp连接ID: {{ props.row.frpId }}</p>
               <p m="t-0 b-2">操作系统: {{ props.row.osType }}</p>
@@ -21,6 +22,7 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column prop="hostName" label="设备名称" />
         <el-table-column prop="frpId" label="Frp连接ID" />
         <el-table-column prop="appVersion" label="版本号" />
         <el-table-column prop="devMac" label="设备Mac" />

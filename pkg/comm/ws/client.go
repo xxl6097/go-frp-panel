@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"math"
 	"net/http"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -203,7 +204,11 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
 		wsid := uuid.New().String() // 生成版本4的随机UUID
-
+		hostname, e := os.Hostname()
+		if e == nil {
+			fmt.Println("获取失败:", err)
+			header.Set("HostName", hostname)
+		}
 		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 		header.Set("LocalMacAddress", devInfo.MacAddress)
 		header.Set("AppVersion", pkg.AppVersion)

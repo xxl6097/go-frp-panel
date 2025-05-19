@@ -29,6 +29,7 @@ export interface Client {
   devIp: string
   frpId: string
   sseId: string
+  hostName: string
   appVersion: string
 }
 

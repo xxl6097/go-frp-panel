@@ -119,6 +119,7 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	//	//	fmt.Printf("Value: %s\n", v)
 	//	//}
 	//}
+	hostName := r.Header.Get("HostName")
 	appVersion := r.Header.Get("AppVersion")
 	osType := r.Header.Get("OsType")
 	id := r.Header.Get("FrpID")
@@ -150,7 +151,7 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 		}
 		delete(childMap, secKey)
 	}()
-	session := iface.WSSession{Conn: ws, SecKey: secKey, DevMac: localMacAddress, DevIp: localIpv4, FrpID: id, OsType: osType, AppVersion: appVersion}
+	session := iface.WSSession{Conn: ws, SecKey: secKey, DevMac: localMacAddress, DevIp: localIpv4, FrpID: id, OsType: osType, AppVersion: appVersion, HostName: hostName}
 	if childMap == nil {
 		childMap = make(map[string]*iface.WSSession)
 		childMap[secKey] = &session
