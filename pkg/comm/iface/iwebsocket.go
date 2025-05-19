@@ -13,7 +13,7 @@ type WSSession struct {
 	DevIp      string          `json:"devIp"`
 	FrpID      string          `json:"frpId"`
 	AppVersion string          `json:"appVersion"`
-	HostName   string          `json:"hostName"`
+	DevName    string          `json:"devName"`
 }
 
 // Message 发送JSON消息

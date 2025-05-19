@@ -206,8 +206,8 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 		wsid := uuid.New().String() // 生成版本4的随机UUID
 		hostname, e := os.Hostname()
 		if e == nil {
-			fmt.Println("获取失败:", err)
-			header.Set("HostName", hostname)
+			header.Set("DevName", hostname)
+			glog.Debug("DevName", hostname)
 		}
 		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 		header.Set("LocalMacAddress", devInfo.MacAddress)
