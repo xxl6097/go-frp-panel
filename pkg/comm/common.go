@@ -96,6 +96,7 @@ func (this *commapi) ApiUpdate1(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Client disconnected", ctx.Err())
 	}
 }
+
 func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
@@ -127,11 +128,11 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		urls := strings.Split(newFilePath, ",")
 
 		updir := utils.GetUpgradeDir()
-		total, used, free, err := util.GetDiskUsage(updir)
-		glog.Printf("Current Working Directory: %s\n", updir)
-		glog.Printf("Total space: %d bytes %v\n", total, utils2.ByteCountIEC(total))
-		glog.Printf("Used space: %d bytes %v\n\n", used, utils2.ByteCountIEC(used))
-		glog.Printf("Free space: %d bytes %v\n\n", free, utils2.ByteCountIEC(free))
+		_, _, free, err := util.GetDiskUsage(updir)
+		//glog.Printf("Current Working Directory: %s\n", updir)
+		//glog.Printf("Total space: %d bytes %v\n", total, utils2.ByteCountIEC(total))
+		//glog.Printf("Used space: %d bytes %v\n\n", used, utils2.ByteCountIEC(used))
+		//glog.Printf("Free space: %d bytes %v\n\n", free, utils2.ByteCountIEC(free))
 
 		if free < utils2.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
 			urls = []string{urls[0]}

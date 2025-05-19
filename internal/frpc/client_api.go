@@ -1,12 +1,15 @@
 package frpc
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/gservice/gore/util"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"net/http"
@@ -14,6 +17,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (this *frpc) apiUploadCreate(w http.ResponseWriter, r *http.Request) {
@@ -468,4 +472,61 @@ func (this *frpc) apiClientConfigImport(w http.ResponseWriter, r *http.Request) 
 	default:
 		res.Error("file type not support")
 	}
+}
+
+func (this *frpc) update(url string) error {
+	baseUrl := this.getUpgradeUrl(url)
+	if baseUrl == "" {
+		return errors.New("upgrade url is empty")
+	}
+	return this.Upgrade(context.Background(), baseUrl)
+}
+
+func (this *frpc) getUpgradeUrl(url string) string {
+	glog.Debugf("upgrade by url: %s", url)
+	urls := strings.Split(url, ",")
+	updir := utils2.GetUpgradeDir()
+	_, _, free, _ := util.GetDiskUsage(updir)
+
+	if free < utils.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
+		urls = []string{urls[0]}
+		if err := utils.ClearTmpDir(); err != nil {
+			fmt.Println("/tmp清空失败:", err)
+		} else {
+			fmt.Println("/tmp清空完成")
+		}
+	}
+
+	newUrl := utils2.DownloadFileWithCancelByUrls(urls)
+	return newUrl
+}
+func (this *frpc) Upgrade(ctx context.Context, newFilePath string) error {
+	if newFilePath == "" {
+		return fmt.Errorf("newFilePath is empty")
+	}
+	glog.Debugf("开始升级 %s", newFilePath)
+	var ch chan error
+	go func(ch chan<- error) {
+		err := this.install.Upgrade(ctx, newFilePath)
+		glog.Debug("---->升级", err)
+		if err != nil {
+			err = fmt.Errorf("更新失败～%v", err)
+		}
+		time.Sleep(time.Second)
+		ch <- err
+	}(ch)
+
+	select {
+	case <-ctx.Done():
+		glog.Error("请求断开", newFilePath)
+		break
+	case err := <-ch:
+		glog.Error("升级成功", err, newFilePath)
+		if err != nil {
+			return fmt.Errorf("更新失败～%v", err)
+		} else {
+			return nil
+		}
+	}
+	return nil
 }

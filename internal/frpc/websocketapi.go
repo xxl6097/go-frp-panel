@@ -24,7 +24,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			glog.Error(err)
 			return
 		}
-		glog.Debugf("recv msg:%+v", msg)
+		glog.Debugf("recv msg %+v", msg)
 		switch msg.Action {
 		case ws.CLIENT_REBOOT:
 			if this.install == nil {
@@ -44,8 +44,34 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 				glog.Error(err)
 			}
 			break
+		case ws.CLIENT_VERSION_CHECK:
+			args := utils.CheckVersionFromGithub()
+			msg.Data = args
+			_ = this.sendMessageToWebSocketServer(&msg)
+			break
+		case ws.CLIENT_VERSION_UPGRADE:
+			body, ok := msg.Data.(map[string]interface{})
+			if ok {
+				glog.Infof("upgrade %+v", body)
+				d := body["data"]
+				if d == nil {
+					glog.Errorf("data is nil %+v", msg.Data)
+					break
+				}
+				v, okk := d.([]interface{})
+				if !okk {
+					glog.Infof("upgrade %+v", d)
+					break
+				}
+				err = this.update(v[0].(string))
+				if err != nil {
+					glog.Error(err)
+				}
+			} else {
+				glog.Errorf("upgrade err %+v", msg.Data)
+			}
+			break
 		default:
-			//glog.Debugf("msg:%+v", msg)
 			this.recvClientEvent(&msg)
 			break
 		}

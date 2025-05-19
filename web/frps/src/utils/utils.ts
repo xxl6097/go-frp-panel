@@ -1,5 +1,5 @@
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
-import { EventAwareSSEClient } from "./sseclient.ts";
+import { EventAwareSSEClient } from './sseclient.ts'
 
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
@@ -208,6 +208,25 @@ export function showWarmDialog(title: string, ok: any, cancel: any) {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
+  })
+    .then(() => {
+      ok()
+    })
+    .catch(() => {
+      cancel()
+    })
+}
+
+export function showDialog(
+  title: string,
+  message: string,
+  ok: any,
+  cancel: any,
+) {
+  ElMessageBox.confirm(title, markdownToHtml(message), {
+    confirmButtonText: '确定',
+    dangerouslyUseHTMLString: true,
+    type: 'success',
   })
     .then(() => {
       ok()

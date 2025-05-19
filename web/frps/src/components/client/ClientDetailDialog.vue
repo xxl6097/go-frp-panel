@@ -53,7 +53,9 @@
                   <el-button type="warning" plain>重启</el-button>
                 </template>
               </el-popconfirm>
-              <el-button type="info" plain @click="handleTest">清空日志</el-button>
+              <el-button type="info" plain @click="handleTest"
+                >清空日志
+              </el-button>
               <el-popconfirm
                 title="确定删除客户端吗，会导致不可恢复？"
                 @confirm="handleDelete"
@@ -70,6 +72,9 @@
                 plain
                 @click="newClientForm.showClientDialog = true"
                 >新建客户端
+              </el-button>
+              <el-button type="warning" plain @click="handleCheckVersion"
+                >版本检测
               </el-button>
             </el-button-group>
           </div>
@@ -220,6 +225,17 @@ websocketID：${client.value?.secKey}<br>
         showClientDialog.value = false
       }
     })
+
+    source.value.addEventListener('client-version-check', (data) => {
+      console.log('client-version-check', data)
+      addLog(JSON.stringify(data))
+      if (data && data.length >= 2) {
+        showMessageDialog('发现新版本', '升级', data[0]).then(() => {
+          console.log('ok', data)
+          handleConfirmUpgrade(data)
+        })
+      }
+    })
     source.value.connect()
   } catch (e) {
     console.error('connectSSE err', e)
@@ -289,6 +305,10 @@ const handleNew = () => {
   newClientForm.value.showClientDialog = false
 }
 
+const handleConfirmUpgrade = (data: any) => {
+  fetchApi('client-version-upgrade', { data: data })
+}
+
 const handleDelete = () => {
   fetchApi('client-delete', { name: selectValue.value.label })
 }
@@ -302,6 +322,9 @@ const handleChange = () => {
 
 const handleRefrsh = () => {
   fetchApi('client-refresh', {})
+}
+const handleCheckVersion = () => {
+  fetchApi('client-version-check', {})
 }
 
 const fetchApi = (action: string, data: any) => {
