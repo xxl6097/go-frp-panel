@@ -21,6 +21,7 @@ import (
 	"github.com/xxl6097/go-service/gservice/gore"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 )
@@ -45,11 +46,6 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 	if err != nil {
 		return nil, err
 	}
-	//cfgFilePath := filepath.Join(filepath.Dir(baseDir), frp.GetFrpcMainTomlFileName())
-	//if !utils2.FileExists(cfgFilePath) {
-	//	return nil, fmt.Errorf("config file %s not exists", cfgFilePath)
-	//}
-
 	cfgFilePath, err := frp.GetFrpcMainTomlFilePath()
 	if err != nil {
 		return nil, err
@@ -117,7 +113,10 @@ func NewFrpc(i gore.IGService) (*frpc, error) {
 		return nil, fmt.Errorf("can't find webServer")
 	}
 	webServer.RouteRegister(this.adminHandlers)
+
 	go this.runMultipleClients(cfgDir)
+	name := path.Base(cfgFilePath)
+	this.svrs[name] = this.cls
 	return this, nil
 }
 

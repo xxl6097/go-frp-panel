@@ -53,7 +53,7 @@
                   <el-button type="warning" plain>重启</el-button>
                 </template>
               </el-popconfirm>
-              <el-button type="info" plain @click="handleTest">测试</el-button>
+              <el-button type="info" plain @click="handleTest">清空日志</el-button>
               <el-popconfirm
                 title="确定删除客户端吗，会导致不可恢复？"
                 @confirm="handleDelete"
@@ -249,6 +249,7 @@ const onClosed = () => {
 
 const handleTest = () => {
   addLog('wahahaha')
+  logs.value = []
 }
 
 const addLog = (context: string): void => {

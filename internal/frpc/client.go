@@ -181,7 +181,7 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 
 func (this *frpc) updateClient(cfgFilePath string) error {
 	name := path.Base(cfgFilePath)
-	glog.Debug("update clilent", name)
+	glog.Debug("update clilent", cfgFilePath)
 	cls := this.svrs[name]
 	if cls == nil {
 		return fmt.Errorf("can't find client [%+v]", this.svrs)

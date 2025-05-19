@@ -152,7 +152,6 @@ func (this *frpc) clientRefresh(obj *iface.Message[any]) {
 		glog.Error(err)
 	} else {
 		obj.Data = data
-		glog.Debug("getClientConfigs %+v", data)
 	}
 	obj.Action = ws.CLIENT_REFRESH
 	_ = this.sendMessageToWebSocketServer(obj)
@@ -167,7 +166,7 @@ func (this *frpc) sendMessageToWebSocketServer(obj *iface.Message[any]) error {
 	if err != nil {
 		glog.Error(err)
 	} else {
-		glog.Debugf("send sucess %+v", *obj)
+		glog.Debugf("send sucess %+v %+v %+v", obj.Action, obj.SseID, obj.DevIp)
 	}
 	return err
 }
