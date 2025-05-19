@@ -209,6 +209,8 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 		header.Set("DisplayName", devInfo.DisplayName)
 		header.Set("FrpID", id)
 		header.Set("WebSocketID", wsid)
+	} else {
+		glog.Error("获取设备信息失败", err)
 	}
 	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
 	c.cls = NewWebSocketClient(baseUrl, header)
