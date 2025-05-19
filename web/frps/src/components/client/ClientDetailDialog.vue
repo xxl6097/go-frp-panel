@@ -178,7 +178,7 @@ const options = ref<Option[]>([])
 
 const connectSSE = (row: Client) => {
   try {
-    title.value = `${row?.devMac} (${row?.osType})`
+    title.value = `${row?.devMac} ${row?.osType} ${row?.appVersion} `
     const sseUrl = `../api/client/sse?type=detail&frpId=${row.frpId}&secKey=${row.secKey}`
     console.log('connectSSE', sseUrl)
     source.value = new EventAwareSSEClient(sseUrl)
