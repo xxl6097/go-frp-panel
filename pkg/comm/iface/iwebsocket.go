@@ -6,12 +6,13 @@ import (
 )
 
 type WSSession struct {
-	Conn   *websocket.Conn `json:"-"`
-	OsType string          `json:"osType"`
-	SecKey string          `json:"secKey"`
-	DevMac string          `json:"devMac"`
-	DevIp  string          `json:"devIp"`
-	FrpID  string          `json:"frpId"`
+	Conn       *websocket.Conn `json:"-"`
+	OsType     string          `json:"osType"`
+	SecKey     string          `json:"secKey"`
+	DevMac     string          `json:"devMac"`
+	DevIp      string          `json:"devIp"`
+	FrpID      string          `json:"frpId"`
+	AppVersion string          `json:"appVersion"`
 }
 
 // Message 发送JSON消息

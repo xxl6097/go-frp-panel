@@ -12,6 +12,7 @@
         <el-table-column type="expand">
           <template #default="props">
             <div m="4">
+              <p m="t-0 b-2">版本号: {{ props.row.appVersion }}</p>
               <p m="t-0 b-2">Frp连接ID: {{ props.row.frpId }}</p>
               <p m="t-0 b-2">操作系统: {{ props.row.osType }}</p>
               <p m="t-0 b-2">设备Mac地址: {{ props.row.devMac }}</p>
@@ -21,6 +22,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="frpId" label="Frp连接ID" />
+        <el-table-column prop="appVersion" label="版本号" />
         <el-table-column prop="devMac" label="设备Mac" />
         <el-table-column label="操作">
           <template #default="{ row }">
@@ -146,6 +148,7 @@ const fetchListData = () => {
           devMac: item.devMac,
           devIp: item.devIp,
           frpId: item.frpId,
+          appVersion: item.appVersion,
         }))
       }
     })
@@ -183,7 +186,6 @@ fetchListData()
 </script>
 
 <style scoped>
-
 .custom-border-table {
   border: 1px solid var(--el-border-color);
   transform: translateZ(0);

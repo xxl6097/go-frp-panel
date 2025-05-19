@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"math"
 	"net/http"
@@ -202,8 +203,10 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
 		wsid := uuid.New().String() // 生成版本4的随机UUID
+
 		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 		header.Set("LocalMacAddress", devInfo.MacAddress)
+		header.Set("AppVersion", pkg.AppVersion)
 		header.Set("LocalIpv4", devInfo.Ipv4)
 		header.Set("InterfaceName", devInfo.Name)
 		header.Set("DisplayName", devInfo.DisplayName)

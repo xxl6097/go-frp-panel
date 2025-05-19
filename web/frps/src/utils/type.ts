@@ -29,6 +29,7 @@ export interface Client {
   devIp: string
   frpId: string
   sseId: string
+  appVersion: string
 }
 
 export interface Option {
