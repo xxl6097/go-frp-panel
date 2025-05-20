@@ -204,7 +204,8 @@ func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
 			glog.Errorf("bind port [%s] err %v", bindPort, e)
 			return
 		}
-		bindPort = strconv.Itoa(n)
+		//bindPort = strconv.Itoa(n)
+		port = n
 		glog.Debugf("bind port [%s] %v", bindPort, e)
 	}
 	data := map[string]interface{}{
@@ -217,5 +218,5 @@ func (this *frps) apiEnv(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
 	name := r.URL.Query().Get("name")
-	res.Raw = []byte(fmt.Sprintf("%s=%s", name, os.Getenv(name)))
+	res.Raw = []byte(fmt.Sprintf("%s：%s", name, os.Getenv(name)))
 }
