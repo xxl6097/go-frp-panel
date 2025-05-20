@@ -137,7 +137,12 @@ func (this *frps) Close() {
 }
 
 func (this *frps) Run() {
-	fmt.Printf("Run: http://127.0.0.1:%d\n", this.cfg.WebServer.Port)
+	inet, _ := utils.GetDeviceInfo()
+	ipaddr := fmt.Sprintf("http://localhost")
+	if inet.Ipv4 != "" {
+		ipaddr = fmt.Sprintf("http://%s", inet.Ipv4)
+	}
+	fmt.Printf("Frps Admin %s:%d\n", ipaddr, this.cfg.WebServer.Port)
 	this.svr.Run(context.Background())
 }
 
