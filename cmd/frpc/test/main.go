@@ -7,6 +7,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
+	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
 )
 
 func main() {
@@ -69,7 +70,7 @@ func main() {
 
 	//fmt.Println(cfgPath)
 	//fmt.Println(string(utils.ObjectToTomlText(cfg)))
-	cls, err := frpc.NewFrpc(nil)
+	cls, err := frpc2.NewFrpc(nil)
 	if err != nil {
 		panic(err)
 	}

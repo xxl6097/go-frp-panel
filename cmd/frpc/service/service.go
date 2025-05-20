@@ -10,6 +10,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
+	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice"
 	"github.com/xxl6097/go-service/gservice/gore"
@@ -60,7 +61,8 @@ func (this *Service) OnRun(i gore.IGService) error {
 	if cfg == nil {
 		return fmt.Errorf("程序配置文件未初始化")
 	}
-	svv, err := frpc.NewFrpc(i)
+	//svv, err := frpc.NewFrpc(i)
+	svv, err := frpc2.NewFrpc(i)
 	if err != nil {
 		glog.Error("启动frpc失败", err)
 		glog.Printf("启动frp_%s失败\n", pkg.AppVersion)

@@ -12,7 +12,6 @@ import (
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatedier/frp/pkg/util/system"
 	"github.com/xxl6097/glog/glog"
-	_ "github.com/xxl6097/go-frp-panel/assets/frpc"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
@@ -41,7 +40,7 @@ type frpc struct {
 	svrs      map[string]*frpClient
 }
 
-func NewFrpc(i gore.IGService) (*frpc, error) {
+func New(i gore.IGService) (iface.IFrpc, error) {
 	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		return nil, err
