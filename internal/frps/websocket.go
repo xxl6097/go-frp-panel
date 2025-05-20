@@ -42,7 +42,7 @@ func (this *frps) OnServerWebSocketNewConnection(session *iface2.WSSession) {
 func (this *frps) recvClientInfo(sseId, event string, data any) {
 	if data == nil {
 		glog.Error("data is nil")
-		return
+		//return
 	}
 	if this.sseApi != nil {
 		eve := iface2.SSEEvent{

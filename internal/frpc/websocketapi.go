@@ -48,6 +48,9 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 		case ws.CLIENT_VERSION_CHECK:
 			args := utils.CheckVersionFromGithub()
 			msg.Data = args
+			if args == nil {
+				msg.Data = "已经是最新版本～"
+			}
 			_ = this.sendMessageToWebSocketServer(&msg)
 			break
 		case ws.CLIENT_VERSION_UPGRADE:

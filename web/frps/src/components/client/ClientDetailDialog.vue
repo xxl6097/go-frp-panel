@@ -144,7 +144,12 @@ import { ref, defineExpose } from 'vue'
 import { ElButton } from 'element-plus'
 import { Client } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
-import { showLoading, showMessageDialog, showTips } from '../../utils/utils.ts'
+import {
+  showLoading,
+  showMessageDialog,
+  showSucessTips,
+  showTips,
+} from '../../utils/utils.ts'
 
 export interface Option {
   label: string
@@ -239,6 +244,8 @@ websocketID：${client.value?.secKey}<br>
           console.log('发现新版本', data)
           handleConfirmUpgrade(data)
         })
+      } else {
+        showSucessTips('已经是最新版～')
       }
     })
 
