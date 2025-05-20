@@ -201,6 +201,7 @@ func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
 		n, e := strconv.Atoi(bindPort)
 		if e == nil {
 			bindPort = strconv.Itoa(n)
+			glog.Debugf("bind port [%s] %v", bindPort, e)
 		}
 	}
 	data := map[string]interface{}{

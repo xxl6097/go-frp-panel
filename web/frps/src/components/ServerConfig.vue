@@ -1,13 +1,14 @@
 <template>
   <div>
-    <el-row id="head">
+    <el-row id="head" style="margin-left: 8px">
       <el-button type="primary" @click="fetchData">刷新数据</el-button>
       <el-button type="primary" @click="uploadConfig">更新配置</el-button>
     </el-row>
     <el-input
+      style="margin-left: 8px"
       v-model="textarea"
       autosize
-      placeholder="frpc configure file, can not be empty..."
+      placeholder="frps configure file, can not be empty..."
       type="textarea"
     ></el-input>
   </div>
