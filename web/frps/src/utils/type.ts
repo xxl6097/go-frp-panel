@@ -20,6 +20,11 @@ export interface Version {
   totalSize: string
   usedSize: string
   freeSize: string
+  netDisplayName: string
+  macAddress: string
+  netName: string
+  hostName: string
+  ipv4: string
 }
 
 export interface FrpcConfiguration {

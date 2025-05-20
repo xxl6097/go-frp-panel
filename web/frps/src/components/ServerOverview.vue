@@ -20,6 +20,15 @@
             <el-form-item label="编译环境">
               <span class="single-line">{{ version?.goVersion }}</span>
             </el-form-item>
+            <el-form-item label="IP地址">
+              <span class="single-line">{{ version?.ipv4 }}</span>
+            </el-form-item>
+            <el-form-item label="网口">
+              <span class="single-line">{{ version?.netName }}</span>
+            </el-form-item>
+            <el-form-item label="Mac地址">
+              <span class="single-line">{{ version?.macAddress }}</span>
+            </el-form-item>
             <el-form-item label="操作系统">
               <span class="single-line"
                 >{{ version?.osType }}/{{ version?.arch }}</span
