@@ -354,9 +354,10 @@ func (c *Client) SendJSON(data interface{}) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range c.clients {
+	for k, v := range c.clients {
 		if v != nil {
 			err = v.sendMessage(websocket.TextMessage, jsonData)
+			glog.Debugf("sendMessage %s %v", k, err)
 		}
 	}
 	return err
