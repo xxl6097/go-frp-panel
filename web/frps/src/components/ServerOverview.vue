@@ -21,15 +21,26 @@
               <span class="single-line">{{ version?.goVersion }}</span>
             </el-form-item>
             <el-form-item label="IP地址">
-              <span class="single-line">{{ version?.ipv4 }}</span>
+              <el-tooltip
+                :content="version?.network?.ipAddresses"
+                placement="bottom"
+                effect="light"
+                ><span class="single-line">{{
+                  version?.network?.ipv4
+                }}</span></el-tooltip
+              >
             </el-form-item>
             <el-form-item label="网口">
               <span class="single-line"
-                >{{ version?.netName }}/{{ version?.netDisplayName }}</span
+                >{{ version?.network?.name }}/{{
+                  version?.network?.displayName
+                }}</span
               >
             </el-form-item>
             <el-form-item label="Mac地址">
-              <span class="single-line">{{ version?.macAddress }}</span>
+              <span class="single-line">{{
+                version?.network?.macAddress
+              }}</span>
             </el-form-item>
             <el-form-item label="操作系统">
               <span class="single-line"

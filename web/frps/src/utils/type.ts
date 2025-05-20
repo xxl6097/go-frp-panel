@@ -1,3 +1,10 @@
+export interface NetWork {
+  name: string
+  displayName: string
+  macAddress: string
+  ipv4: string
+  ipAddresses: string[]
+}
 // 定义类型化的注入键
 export interface Version {
   frpcVersion: string
@@ -20,11 +27,8 @@ export interface Version {
   totalSize: string
   usedSize: string
   freeSize: string
-  netDisplayName: string
-  macAddress: string
-  netName: string
   hostName: string
-  ipv4: string
+  network: NetWork
 }
 
 export interface FrpcConfiguration {
