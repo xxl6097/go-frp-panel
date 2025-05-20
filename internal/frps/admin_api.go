@@ -199,10 +199,13 @@ func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
 	bindPort := os.Getenv("BIND_PORT")
 	if bindPort != "" {
 		n, e := strconv.Atoi(bindPort)
-		if e == nil {
-			bindPort = strconv.Itoa(n)
-			glog.Debugf("bind port [%s] %v", bindPort, e)
+		if e != nil {
+			res.Error(e.Error())
+			glog.Errorf("bind port [%s] err %v", bindPort, e)
+			return
 		}
+		bindPort = strconv.Itoa(n)
+		glog.Debugf("bind port [%s] %v", bindPort, e)
 	}
 	data := map[string]interface{}{
 		"bindPort": port,
