@@ -245,12 +245,12 @@ func (c *Client) NewClient(id, serverAddress, authorization string) {
 	// 设置重连配置
 	cls.SetReconnectConfig(5*time.Second, math.MaxInt)
 
+	c.clients[serverAddress] = cls
 	go func() {
 		// 连接到服务器
 		if err := cls.Connect(); err != nil {
 			glog.Errorf("连接失败: %v", err)
 		}
-		c.clients[serverAddress] = cls
 	}()
 }
 
