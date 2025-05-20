@@ -96,9 +96,11 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 	if cfgModel.Cfg != nil {
 		this.cfgBuffer = cfgModel.Cfg
 	}
-	ws.GetClientInstance().Init(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
+	//ws.GetClientInstance().Init(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
+	ws.GetClientInstance().NewClient(cfg.User, cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
 	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
 	ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
+
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	if shouldGracefulClose {
 		go this.handleTermSignal(svr)

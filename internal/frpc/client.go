@@ -12,6 +12,7 @@ import (
 	"github.com/fatedier/frp/pkg/config/v1/validation"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
@@ -90,6 +91,11 @@ func (this *frpc) startService(
 		configFilePath: cfgFile,
 	}
 	glog.Debug("创建frpc客户端", name)
+
+	ws.GetClientInstance().NewClient(cfg.User, cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
+	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
+	ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
+
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	// Capture the exit signal if we use kcp or quic.
 	if shouldGracefulClose {

@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-// websocketclient WebSocket客户端结构体
-type websocketclient struct {
+// Websocketclient WebSocket客户端结构体
+type Websocketclient struct {
 	conn           *websocket.Conn // WebSocket连接
 	header         *http.Header
 	url            string                                // 服务器地址
@@ -33,8 +33,8 @@ type websocketclient struct {
 }
 
 // NewWebSocketClient 创建WebSocket客户端实例
-func NewWebSocketClient(url string, header *http.Header) *websocketclient {
-	return &websocketclient{
+func NewWebSocketClient(url string, header *http.Header) *Websocketclient {
+	return &Websocketclient{
 		url:            url,
 		reconnectDelay: 5 * time.Second,
 		maxReconnects:  10,
@@ -43,32 +43,32 @@ func NewWebSocketClient(url string, header *http.Header) *websocketclient {
 }
 
 // SetReconnectConfig 设置重连配置
-func (c *websocketclient) SetReconnectConfig(delay time.Duration, maxReconnects int) {
+func (c *Websocketclient) SetReconnectConfig(delay time.Duration, maxReconnects int) {
 	c.reconnectDelay = delay
 	c.maxReconnects = maxReconnects
 }
 
-func (c *websocketclient) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
+func (c *Websocketclient) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
 	c.openHandler = handler
 }
 
 // SetMessageHandler 设置消息处理回调
-func (c *websocketclient) SetMessageHandler(handler func([]byte)) {
+func (c *Websocketclient) SetMessageHandler(handler func([]byte)) {
 	c.messageHandler = handler
 }
 
 // SetErrorHandler 设置错误处理回调
-func (c *websocketclient) SetErrorHandler(handler func(error)) {
+func (c *Websocketclient) SetErrorHandler(handler func(error)) {
 	c.errorHandler = handler
 }
 
 // SetCloseHandler 设置关闭处理回调
-func (c *websocketclient) SetCloseHandler(handler func(int, string)) {
+func (c *Websocketclient) SetCloseHandler(handler func(int, string)) {
 	c.closeHandler = handler
 }
 
 // Connect 连接到WebSocket服务器
-func (c *websocketclient) Connect() error {
+func (c *Websocketclient) Connect() error {
 	var reconnects int
 
 	for {
@@ -96,7 +96,7 @@ func (c *websocketclient) Connect() error {
 }
 
 // Close 关闭WebSocket连接
-func (c *websocketclient) Close() error {
+func (c *Websocketclient) Close() error {
 	if !c.isConnected || c.conn == nil {
 		return nil
 	}
@@ -106,12 +106,12 @@ func (c *websocketclient) Close() error {
 }
 
 // SendText 发送文本消息
-func (c *websocketclient) SendText(message string) error {
+func (c *Websocketclient) SendText(message string) error {
 	return c.sendMessage(websocket.TextMessage, []byte(message))
 }
 
 // SendJSON 发送JSON消息
-func (c *websocketclient) SendJSON(data interface{}) error {
+func (c *Websocketclient) SendJSON(data interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (c *websocketclient) SendJSON(data interface{}) error {
 }
 
 // sendMessage 发送消息的底层实现
-func (c *websocketclient) sendMessage(messageType int, data []byte) error {
+func (c *Websocketclient) sendMessage(messageType int, data []byte) error {
 	if !c.isConnected || c.conn == nil {
 		return fmt.Errorf("WebSocket未连接")
 	}
@@ -129,7 +129,7 @@ func (c *websocketclient) sendMessage(messageType int, data []byte) error {
 }
 
 // readMessages 读取服务器消息的协程
-func (c *websocketclient) readMessages() {
+func (c *Websocketclient) readMessages() {
 	defer func() {
 		c.isConnected = false
 		if c.conn != nil {
@@ -164,7 +164,7 @@ func (c *websocketclient) readMessages() {
 }
 
 // reconnect 尝试重新连接
-func (c *websocketclient) reconnect() {
+func (c *Websocketclient) reconnect() {
 	if c.isConnected {
 		return
 	}
@@ -179,25 +179,92 @@ func (c *websocketclient) reconnect() {
 	}()
 }
 
-type client struct {
-	cls *websocketclient
+type Client struct {
+	cls     *Websocketclient
+	clients map[string]*Websocketclient
 }
 
 var (
-	instance *client
+	instance *Client
 	once     sync.Once
 )
 
 // GetClientInstance 返回单例实例
-func GetClientInstance() *client {
+func GetClientInstance() *Client {
 	once.Do(func() {
-		instance = &client{}
+		instance = &Client{
+			clients: make(map[string]*Websocketclient),
+		}
 		glog.Println("Singleton client instance created")
 	})
 	return instance
 }
 
-func (c *client) Init(id, serverAddress, user, pass string) {
+func (c *Client) NewClient(name, id, serverAddress, user, pass string) {
+	if name == "" || id == "" || serverAddress == "" || user == "" || pass == "" {
+		glog.Errorf("name: %+v, id: %+v, serverAddress: %+v, user: %+v, pass: %s", name, id, serverAddress, user, pass)
+		return
+	}
+	baseUrl := fmt.Sprintf("ws://%s/frp", serverAddress)
+	header := c.header(id, user, pass)
+	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
+	cls := NewWebSocketClient(baseUrl, header)
+	// 设置消息处理函数
+	cls.SetMessageHandler(func(message []byte) {
+		glog.Printf("收到消息: %s", string(message))
+	})
+	// 设置错误处理函数
+	cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
+		glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
+	})
+
+	// 设置错误处理函数
+	cls.SetErrorHandler(func(err error) {
+		glog.Errorf("发生错误: %v", err)
+	})
+
+	// 设置关闭处理函数
+	cls.SetCloseHandler(func(code int, text string) {
+		glog.Errorf("连接关闭: %d %s", code, text)
+	})
+
+	// 设置重连配置
+	cls.SetReconnectConfig(5*time.Second, math.MaxInt)
+
+	go func() {
+		// 连接到服务器
+		if err := cls.Connect(); err != nil {
+			glog.Errorf("连接失败: %v", err)
+		}
+	}()
+	c.clients[name] = cls
+}
+
+func (c *Client) header(id, user, pass string) *http.Header {
+	header := &http.Header{}
+	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
+	devInfo, err := utils.GetDeviceInfo()
+	if err == nil {
+		wsid := uuid.New().String() // 生成版本4的随机UUID
+		hostname, e := os.Hostname()
+		if e == nil {
+			header.Set("DevName", hostname)
+			glog.Debug("DevName", hostname)
+		}
+		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
+		header.Set("LocalMacAddress", devInfo.MacAddress)
+		header.Set("AppVersion", pkg.AppVersion)
+		header.Set("LocalIpv4", devInfo.Ipv4)
+		header.Set("InterfaceName", devInfo.Name)
+		header.Set("DisplayName", devInfo.DisplayName)
+		header.Set("FrpID", id)
+		header.Set("WebSocketID", wsid)
+	} else {
+		glog.Error("获取设备信息失败", err)
+	}
+	return header
+}
+func (c *Client) Init(id, serverAddress, user, pass string) {
 	baseUrl := fmt.Sprintf("ws://%s/frp", serverAddress)
 	header := &http.Header{}
 	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
@@ -229,18 +296,6 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 	// 设置错误处理函数
 	c.cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
 		glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
-		//devInfo, err := utils.GetDeviceInfo()
-		//if err != nil {
-		//	return
-		//}
-		//jsonData, e := json.Marshal(Message[string]{
-		//	Action: "login",
-		//	DevIp:  devInfo.Ipv4,
-		//	DevMac: devInfo.MacAddress,
-		//	Data:   conn.RemoteAddr().String(),
-		//})
-		//e = conn.WriteMessage(websocket.TextMessage, jsonData)
-		//glog.Warnf("WriteMessage:%+v", e)
 	})
 
 	// 设置错误处理函数
@@ -259,35 +314,46 @@ func (c *client) Init(id, serverAddress, user, pass string) {
 	go func() {
 		// 连接到服务器
 		if err := c.cls.Connect(); err != nil {
-			glog.Fatalf("连接失败: %v", err)
+			glog.Errorf("连接失败: %v", err)
 		}
 	}()
 }
 
 // SendText 发送文本消息
-func (c *client) SendText(message string) error {
-	return c.cls.sendMessage(websocket.TextMessage, []byte(message))
-}
+//func (c *client) SendText(message string) error {
+//	return c.cls.sendMessage(websocket.TextMessage, []byte(message))
+//}
 
-// SendJSON 发送JSON消息
-func (c *client) SendJSON(data interface{}) error {
+func (c *Client) SendJSON1(data interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 	return c.cls.sendMessage(websocket.TextMessage, jsonData)
 }
-func (c *client) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
+func (c *Client) SendJSON(data interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	for _, v := range c.clients {
+		if v != nil {
+			err = v.sendMessage(websocket.TextMessage, jsonData)
+		}
+	}
+	return err
+}
+func (c *Client) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
 	if c.cls != nil && handler != nil {
 		c.cls.SetOpenHandler(handler)
 	}
 }
-func (c *client) SetMessageHandler(handler func([]byte)) {
+func (c *Client) SetMessageHandler(handler func([]byte)) {
 	if c.cls != nil && handler != nil {
 		c.cls.SetMessageHandler(handler)
 	}
 }
-func (c *client) GetClient() *websocketclient {
+func (c *Client) GetClient() *Websocketclient {
 	return c.cls
 }
 
