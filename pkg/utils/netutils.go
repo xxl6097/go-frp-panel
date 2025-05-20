@@ -463,7 +463,7 @@ func GetDeviceInfo() (*NetworkInterface, error) {
 			//return &iface, nil
 			face = &iface
 		}
-		glog.Debugf("获取设备信息：%+v", iface)
+		//glog.Debugf("获取设备信息：%+v", iface)
 	}
 
 	return face, nil
