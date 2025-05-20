@@ -92,7 +92,7 @@ func (this *frpc) startService(
 	}
 	glog.Debug("创建frpc客户端", name)
 
-	ws.GetClientInstance().NewClient(cfg.User, cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.WebServer.User, cfg.WebServer.Password)
+	ws.GetClientInstance().NewClient(cfg.User, cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
 	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
 	ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
 

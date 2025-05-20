@@ -3,6 +3,7 @@ package frps
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -263,24 +264,32 @@ func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	//cfgBuffer := ukey.GetBuffer()
+	if GetCfgModel() == nil {
+		msg := fmt.Errorf("GetCfgModel is nil")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+		return
+	}
+	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
 	bindPort := GetCfgModel().Frps.BindPort
 	if body.Port > 0 {
 		bindPort = body.Port
 	}
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	cfg := comm2.BufferConfig{
-		Addr:       body.Addr,
-		Port:       bindPort,
-		ApiPort:    body.ApiPort,
-		ID:         body.User.ID,
-		User:       body.User.User,
-		Token:      body.User.Token,
-		Comment:    body.User.Comment,
-		Ports:      body.User.Ports,
-		Domains:    body.User.Domains,
-		Subdomains: body.User.Subdomains,
-		Proxy:      body.Proxy,
-		WebServer:  body.WebServer,
+		Addr:          body.Addr,
+		Port:          bindPort,
+		Authorization: authorization,
+		ApiPort:       body.ApiPort,
+		ID:            body.User.ID,
+		User:          body.User.User,
+		Token:         body.User.Token,
+		Comment:       body.User.Comment,
+		Ports:         body.User.Ports,
+		Domains:       body.User.Domains,
+		Subdomains:    body.User.Subdomains,
+		Proxy:         body.Proxy,
+		WebServer:     body.WebServer,
 	}
 
 	glog.Infof("BufferConfig: %+v", cfg)
@@ -425,24 +434,33 @@ func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	//cfgBuffer := ukey.GetBuffer()
+	if GetCfgModel() == nil {
+		msg := fmt.Errorf("GetCfgModel is nil")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+		return
+	}
+	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
 	bindPort := GetCfgModel().Frps.BindPort
 	if body.Port > 0 {
 		bindPort = body.Port
 	}
+
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	cfg := comm2.BufferConfig{
-		Addr:       body.Addr,
-		ApiPort:    body.ApiPort,
-		Port:       bindPort,
-		ID:         body.User.ID,
-		User:       body.User.User,
-		Token:      body.User.Token,
-		Comment:    body.User.Comment,
-		Ports:      body.User.Ports,
-		Domains:    body.User.Domains,
-		Subdomains: body.User.Subdomains,
-		Proxy:      body.Proxy,
-		WebServer:  body.WebServer,
+		Addr:          body.Addr,
+		ApiPort:       body.ApiPort,
+		Authorization: authorization,
+		Port:          bindPort,
+		ID:            body.User.ID,
+		User:          body.User.User,
+		Token:         body.User.Token,
+		Comment:       body.User.Comment,
+		Ports:         body.User.Ports,
+		Domains:       body.User.Domains,
+		Subdomains:    body.User.Subdomains,
+		Proxy:         body.Proxy,
+		WebServer:     body.WebServer,
 	}
 
 	glog.Infof("BufferConfig: %+v", cfg)
@@ -698,7 +716,13 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileName := fmt.Sprintf("%s_frpc.toml", body.User.User)
-
+	if GetCfgModel() == nil {
+		msg := fmt.Errorf("GetCfgModel is nil")
+		glog.Error(msg)
+		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+		return
+	}
+	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
 	bindPort := GetCfgModel().Frps.BindPort
 	if body.Port > 0 {
 		bindPort = body.Port
@@ -709,9 +733,10 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		ServerPort: bindPort,
 		User:       body.User.User,
 		Metadatas: map[string]string{
-			"token":   body.User.Token,
-			"id":      body.User.ID,
-			"apiPort": fmt.Sprintf("%d", body.ApiPort),
+			"token":         body.User.Token,
+			"authorization": authorization,
+			"id":            body.User.ID,
+			"apiPort":       fmt.Sprintf("%d", body.ApiPort),
 		},
 	}
 	if body.WebServer != nil && body.WebServer.Port != 0 && body.WebServer.User != "" && body.WebServer.Password != "" && body.WebServer.Addr != "" {

@@ -126,22 +126,26 @@ func (this *FrpWebSocket) HandleConnections(w http.ResponseWriter, r *http.Reque
 	localMacAddress := r.Header.Get("LocalMacAddress")
 	localIpv4 := r.Header.Get("LocalIpv4")
 	secKey := r.Header.Get("WebSocketID")
-	if id == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		glog.Errorf("ClientID空：%+v", r)
-		return
-	}
-	if secKey == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		glog.Errorf("WebSocketID空：%+v", r)
-		return
-	}
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		glog.Error("websocket连接错误", ws, err)
+		_ = ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("websocket连接错误：%+v", err)))
 		return
 	}
 	defer ws.Close()
+
+	if id == "" {
+		//w.WriteHeader(http.StatusBadRequest)
+		glog.Errorf("ClientID空：%+v", r)
+		//return
+		_ = ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("ClientID空：%+v", r)))
+	}
+	if secKey == "" {
+		//w.WriteHeader(http.StatusBadRequest)
+		glog.Errorf("WebSocketID空：%+v", r)
+		//return
+		_ = ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("WebSocketID空：%+v", r)))
+	}
 	glog.Warn("websocket客户端连接成功", secKey, localMacAddress, localIpv4, id)
 	childMap := this.clients[id]
 	defer func() {

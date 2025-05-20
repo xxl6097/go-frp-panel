@@ -200,13 +200,31 @@ func GetClientInstance() *Client {
 	return instance
 }
 
-func (c *Client) NewClient(name, id, serverAddress, user, pass string) {
-	if name == "" || id == "" || serverAddress == "" || user == "" || pass == "" {
-		glog.Errorf("name: %+v, id: %+v, serverAddress: %+v, user: %+v, pass: %s", name, id, serverAddress, user, pass)
+func (c *Client) NewClient(name, id, serverAddress, authorization string) {
+	var err error
+	defer func() {
+		if err != nil {
+			glog.Errorf("websocket连接失败: %v", err)
+		}
+	}()
+	if id == "" {
+		err = fmt.Errorf("id is nil")
+		return
+	}
+	if name == "" {
+		err = fmt.Errorf("name is nil")
+		return
+	}
+	if serverAddress == "" {
+		err = fmt.Errorf("serverAddress is nil")
+		return
+	}
+	if authorization == "" {
+		err = fmt.Errorf("authorization is nil")
 		return
 	}
 	baseUrl := fmt.Sprintf("ws://%s/frp", serverAddress)
-	header := c.header(id, user, pass)
+	header := c.header(id, authorization)
 	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
 	cls := NewWebSocketClient(baseUrl, header)
 	// 设置消息处理函数
@@ -240,9 +258,9 @@ func (c *Client) NewClient(name, id, serverAddress, user, pass string) {
 	c.clients[name] = cls
 }
 
-func (c *Client) header(id, user, pass string) *http.Header {
+func (c *Client) header(id, authorization string) *http.Header {
 	header := &http.Header{}
-	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
+	header.Set("Authorization", "Basic "+authorization)
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
 		wsid := uuid.New().String() // 生成版本4的随机UUID
@@ -344,18 +362,36 @@ func (c *Client) SendJSON(data interface{}) error {
 	return err
 }
 func (c *Client) SetOpenHandler(handler func(*websocket.Conn, *http.Response)) {
-	if c.cls != nil && handler != nil {
-		c.cls.SetOpenHandler(handler)
+	//if c.cls != nil && handler != nil {
+	//	c.cls.SetOpenHandler(handler)
+	//}
+	if handler == nil {
+		return
+	}
+	for _, v := range c.clients {
+		if v != nil {
+			v.SetOpenHandler(handler)
+		}
 	}
 }
 func (c *Client) SetMessageHandler(handler func([]byte)) {
-	if c.cls != nil && handler != nil {
-		c.cls.SetMessageHandler(handler)
+	if handler == nil {
+		return
+	}
+	//if c.cls != nil && handler != nil {
+	//	c.cls.SetMessageHandler(handler)
+	//}
+
+	for _, v := range c.clients {
+		if v != nil {
+			v.SetMessageHandler(handler)
+		}
 	}
 }
-func (c *Client) GetClient() *Websocketclient {
-	return c.cls
-}
+
+//func (c *Client) GetClient() *Websocketclient {
+//	return c.cls
+//}
 
 func Connect(baseUrl, user, pass string) {
 	header := http.Header{}

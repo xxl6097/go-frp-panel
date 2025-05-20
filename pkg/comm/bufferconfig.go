@@ -7,18 +7,19 @@ import (
 )
 
 type BufferConfig struct {
-	Addr       string               `json:"addr"`
-	Port       int                  `json:"port"`
-	ApiPort    int                  `json:"apiPort"`
-	User       string               `json:"user"`
-	Token      string               `json:"token"`
-	ID         string               `json:"id"`
-	Comment    string               `json:"comment,omitempty"`
-	Ports      []any                `json:"ports,omitempty"`
-	Domains    []string             `json:"domains,omitempty"`
-	Subdomains []string             `json:"subdomains,omitempty"`
-	Proxy      *v1.TypedProxyConfig `json:"proxy"`
-	WebServer  *v1.WebServerConfig  `json:"webserver"`
+	Addr          string               `json:"addr"`
+	Port          int                  `json:"port"`
+	Authorization string               `json:"authorization"`
+	ApiPort       int                  `json:"apiPort"`
+	User          string               `json:"user"`
+	Token         string               `json:"token"`
+	ID            string               `json:"id"`
+	Comment       string               `json:"comment,omitempty"`
+	Ports         []any                `json:"ports,omitempty"`
+	Domains       []string             `json:"domains,omitempty"`
+	Subdomains    []string             `json:"subdomains,omitempty"`
+	Proxy         *v1.TypedProxyConfig `json:"proxy"`
+	WebServer     *v1.WebServerConfig  `json:"webserver"`
 }
 
 func (u *BufferConfig) ParsePorts() []int {

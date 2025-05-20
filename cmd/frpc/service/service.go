@@ -95,7 +95,7 @@ func (this *Service) GetAny(binDir string) any {
 }
 
 func (this *Service) menu() *frpc.CfgModel {
-	var bindAddr, userName, token, id, apiPort string
+	var bindAddr, userName, token, id, apiPort, authorization string
 	var bindPort int
 	err := frpc.IsInit()
 	c := frpc.GetCfgModel()
@@ -117,8 +117,11 @@ func (this *Service) menu() *frpc.CfgModel {
 		apiPort = c.Frpc.Metadatas["apiPort"]
 	}
 	webServer := &v1.WebServerConfig{}
-	if c.Cfg != nil && c.Cfg.WebServer != nil && c.Cfg.WebServer.Port != 0 && c.Cfg.WebServer.Addr != "" && c.Cfg.WebServer.User != "" && c.Cfg.WebServer.Password != "" {
-		webServer = c.Cfg.WebServer
+	if c != nil && c.Cfg != nil {
+		if c.Cfg.WebServer != nil && c.Cfg.WebServer.Port != 0 && c.Cfg.WebServer.Addr != "" && c.Cfg.WebServer.User != "" && c.Cfg.WebServer.Password != "" {
+			webServer = c.Cfg.WebServer
+		}
+		authorization = c.Cfg.Authorization
 	}
 	if webServer.Addr == "" {
 		webServer.Addr = "0.0.0.0"
@@ -139,9 +142,10 @@ func (this *Service) menu() *frpc.CfgModel {
 		ServerPort: bindPort,
 		User:       userName,
 		Metadatas: map[string]string{
-			"token":   token,
-			"id":      id,
-			"apiPort": apiPort,
+			"token":         token,
+			"id":            id,
+			"apiPort":       apiPort,
+			"authorization": authorization,
 		},
 		Log: v1.LogConfig{
 			To:      filepath.Join(temp, "frpc.log"),
