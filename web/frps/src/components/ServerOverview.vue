@@ -24,7 +24,9 @@
               <span class="single-line">{{ version?.ipv4 }}</span>
             </el-form-item>
             <el-form-item label="网口">
-              <span class="single-line">{{ version?.netName }}</span>
+              <span class="single-line"
+                >{{ version?.netName }}/{{ version?.netDisplayName }}</span
+              >
             </el-form-item>
             <el-form-item label="Mac地址">
               <span class="single-line">{{ version?.macAddress }}</span>
@@ -251,6 +253,7 @@ fetchData()
   margin-bottom: 0;
   width: 100%;
 }
+
 .single-line {
   white-space: nowrap; /* 强制文本不换行 */
   overflow: hidden; /* 隐藏超出部分 */

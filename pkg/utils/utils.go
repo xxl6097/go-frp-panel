@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fatedier/frp/pkg/util/version"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"math"
 	"net/http"
 	"os"
@@ -330,4 +332,38 @@ func GetFirstPathSegment(path string) string {
 		return trimmed[:idx]
 	}
 	return trimmed
+}
+
+func GetVersion() map[string]interface{} {
+	total, used, free := GetAppSpace()
+	hostName, _ := os.Hostname()
+	itel, _ := GetDeviceInfo()
+	var ip, netName, netDisplayName, macAddress string
+	if itel != nil {
+		ip = itel.Ipv4
+		netName = itel.Name
+		netDisplayName = itel.DisplayName
+		macAddress = itel.MacAddress
+	}
+	return map[string]interface{}{
+		"frpcVersion":    version.Full(),
+		"ipv4":           ip,
+		"netDisplayName": netDisplayName,
+		"macAddress":     macAddress,
+		"netName":        netName,
+		"hostName":       hostName,
+		"appName":        pkg.AppName,
+		"appVersion":     pkg.AppVersion,
+		"buildTime":      pkg.BuildTime,
+		"gitRevision":    pkg.GitRevision,
+		"gitBranch":      pkg.GitBranch,
+		"goVersion":      pkg.GoVersion,
+		"displayName":    pkg.DisplayName,
+		"description":    pkg.Description,
+		"osType":         pkg.OsType,
+		"arch":           pkg.Arch,
+		"totalSize":      total,
+		"usedSize":       used,
+		"freeSize":       free,
+	}
 }

@@ -2,9 +2,7 @@ package comm
 
 import (
 	"fmt"
-	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
@@ -296,37 +294,7 @@ func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 func (this *commapi) ApiVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	total, used, free := utils2.GetAppSpace()
-	hostName, _ := os.Hostname()
-	itel, _ := utils2.GetDeviceInfo()
-	var ip, netName, netDisplayName, macAddress string
-	if itel != nil {
-		ip = itel.Ipv4
-		netName = itel.Name
-		netDisplayName = itel.DisplayName
-		macAddress = itel.MacAddress
-	}
-	res.Sucess("获取成功", map[string]interface{}{
-		"frpcVersion":    version.Full(),
-		"ipv4":           ip,
-		"netDisplayName": netDisplayName,
-		"macAddress":     macAddress,
-		"netName":        netName,
-		"hostName":       hostName,
-		"appName":        pkg.AppName,
-		"appVersion":     pkg.AppVersion,
-		"buildTime":      pkg.BuildTime,
-		"gitRevision":    pkg.GitRevision,
-		"gitBranch":      pkg.GitBranch,
-		"goVersion":      pkg.GoVersion,
-		"displayName":    pkg.DisplayName,
-		"description":    pkg.Description,
-		"osType":         pkg.OsType,
-		"arch":           pkg.Arch,
-		"totalSize":      total,
-		"usedSize":       used,
-		"freeSize":       free,
-	})
+	res.Sucess("获取成功", utils2.GetVersion())
 	//glog.Println("操作系统:", runtime.GOOS)     // 如 "linux", "windows"
 	//glog.Println("CPU 架构:", runtime.GOARCH) // 如 "amd64", "arm64"
 	//glog.Println("CPU 核心数:", runtime.NumCPU())
