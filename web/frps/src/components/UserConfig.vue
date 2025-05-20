@@ -105,9 +105,13 @@
         <el-table-column prop="user" label="名称" />
         <el-table-column prop="count" label="数量" width="100">
           <template #default="{ row }">
-            <el-text size="large" v-if="row.count > 0" class="mx-1" type="danger">{{
-              row.count
-            }}</el-text>
+            <el-text
+              size="large"
+              v-if="row.count > 0"
+              class="mx-1"
+              type="danger"
+              >{{ row.count }}
+            </el-text>
           </template>
         </el-table-column>
         <el-table-column prop="enable" label="状态">
@@ -157,7 +161,9 @@
                 @click="
                   router.push({
                     path: '/user/list',
-                    query: { frpId: row.id },
+                    query: {
+                      profileData: JSON.stringify(row),
+                    },
                   })
                 "
                 >查看客户端
@@ -464,19 +470,7 @@ import {
 } from '../utils/utils.ts'
 import { ElButton, FormInstance, FormRules } from 'element-plus'
 import router from '../router'
-
-interface User {
-  user: string
-  token: string
-  comment: string
-  ports: string
-  domains: string
-  subdomains: string
-  enable: boolean
-  editable: boolean
-  count: number
-  id: string
-}
+import { FrpcConfiguration } from '../utils/type.ts'
 
 const innerBtn = ref<InstanceType<typeof ElButton>>()
 const innerGenBtn = ref<InstanceType<typeof ElButton>>()
@@ -493,8 +487,8 @@ const currentPage = ref<number>(1)
 
 // 表格数据{user:'admin'}
 // const tableData = ref<User[]>([{ user: 'admin',count: 11 }])
-const tableData = ref<User[]>([])
-const selectData = ref<User[]>([])
+const tableData = ref<FrpcConfiguration[]>([])
+const selectData = ref<FrpcConfiguration[]>([])
 // const clientDownUrl = ref<string>()
 // const serverAddr = ref<string>()
 const dialogType = ref<string>()
@@ -621,7 +615,7 @@ const handleOptionChange = (value: any) => {
   }
 }
 // 过滤后的表格数据（根据搜索关键字）
-const filteredTableData = computed<User[]>(() => {
+const filteredTableData = computed<FrpcConfiguration[]>(() => {
   return tableData.value.filter(
     (data) =>
       !searchKeyword.value ||
@@ -714,7 +708,7 @@ const handleImportUsers = (options: any) => {
     })
 }
 // 选择变化事件
-const handleSelectionChange = (rows: User[]) => {
+const handleSelectionChange = (rows: FrpcConfiguration[]) => {
   selectData.value = rows
   console.log('--->', rows)
 }
@@ -875,7 +869,7 @@ const getFilePathByValue = (opt: any, valuePath: any) => {
 }
 
 // 分页后的表格数据
-const paginatedTableData = computed<User[]>(() => {
+const paginatedTableData = computed<FrpcConfiguration[]>(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return filteredTableData.value.slice(start, end)
@@ -1006,13 +1000,13 @@ const handleDialogConfirm = () => {
   }
 }
 
-const handleClientDialog = (row: User) => {
+const handleClientDialog = (row: FrpcConfiguration) => {
   genClientDialogVisible.value = true
   newUserForm.value = row
   console.log(row)
 }
 
-const showDialog = (type: string, row: User) => {
+const showDialog = (type: string, row: FrpcConfiguration) => {
   clearVariables()
   //newUserForm.value = deepCopyJSON(row)
   //newUserForm.value = row
@@ -1035,7 +1029,7 @@ const showDialog = (type: string, row: User) => {
   //
 }
 
-const handleDelete = (row: User) => {
+const handleDelete = (row: FrpcConfiguration) => {
   showWarmDialog(
     `确定删除${row.user}吗？`,
     () => {
@@ -1114,7 +1108,7 @@ const updateUser = () => {
     })
 }
 
-const createUser = (row: User) => {
+const createUser = (row: FrpcConfiguration) => {
   const data = {
     user: row.user,
     token: row.token,

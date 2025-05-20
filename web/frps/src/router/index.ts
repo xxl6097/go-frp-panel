@@ -10,7 +10,7 @@ import ProxiesSUDP from '../components/ProxiesSUDP.vue'
 import ServerConfig from '../components/ServerConfig.vue'
 import UserConfig from '../components/UserConfig.vue'
 import LogView from '../components/LogView.vue'
-import Clients from '../components/Clients.vue'
+import ClientList from '../components/client/ClientList.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -32,8 +32,11 @@ const router = createRouter({
     },
     {
       path: '/user/list',
-      name: 'Clients',
-      component: Clients,
+      name: 'ClientList',
+      component: ClientList,
+      props: (to: any) => ({
+        profile: JSON.parse(to.query.profileData || '{}'),
+      }),
     },
     {
       path: '/log',

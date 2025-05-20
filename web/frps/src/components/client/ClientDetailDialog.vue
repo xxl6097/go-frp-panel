@@ -82,27 +82,49 @@
         <template #extra></template>
       </el-page-header>
 
-      <el-row style="margin-top: 10px">
-        <el-col :span="10">
-          <el-input
-            v-model="selectValue.content"
-            :autosize="{ minRows: 2, maxRows: 23.5 }"
-            placeholder="frpc configure file, can not be empty..."
-            type="textarea"
-          ></el-input>
-        </el-col>
-        <el-col :span="14">
-          <el-card title="日志面板" class="log-container">
-            <div>
-              <div ref="logContainer" class="log-container">
-                <div v-for="(log, index) in logs" :key="index" class="log-item">
-                  {{ log }}
+      <div style="margin-left: 10px">
+        <div>
+          <span
+            style="color: green; margin-right: 8px"
+            v-if="profile?.ports !== ''"
+            >允许范围：{{ profile?.ports }}
+          </span>
+          <span
+            style="color: green; margin-right: 8px"
+            v-if="profile?.domains !== ''"
+            >允许域名：{{ profile?.domains }}
+          </span>
+          <span style="color: green" v-if="profile?.domains !== ''"
+            >允许子域名：{{ profile?.subdomains }}</span
+          >
+        </div>
+
+        <el-row style="margin-top: 10px">
+          <el-col :span="10">
+            <el-input
+              v-model="selectValue.content"
+              :autosize="{ minRows: 2, maxRows: 23.5 }"
+              placeholder="frpc configure file, can not be empty..."
+              type="textarea"
+            ></el-input>
+          </el-col>
+          <el-col :span="14">
+            <el-card title="日志面板" class="log-container">
+              <div>
+                <div ref="logContainer" class="log-container">
+                  <div
+                    v-for="(log, index) in logs"
+                    :key="index"
+                    class="log-item"
+                  >
+                    {{ log }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
     </div>
   </el-dialog>
 
@@ -142,7 +164,7 @@
 <script setup lang="ts">
 import { ref, defineExpose } from 'vue'
 import { ElButton } from 'element-plus'
-import { Client } from '../../utils/type.ts'
+import { Client, FrpcConfiguration } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
 import {
   showLoading,
@@ -166,6 +188,7 @@ const logContainer = ref<HTMLDivElement | null>(null)
 const logs = ref<string[]>([])
 const showClientDialog = ref(false)
 const client = ref<Client>()
+const profile = ref<FrpcConfiguration>()
 const title = ref<string>()
 const source = ref<EventAwareSSEClient | null>()
 
@@ -294,9 +317,10 @@ const addLog = (context: string): void => {
   }
 }
 
-const openClientDetailDialog = (row: Client) => {
-  console.log('打开对话框，row:', row)
+const openClientDetailDialog = (row: Client, p: FrpcConfiguration) => {
+  console.log('打开对话框，row:', row, p)
   client.value = row
+  profile.value = p
   showClientDialog.value = true
   connectSSE(row)
 }

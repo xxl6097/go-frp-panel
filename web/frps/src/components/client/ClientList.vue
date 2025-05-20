@@ -14,6 +14,7 @@
             <div m="4">
               <p m="t-0 b-2">设备名称: {{ props.row.devName }}</p>
               <p m="t-0 b-2">版本号: {{ props.row.appVersion }}</p>
+              <p m="t-0 b-2">允许端口: {{ profile?.ports }}</p>
               <p m="t-0 b-2">Frp连接ID: {{ props.row.frpId }}</p>
               <p m="t-0 b-2">操作系统: {{ props.row.osType }}</p>
               <p m="t-0 b-2">设备Mac地址: {{ props.row.devMac }}</p>
@@ -58,9 +59,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onUpdated } from 'vue'
-import { useRoute } from 'vue-router'
-import ClientDetailDialog from './client/ClientDetailDialog.vue'
-import { Client } from '../utils/type.ts'
+import ClientDetailDialog from './ClientDetailDialog.vue'
+import { Client, FrpcConfiguration } from '../../utils/type.ts'
 
 // 搜索关键字
 const searchKeyword = ref<string>('')
@@ -103,7 +103,7 @@ const handlePageChange = (page: number) => {
 const handleGoToDetail = (row: Client) => {
   console.log('handleGoToDetail', row)
   if (clientDetailDialogRef.value) {
-    clientDetailDialogRef.value.openClientDialog(row)
+    clientDetailDialogRef.value.openClientDialog(row, props.profile)
   }
 }
 // 响应式布局相关
@@ -132,7 +132,7 @@ onUnmounted(() => {
 
 const fetchListData = () => {
   const data = {
-    frpId: useRoute().query.frpId,
+    frpId: props.profile.id,
   }
   console.log('fetchListData.query', data)
   fetch('../api/client/list', {
@@ -159,32 +159,13 @@ const fetchListData = () => {
       // showErrorTips('获取服务器信息失败')
     })
 }
-// 获取数据
-// const fetchListData = () => {
-//   const data = {
-//     timeId: query.timeId,
-//   }
-//   get('数据请求', '../api/client/list', JSON.stringify(data)).then(
-//     (data: any) => {
-//       console.log('fetchListData', data)
-//       if (data) {
-//         const obj = JSON.parse(JSON.stringify(data))
-//         tableData.value = obj.map((item: any) => ({
-//           osType: item.osType,
-//           secKey: item.secKey,
-//           devMac: item.devMac,
-//           devIp: item.devIp,
-//           id: item.id,
-//         }))
-//       } else {
-//         tableData.value = []
-//       }
-//     },
-//   )
-// }
-
+const props = defineProps<{
+  profile: FrpcConfiguration
+}>()
 onUpdated(() => {})
-onMounted(() => {})
+onMounted(() => {
+  console.log('profile', props.profile)
+})
 fetchListData()
 </script>
 
