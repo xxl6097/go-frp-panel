@@ -1,6 +1,7 @@
 package frpc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -63,10 +64,25 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 					glog.Infof("upgrade %+v", d)
 					break
 				}
-				err = this.update(v[0].(string))
+				url := v[0].(string)
+				msg.Data = fmt.Sprintf("开始下载 %v", url)
+				_ = this.sendMessageToWebSocketServer(&msg)
+				baseUrl := this.getUpgradeUrl(url)
+				if baseUrl == "" {
+					msg.Data = "下载链接空～"
+					_ = this.sendMessageToWebSocketServer(&msg)
+					break
+				}
+				msg.Data = fmt.Sprintf("下载成功，准备升级 %v", baseUrl)
+				_ = this.sendMessageToWebSocketServer(&msg)
+				err = this.Upgrade(context.Background(), baseUrl)
+				//err = this.update(url)
+				msg.Data = fmt.Sprintf("升级成功～")
 				if err != nil {
 					glog.Error(err)
+					msg.Data = fmt.Sprintf("升级失败 %v", err.Error())
 				}
+				_ = this.sendMessageToWebSocketServer(&msg)
 			} else {
 				glog.Errorf("upgrade err %+v", msg.Data)
 			}

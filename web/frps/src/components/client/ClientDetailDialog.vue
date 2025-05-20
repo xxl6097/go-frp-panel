@@ -230,11 +230,21 @@ websocketID：${client.value?.secKey}<br>
       console.log('client-version-check', data)
       addLog(JSON.stringify(data))
       if (data && data.length >= 2) {
-        showMessageDialog('发现新版本', '升级', data[0]).then(() => {
-          console.log('ok', data)
+        const complexVersionRegex =
+          /(\d+(?:\.\d+){1,3})(?:-[a-zA-Z0-9.]+)?(?:\+[a-zA-Z0-9.]+)?/
+        const text = data[1]
+        const match = text.match(complexVersionRegex)
+        const newVersionText = `发现新版本：${match?.[1] || ''} 需要升级吗？`
+        showMessageDialog('版本升级', '升级', newVersionText).then(() => {
+          console.log('发现新版本', data)
           handleConfirmUpgrade(data)
         })
       }
+    })
+
+    source.value.addEventListener('client-version-upgrade', (data) => {
+      console.log('client-version-upgrade', data)
+      addLog(JSON.stringify(data))
     })
     source.value.connect()
   } catch (e) {
