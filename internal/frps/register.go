@@ -32,6 +32,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/server/config/set", this.apiServerConfigSet).Methods("PUT")
 	subRouter.HandleFunc("/api/proxy/{type}", this.apiProxyByType).Methods("GET")
 	subRouter.HandleFunc("/api/bindinfo", this.apiBindInfo).Methods("GET")
+	subRouter.HandleFunc("/api/env", this.apiBindInfo).Methods("GET")
 }
 
 func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {

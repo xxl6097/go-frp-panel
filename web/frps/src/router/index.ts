@@ -11,6 +11,7 @@ import ServerConfig from '../components/ServerConfig.vue'
 import UserConfig from '../components/UserConfig.vue'
 import LogView from '../components/LogView.vue'
 import ClientList from '../components/client/ClientList.vue'
+import Development from '../components/Development.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -42,6 +43,11 @@ const router = createRouter({
       path: '/log',
       name: 'LogView',
       component: LogView,
+    },
+    {
+      path: '/development',
+      name: 'Development',
+      component: Development,
     },
     {
       path: '/proxies/tcp',
@@ -80,5 +86,13 @@ const router = createRouter({
     },
   ],
 })
+
+export function registerRoute(name: string, path: string, component: any) {
+  router.addRoute({
+    path: path,
+    name: name,
+    component: component,
+  })
+}
 
 export default router

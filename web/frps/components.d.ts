@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ClientDetailDialog: typeof import('./src/components/client/ClientDetailDialog.vue')['default']
     ClientList: typeof import('./src/components/client/ClientList.vue')['default']
+    Development: typeof import('./src/components/Development.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElCard: typeof import('element-plus/es')['ElCard']

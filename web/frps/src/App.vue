@@ -10,7 +10,7 @@
   <div id="app">
     <header class="grid-content header-color">
       <div class="header-content">
-        <div class="brand">
+        <div class="brand" @click="handleDevelopment">
           <a href="#">{{ title }}</a>
         </div>
         <div class="dark-switch">
@@ -81,6 +81,9 @@
               <el-menu-item index="/proxies/sudp">SUDP</el-menu-item>
             </el-sub-menu>
             <el-menu-item index="/log">日志</el-menu-item>
+            <el-menu-item index="/development" v-if="isDevelopment"
+              >开发中模式
+            </el-menu-item>
             <el-menu-item index="">帮助</el-menu-item>
           </el-menu>
         </el-col>
@@ -216,7 +219,7 @@
 <script lang="ts" setup>
 import UpgradeDialog from './components/UpgradeDialog.vue'
 
-import { onMounted, ref, provide } from 'vue'
+import { onMounted, ref, provide, onUnmounted } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 import {
   downloadByPost,
@@ -237,6 +240,7 @@ const darkmodeSwitch = ref(isDark)
 const toggleDark = useToggle(isDark)
 const dialogFormVisible = ref(false)
 const dialogClientsVisible = ref(false)
+const isDevelopment = ref(false)
 // const version = ref({
 //   description: '', //应用描述
 //   frpcVersion: '', //frpc版本号
@@ -249,6 +253,7 @@ const dialogClientsVisible = ref(false)
 //   goVersion: '',
 // })
 
+const clickCount = ref(0)
 const frpsForm = ref({
   bindPort: 6000,
   adminAddr: '0.0.0.0',
@@ -273,6 +278,36 @@ const showUpgradeDialog = () => {
   }
 }
 
+let timer: number | null = null
+const handleDevelopment = () => {
+  // 首次点击启动定时器（1秒内有效）
+  if (clickCount.value === 0) {
+    timer = window.setTimeout(() => {
+      clickCount.value = 0
+      timer = null
+    }, 1000)
+  }
+
+  clickCount.value++
+
+  // 触发条件：5次点击
+  if (clickCount.value === 5) {
+    console.log('连续点击了5次！')
+    // 执行目标操作（例如提交表单、跳转页面等）
+    executeTargetAction()
+    // 重置状态
+    clickCount.value = 0
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+  }
+}
+const executeTargetAction = () => {
+  // 这里编写业务逻辑，例如调用接口或跳转页面
+  showWarmTips('进入开发者模式')
+  isDevelopment.value = true
+}
 // 获取平台数据
 const fetchOptions = () => {
   fetch('../api/frps/get', {
@@ -636,7 +671,10 @@ const fetchVersionData = () => {
       }
     })
 }
-
+// 组件卸载时清除定时器（防止内存泄漏）
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
 onMounted(() => {
   const mIndex = window.location.hash
   const result = mIndex.replace(/^#+/, '')

@@ -209,3 +209,10 @@ func (this *frps) apiBindInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Any(data)
 }
+
+func (this *frps) apiEnv(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	name := r.URL.Query().Get("name")
+	res.Raw = []byte(name)
+}
