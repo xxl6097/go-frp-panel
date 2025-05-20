@@ -200,7 +200,7 @@ func GetClientInstance() *Client {
 	return instance
 }
 
-func (c *Client) NewClient(name, id, serverAddress, authorization string) {
+func (c *Client) NewClient(id, serverAddress, authorization string) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -209,10 +209,6 @@ func (c *Client) NewClient(name, id, serverAddress, authorization string) {
 	}()
 	if id == "" {
 		err = fmt.Errorf("id is nil")
-		return
-	}
-	if name == "" {
-		err = fmt.Errorf("name is nil")
 		return
 	}
 	if serverAddress == "" {
@@ -254,8 +250,8 @@ func (c *Client) NewClient(name, id, serverAddress, authorization string) {
 		if err := cls.Connect(); err != nil {
 			glog.Errorf("连接失败: %v", err)
 		}
+		c.clients[serverAddress] = cls
 	}()
-	c.clients[name] = cls
 }
 
 func (c *Client) header(id, authorization string) *http.Header {
@@ -281,60 +277,6 @@ func (c *Client) header(id, authorization string) *http.Header {
 		glog.Error("获取设备信息失败", err)
 	}
 	return header
-}
-func (c *Client) Init(id, serverAddress, user, pass string) {
-	baseUrl := fmt.Sprintf("ws://%s/frp", serverAddress)
-	header := &http.Header{}
-	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(glog.Sprintf("%s:%s", user, pass))))
-	devInfo, err := utils.GetDeviceInfo()
-	if err == nil {
-		wsid := uuid.New().String() // 生成版本4的随机UUID
-		hostname, e := os.Hostname()
-		if e == nil {
-			header.Set("DevName", hostname)
-			glog.Debug("DevName", hostname)
-		}
-		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
-		header.Set("LocalMacAddress", devInfo.MacAddress)
-		header.Set("AppVersion", pkg.AppVersion)
-		header.Set("LocalIpv4", devInfo.Ipv4)
-		header.Set("InterfaceName", devInfo.Name)
-		header.Set("DisplayName", devInfo.DisplayName)
-		header.Set("FrpID", id)
-		header.Set("WebSocketID", wsid)
-	} else {
-		glog.Error("获取设备信息失败", err)
-	}
-	glog.Infof("baseUrl:%s,%+v", baseUrl, header)
-	c.cls = NewWebSocketClient(baseUrl, header)
-	// 设置消息处理函数
-	c.cls.SetMessageHandler(func(message []byte) {
-		glog.Printf("收到消息: %s", string(message))
-	})
-	// 设置错误处理函数
-	c.cls.SetOpenHandler(func(conn *websocket.Conn, response *http.Response) {
-		glog.Errorf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
-	})
-
-	// 设置错误处理函数
-	c.cls.SetErrorHandler(func(err error) {
-		glog.Errorf("发生错误: %v", err)
-	})
-
-	// 设置关闭处理函数
-	c.cls.SetCloseHandler(func(code int, text string) {
-		glog.Errorf("连接关闭: %d %s", code, text)
-	})
-
-	// 设置重连配置
-	c.cls.SetReconnectConfig(5*time.Second, math.MaxInt)
-
-	go func() {
-		// 连接到服务器
-		if err := c.cls.Connect(); err != nil {
-			glog.Errorf("连接失败: %v", err)
-		}
-	}()
 }
 
 // SendText 发送文本消息

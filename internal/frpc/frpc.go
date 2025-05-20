@@ -96,7 +96,7 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 	if cfgModel.Cfg != nil {
 		this.cfgBuffer = cfgModel.Cfg
 	}
-	ws.GetClientInstance().NewClient(cfg.User, cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
+	ws.GetClientInstance().NewClient(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
 	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
 	ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
 
