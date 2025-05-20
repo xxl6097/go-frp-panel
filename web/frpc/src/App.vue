@@ -20,7 +20,7 @@
                   align="center"
                   width="150px"
                 >
-                  <el-tag size="small">{{ version.frpcVersion }}</el-tag>
+                  <el-tag size="small">{{ version?.frpcVersion }}</el-tag>
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -28,7 +28,7 @@
                   label-align="left"
                   align="center"
                 >
-                  <el-tag size="small">{{ version.appVersion }}</el-tag>
+                  <el-tag size="small">{{ version?.appVersion }}</el-tag>
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -37,7 +37,7 @@
                   align="center"
                   width="200px"
                 >
-                  {{ version.buildTime }}
+                  {{ version?.buildTime }}
                 </el-descriptions-item>
 
                 <el-descriptions-item
@@ -45,15 +45,39 @@
                   label-align="left"
                   align="center"
                 >
-                  {{ version.osType }}
+                  {{ version?.osType }}/{{ version?.arch }}
                 </el-descriptions-item>
 
                 <el-descriptions-item
-                  label="CPU架构："
+                  label="Mac地址："
                   label-align="left"
                   align="center"
                 >
-                  {{ version.arch }}
+                  {{ version?.network?.macAddress }}
+                </el-descriptions-item>
+
+                <el-descriptions-item
+                  label="网口信息："
+                  label-align="left"
+                  align="center"
+                >
+                  {{ version?.network?.name }}/{{
+                    version?.network?.displayName
+                  }}
+                </el-descriptions-item>
+
+                <el-descriptions-item
+                  label="IP地址："
+                  label-align="left"
+                  align="center"
+                >
+                  <el-tooltip
+                    :content="version?.network?.ipAddresses"
+                    placement="bottom"
+                    effect="light"
+                  >
+                    {{ version?.network.ipv4 }}
+                  </el-tooltip>
                 </el-descriptions-item>
               </el-descriptions>
             </template>
@@ -70,12 +94,12 @@
                     >升级服务
                   </el-dropdown-item>
                   <el-dropdown-item @click="checkVersion"
-                    >版本检测</el-dropdown-item
-                  >
+                    >版本检测
+                  </el-dropdown-item>
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
                   <el-dropdown-item @click="showVersion"
-                    >查看版本</el-dropdown-item
-                  >
+                    >查看版本
+                  </el-dropdown-item>
                   <el-dropdown-item @click="uninstall"
                     >卸载自身
                   </el-dropdown-item>
@@ -140,8 +164,8 @@
         <el-upload class="upload-demo" :http-request="customUpload" :limit="1">
           <template #trigger>
             <el-button type="primary" :disabled="form.binUrl.length > 0"
-              >上传文件升级</el-button
-            >
+              >上传文件升级
+            </el-button>
           </template>
           <!-- 添加额外按钮 -->
           <el-button style="margin-left: 10px" type="danger" @click="upgrade">
@@ -154,43 +178,43 @@
 
   <!-- 弹窗显示版本 -->
   <el-dialog v-model="versionDialogVisible" width="30%">
-    <template #header><span>版本信息</span> </template>
+    <template #header><span>版本信息</span></template>
     <el-descriptions :column="1" :size="size" border>
       <el-descriptions-item width="100">
         <template #label>
           <div class="cell-item">软件名称</div>
         </template>
-        {{ version.appName }}
+        {{ version?.appName }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">软件版本</div>
         </template>
-        {{ version.appVersion }}
+        {{ version?.appVersion }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">编译时间</div>
         </template>
-        {{ version.buildTime }}
+        {{ version?.buildTime }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">frpc版本号</div>
         </template>
-        {{ version.frpcVersion }}
+        {{ version?.frpcVersion }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">git版本</div>
         </template>
-        {{ version.gitRevision }}
+        {{ version?.gitRevision }}
       </el-descriptions-item>
       <el-descriptions-item>
         <template #label>
           <div class="cell-item">go编译版本</div>
         </template>
-        {{ version.goVersion }}
+        {{ version?.goVersion }}
       </el-descriptions-item>
     </el-descriptions>
   </el-dialog>
@@ -207,9 +231,11 @@ import {
   showWarmTips,
   showSucessTips,
   xhrPromise,
+  Version,
 } from './utils/utils.ts'
 import { ComponentSize } from 'element-plus'
 import UpgradeDialog from './components/UpgradeDialog.vue'
+
 const customColors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
@@ -220,17 +246,7 @@ const customColors = [
 const globalProgress = ref(0)
 const size = ref<ComponentSize>('default')
 const versionDialogVisible = ref(false)
-const version = ref({
-  description: '', //应用描述
-  frpcVersion: '', //frpc版本号
-  buildTime: '', //编译时间
-  appVersion: '', //app版本号
-  appName: '', //app名称
-  osType: '', //操作系统
-  arch: '', //cpuType
-  gitRevision: '',
-  goVersion: '',
-})
+const version = ref<Version>()
 const title = ref<string>('Frpc')
 const isDark = useDark()
 const darkmodeSwitch = ref(isDark)
@@ -307,7 +323,8 @@ const fetchData = () => {
       if (json) {
         version.value = json
         title.value = `Frpc ${json.data.appVersion}`
-        document.title = title.value
+        //document.title = title.value
+        document.title = `Frpc ${json.data.hostName}`
       }
     })
 }
