@@ -454,15 +454,17 @@ func GetDeviceInfo() (*NetworkInterface, error) {
 		return nil, errors.New("未找到网络接口")
 	}
 
+	face := &ifaces[0]
 	// 优先选择非虚拟接口
 	for _, iface := range ifaces {
 		if !strings.Contains(strings.ToLower(iface.Name), "virtual") &&
 			!strings.Contains(strings.ToLower(iface.Name), "vmware") &&
 			!strings.Contains(strings.ToLower(iface.Name), "docker") {
-			return &iface, nil
+			//return &iface, nil
+			face = &iface
 		}
+		glog.Debugf("获取设备信息：%+v", iface)
 	}
 
-	// 如果没有找到非虚拟接口，返回第一个接口的IP
-	return &ifaces[0], nil
+	return face, nil
 }
