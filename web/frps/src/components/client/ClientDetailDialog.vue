@@ -234,7 +234,7 @@ websocketID：${client.value?.secKey}<br>
     source.value.addEventListener('client-version-check', (data) => {
       console.log('client-version-check', data)
       addLog(JSON.stringify(data))
-      if (data && data.length >= 2) {
+      if (Array.isArray(data) && data && data.length >= 2) {
         const complexVersionRegex =
           /(\d+(?:\.\d+){1,3})(?:-[a-zA-Z0-9.]+)?(?:\+[a-zA-Z0-9.]+)?/
         const text = data[1]
