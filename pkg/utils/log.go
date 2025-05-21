@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"net/http"
 	"sync"
@@ -53,9 +54,7 @@ func (q *LogQueue) UnregisterClient(client chan string) {
 
 // SseHandler 处理函数
 func SseHandler(queue *LogQueue) http.HandlerFunc {
-	glog.Debug("SseHandler....1")
 	return func(w http.ResponseWriter, r *http.Request) {
-		glog.Debug("SseHandler....2")
 		// 设置响应头
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
@@ -68,6 +67,7 @@ func SseHandler(queue *LogQueue) http.HandlerFunc {
 			return
 		}
 
+		glog.Infof("sse客户端上线 %+v", r.RemoteAddr)
 		// 为客户端创建一个消息通道
 		client := make(chan string)
 		queue.RegisterClient(client)
@@ -80,7 +80,16 @@ func SseHandler(queue *LogQueue) http.HandlerFunc {
 		//	flusher.Flush()
 		//}
 		for _, message := range queue.messages.Items() {
-			w.Write([]byte("data: " + message + "\n\n"))
+			//_, _ = w.Write([]byte("data: " + message))
+			//data, err := json.Marshal(iface.SSEEvent{
+			//	Event:   "log",
+			//	Payload: message,
+			//})
+			//if err != nil {
+			//	fmt.Fprintf(w, "data: %s", err.Error())
+			//	return
+			//}
+			_, _ = fmt.Fprintf(w, "data: %s\n", message)
 			flusher.Flush()
 		}
 		queue.mu.Unlock()
@@ -92,12 +101,20 @@ func SseHandler(queue *LogQueue) http.HandlerFunc {
 				if !ok {
 					//return
 				}
-				w.Write([]byte("data: " + message + "\n\n"))
+				//_, _ = w.Write([]byte("data: " + message))
+				//data, err := json.Marshal(iface.SSEEvent{
+				//	Event:   "log",
+				//	Payload: message,
+				//})
+				//if err != nil {
+				//	fmt.Fprintf(w, "data: %s\n\n", err.Error())
+				//	return
+				//}
+				//fmt.Fprintf(w, "data: %s\n\n", data)
+				_, _ = fmt.Fprintf(w, "data: %s\n", message)
 				flusher.Flush()
 				//case <-r.Context().Done():
-				//	glog.Debug("客户端Done...")
-				//	w.Write([]byte("data: 客户端断开\n\n"))
-				//	flusher.Flush()
+				//	glog.Warnf("sse客户端断线 %+v", r.RemoteAddr)
 				//	return
 			}
 		}

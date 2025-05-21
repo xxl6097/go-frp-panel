@@ -49,6 +49,9 @@ func (this *frps) GetCloudApi() *model.CloudApi {
 }
 
 func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
+	sseApi := sse.NewServer()
+	sseApi.Start()
+
 	binPath, err := os.Executable()
 	if err != nil {
 		glog.Error(fmt.Sprintf("获取当前可执行文件路径出错: %v\n", err))
@@ -106,11 +109,10 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 		upgrade:      comm.NewCommApi(install, GetCfgModel()),
 		binDir:       filepath.Dir(binPath),
 		webSocketApi: ws.NewWebSocket(),
-		sseApi:       sse.NewServer(),
+		sseApi:       sseApi,
 	}
 	f.webSocketApi.SetWebSocket(f)
 	f.sseApi.SetSSECallBack(f)
-	f.sseApi.Start()
 	f.InitClientsConfig()
 	//webServer.RouteRegister(f.proxyHandlers)
 	webServer.RouteRegister(f.handlers)

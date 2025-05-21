@@ -3,6 +3,8 @@ export class SimpleSSEClient {
   private retryCount = 0
   private maxRetries = 3
   private retryInterval = 5000
+  private onOpenFunction: Function | null = null
+  private onErrorFunction: Function | null = null
 
   constructor(private url: string) {}
 
@@ -14,7 +16,10 @@ export class SimpleSSEClient {
 
     this.eventSource.onopen = () => {
       this.retryCount = 0 // 重置重试计数器
-      console.log('SSE连接已建立')
+      console.log('SSE连接成功', this.retryCount)
+      if (this.onOpenFunction) {
+        this.onOpenFunction()
+      }
     }
 
     this.eventSource.onmessage = (e) => {
@@ -27,7 +32,10 @@ export class SimpleSSEClient {
     }
 
     this.eventSource.onerror = (e) => {
-      console.error('onerror:', e)
+      console.log('SSE连接错误:', e)
+      if (this.onErrorFunction) {
+        this.onErrorFunction()
+      }
       if (this.retryCount >= this.maxRetries) {
         this.close()
         return
@@ -38,6 +46,14 @@ export class SimpleSSEClient {
         this.reconnect()
       }, this.retryInterval)
     }
+  }
+
+  public setOnOpenFunction(f: Function) {
+    this.onOpenFunction = f
+  }
+
+  public setOnErrorFunction(f: Function) {
+    this.onErrorFunction = f
   }
 
   public handleMessage(data: any) {

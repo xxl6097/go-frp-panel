@@ -11,7 +11,7 @@ var logQueue = utils.NewLogQueue()
 
 func init() {
 	glog.Hook(func(bytes []byte) {
-		logQueue.AddMessage(string(bytes))
+		logQueue.AddMessage(string(bytes[2:]))
 	})
 }
 

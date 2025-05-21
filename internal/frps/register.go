@@ -16,6 +16,8 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.PathPrefix("/fserver/").Handler(http.StripPrefix("/fserver/", http.FileServer(http.Dir("/"))))
 	subRouter.HandleFunc("/api/sse-stream", utils.SseHandler(logQueue))
+	//subRouter.Handle("/api/sse-stream", this.sseApi)
+
 	subRouter.HandleFunc("/api/files", this.upgrade.ApiFiles).Methods("PUT")
 
 	// apis

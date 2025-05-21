@@ -117,7 +117,8 @@
                     :key="index"
                     class="log-item"
                   >
-                    {{ log }}
+                    <!--                    {{ log }}-->
+                    <pre v-html="log"></pre>
                   </div>
                 </div>
               </div>
@@ -171,6 +172,7 @@ import {
   showMessageDialog,
   showSucessTips,
   showTips,
+  syntaxHighlight,
 } from '../../utils/utils.ts'
 
 export interface Option {
@@ -213,22 +215,6 @@ const connectSSE = (row: Client) => {
     source.value.addEventListener('connected', (data) => {
       addLog(JSON.stringify(data))
     })
-    source.value.addEventListener('client-refresh', (data) => {
-      console.log('config-refresh', data)
-      addLog(JSON.stringify(data))
-      if (data) {
-        options.value = data
-        if (options.value && options.value.length > 0) {
-          const target = options.value.find(
-            (item) => item.label === 'frpc.toml',
-          )
-          if (target) {
-            selectValue.value = target
-          }
-        }
-      }
-    })
-
     source.value.addEventListener('sse-connect', (data) => {
       addLog(JSON.stringify(data))
       console.log('sse-connect', data)
@@ -251,6 +237,25 @@ websocketID：${client.value?.secKey}<br>
 `
         showMessageDialog('设备警告⚠️', '确定', message)
         showClientDialog.value = false
+      }
+    })
+
+    source.value.addEventListener('client-refresh', (data) => {
+      const rawJson = JSON.stringify(data, null, 2)
+      const highlightedJSON = syntaxHighlight(rawJson)
+
+      console.log('config-refresh', highlightedJSON)
+      addLog(highlightedJSON)
+      if (data) {
+        options.value = data
+        if (options.value && options.value.length > 0) {
+          const target = options.value.find(
+            (item) => item.label === 'frpc.toml',
+          )
+          if (target) {
+            selectValue.value = target
+          }
+        }
       }
     })
 
@@ -302,6 +307,8 @@ const onClosed = () => {
     source.value = null
   }
 }
+
+// 使用示例
 
 const handleTest = () => {
   addLog('wahahaha')

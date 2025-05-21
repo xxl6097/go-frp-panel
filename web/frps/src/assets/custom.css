@@ -1,38 +1,71 @@
 .el-form-item span {
-  margin-left: 15px;
+    margin-left: 15px;
 }
 
 .proxy-table-expand {
-  font-size: 0;
+    font-size: 0;
 }
 
-.proxy-table-expand .el-form-item__label{
-  width: 90px;
-  color: #99a9bf;
+.proxy-table-expand .el-form-item__label {
+    width: 90px;
+    color: #99a9bf;
 }
 
 .proxy-table-expand .el-form-item {
-  margin-right: 0;
-  margin-bottom: 0;
-  width: 50%;
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 50%;
 }
 
 .el-table .el-table__expanded-cell {
-  padding: 20px 50px;
+    padding: 20px 50px;
 }
 
 
 /* 调整标题与内容间隔 */
 .el-dialog__header {
-  padding: 0;  /* 原默认值为15px 20px，减少顶部内边距 */
-  margin: 0;    /* 消除标题底部默认间距 */
+    padding: 0; /* 原默认值为15px 20px，减少顶部内边距 */
+    margin: 0; /* 消除标题底部默认间距 */
 }
 
 /* 调整内容区域顶部间距 */
 .el-dialog__body {
-  padding: 0;  /* 原默认值为25px，大幅缩减间距 */
+    padding: 0; /* 原默认值为25px，大幅缩减间距 */
 }
 
 .el-input-number .el-input__inner {
-  text-align: left;
+    text-align: left;
 }
+
+/* 基础高亮样式 */
+pre {
+    background: #1e1e1e;
+    /*padding: 1em;*/
+    /*border-radius: 4px;*/
+}
+
+.string {
+    color: #07aaff;
+}
+
+/* 字符串-浅蓝色 */
+.key {
+    color: #fff;
+}
+
+/* 键名-白色 */
+.number {
+    color: #986801;
+}
+
+/* 数字-橙色 */
+.boolean {
+    color: #569cd6;
+}
+
+/* 布尔值-蓝色 */
+.null {
+    color: magenta;
+}
+
+/* null-品红色 */

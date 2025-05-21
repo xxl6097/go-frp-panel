@@ -13,7 +13,7 @@
           style="margin-left: 5px"
           :type="datas.btncolor"
           size="small"
-          @click="onStart()"
+          @click="handleConnectOrClose()"
         >
           {{ datas.btntext }}
         </el-button>
@@ -35,7 +35,7 @@
           "
         >
           <el-card title="日志面板">
-            <el-scrollbar ref="scrollbarRef" style="height: 700px">
+            <div ref="logContainer" class="log-container">
               <div
                 id="txtContent"
                 ref="txtContent"
@@ -48,9 +48,11 @@
                   wordWrap: 'break-word',
                 }"
               >
-                {{ log }}
+                <!--                {{ log }}-->
+                <!--                <pre v-html="log"></pre>-->
+                <span v-html="log"></span>
               </div>
-            </el-scrollbar>
+            </div>
           </el-card>
         </div>
       </div>
@@ -77,37 +79,41 @@
               <el-text @click="onFileClick('..')">..</el-text>
             </li>
             <li v-for="item in files" :key="item.id">
-              <el-text @click="onFileClick(item.label)">{{ item.label }}</el-text>
+              <el-text @click="onFileClick(item.label)"
+                >{{ item.label }}
+              </el-text>
             </li>
           </ul>
         </el-scrollbar>
-
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Action, ElMessageBox, ElScrollbar } from 'element-plus'
+
 const logs = ref<string[]>([])
-const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
+// const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
+const logContainer = ref<HTMLDivElement | null>(null)
 const loading = ref<boolean>(false)
 const status = ref<boolean>(false)
 const apihost = ref<string>(window.location.origin)
 const ssehost = ref<string>('')
-const source = ref<EventSource>()
+const source = ref<EventSource | null>()
+// const source = ref<EventAwareSSEClient | null>()
 const datas = ref({
   btntext: '打开',
   btncolor: 'primary',
   websock: null,
 })
+
 interface Tree {
   id: string
   label: string
   children?: Tree[]
 }
-
 
 const files = ref<Tree[]>([])
 const showFileDirDialog = ref<boolean>(false)
@@ -128,23 +134,33 @@ function getLogColor(logstring: string) {
 }
 
 function addLogContent(content: string) {
-  logs.value.push(content)
-  nextTick(() => {
-    if (scrollbarRef.value) {
-      const scrollContainer = scrollbarRef.value.$el.querySelector(
-        '.el-scrollbar__wrap',
-      )
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
-      }
-    }
-  })
+  // logs.value.push(content)
+  // nextTick(() => {
+  //   if (scrollbarRef.value) {
+  //     const scrollContainer = scrollbarRef.value.$el.querySelector(
+  //       '.el-scrollbar__wrap',
+  //     )
+  //     if (scrollContainer) {
+  //       scrollContainer.scrollTop = scrollContainer.scrollHeight
+  //     }
+  //   }
+  // })
+
+  // const rawJson = JSON.stringify(content, null, 2)
+  // const highlightedJSON = syntaxHighlight(rawJson)
+
+  logs.value.unshift(content)
+  // 滚动到顶部
+  if (logContainer.value) {
+    logContainer.value.scrollTop = logContainer.value.scrollHeight
+  }
 }
 
 function showDir() {
   showFileDirDialog.value = true
   fetchData(logpath.value)
 }
+
 function addLog() {
   const logTypes = ['[INFO]', '[WARN]', '[ERROR]', '[DEBUG]']
   const randomType = logTypes[Math.floor(Math.random() * logTypes.length)]
@@ -168,15 +184,18 @@ function initSSE() {
     return
   }
   try {
+    if (source.value) {
+      source.value.close()
+      source.value = null
+    }
     showLog(`开始连接SSE:${ssehost.value}`)
-    const s = new EventSource(ssehost.value)
-    source.value = s
-    s.onmessage = (event) => {
+    source.value = new EventSource(ssehost.value)
+    source.value.onmessage = (event) => {
       console.log('收到消息:', event.data)
       showLog(event.data)
     }
-    s.onopen = (e) => {
-      console.log('SSE连接已建立', s.readyState) // readyState=1表示连接正常
+    source.value.onopen = (e) => {
+      console.log('SSE连接已建立', e) // readyState=1表示连接正常
       datas.value.btncolor = 'danger'
       datas.value.btntext = '关闭'
       loading.value = false
@@ -184,7 +203,7 @@ function initSSE() {
       showLog('连接成功 ' + e.currentTarget?.toString())
       console.log('sse connect sucessully..', e)
     }
-    s.onerror = (e) => {
+    source.value.onerror = (e) => {
       source.value?.close()
       source.value = undefined
       datas.value.btncolor = 'primary'
@@ -197,30 +216,68 @@ function initSSE() {
   } catch (e) {
     console.log('sse init err', e)
     loading.value = false
-    showLog(`连接SSE识别:${JSON.stringify(e)}`)
+    showLog(`连接SSE失败:${JSON.stringify(e)}`)
   }
+
+  // connectSSE()
 }
 
+// const connectSSE = () => {
+//   try {
+//     const sseUrl = ssehost.value
+//     console.log('connectSSE', sseUrl)
+//     source.value = new EventAwareSSEClient(sseUrl)
+//     source.value.addEventListener('log', (data) => {
+//       console.log('log', data)
+//       showLog(data)
+//     })
+//     source.value.setOnOpenFunction(() => {
+//       console.log('sse connect sucessully..')
+//       datas.value.btncolor = 'danger'
+//       datas.value.btntext = '关闭'
+//       loading.value = false
+//       status.value = true
+//       showLog('连接成功 ')
+//     })
+//     source.value.setOnErrorFunction((e: any) => {
+//       console.log('onerror received a message', e)
+//       source.value?.close()
+//       source.value = undefined
+//       datas.value.btncolor = 'primary'
+//       datas.value.btntext = '打开'
+//       loading.value = false
+//       status.value = false
+//       showLog('连接错误:' + JSON.stringify(e))
+//     })
+//     source.value.connect()
+//   } catch (e) {
+//     console.error('connectSSE err', e)
+//     loading.value = false
+//     showLog(JSON.stringify(e))
+//   }
+// }
+
 function showLog(e: string) {
-  console.log(e)
   addLogContent(e)
 }
-function onStart() {
-  console.log('onStart', loading.value)
-  showLog(`onStart:${loading.value}`)
+
+function handleConnectOrClose() {
   if (!status.value) {
     loading.value = true
+    console.log('开始连接', loading.value)
     initSSE()
   } else {
-    showLog(`onStart open :${loading.value}`)
+    console.log('关闭', loading.value)
+    showLog(`关闭:${loading.value}`)
     source.value?.close()
-    source.value = undefined
+    source.value = null
     datas.value.btncolor = 'primary'
     datas.value.btntext = '打开'
     loading.value = false
     status.value = false
   }
 }
+
 function onClearLog() {
   logs.value = []
 }
