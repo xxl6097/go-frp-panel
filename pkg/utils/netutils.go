@@ -344,7 +344,7 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 			continue
 		}
 
-		glog.Debugf("iface: %+v", iface)
+		//glog.Debugf("iface: %+v", iface)
 		var ipAddresses []string
 		var ipv4 string
 		for _, addr := range addrs {
@@ -356,7 +356,7 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 				ip = v.IP
 			}
 
-			glog.Debugf("address: %+v", addr)
+			//glog.Debugf("address: %+v", addr)
 			// 忽略回环地址
 			if ip.IsLoopback() {
 				continue

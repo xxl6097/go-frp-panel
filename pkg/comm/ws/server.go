@@ -101,7 +101,7 @@ func (this *FrpWebSocket) onMessageRecv(ws *websocket.Conn, r *http.Request) {
 			glog.Errorf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
 			break
 		} else {
-			glog.Printf("Received:%+v %+v\n", ws.RemoteAddr().String(), messageType)
+			//glog.Printf("Received:%+v %+v\n", ws.RemoteAddr().String(), messageType)
 			if this.callback != nil {
 				this.callback.OnServerWebSocketMessageReceive(messageType, message)
 			}

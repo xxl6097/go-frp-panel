@@ -14,7 +14,7 @@ import (
 
 func (this *frps) OnServerWebSocketMessageReceive(messageType int, payload []byte) {
 	if payload != nil {
-		glog.Debugf("ws msg %s", string(payload))
+		//glog.Debugf("ws msg %s", string(payload))
 		var msg iface2.Message[any]
 		err := json.Unmarshal(payload, &msg)
 		if err != nil {
