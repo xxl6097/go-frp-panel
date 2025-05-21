@@ -1,10 +1,13 @@
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
+
 export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+
 export function getTimestamp() {
   return new Date().getTime() // 输出：1632994993000
 }
+
 export function generateRandomKey(length: number) {
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -27,6 +30,7 @@ export function showWarmTips(message: string) {
     type: 'warning',
   })
 }
+
 export function showErrorTips(message: string) {
   ElMessage({
     showClose: true,
@@ -36,83 +40,84 @@ export function showErrorTips(message: string) {
 }
 
 export function markdownToHtml(markdown: string): string {
-  let lines: string[] = markdown.split('\n');
-  let html: string = '';
-  let inList: boolean = false;
-  let listItems: string[] = [];
-  let inCodeBlock: boolean = false;
-  let codeBlockContent: string = '';
+  let lines: string[] = markdown.split('\n')
+  let html: string = ''
+  let inList: boolean = false
+  let listItems: string[] = []
+  let inCodeBlock: boolean = false
+  let codeBlockContent: string = ''
 
   for (let i = 0; i < lines.length; i++) {
-    let line: string = lines[i].trim();
+    let line: string = lines[i].trim()
 
     // 处理代码块开始
     if (line.startsWith('```')) {
       if (inCodeBlock) {
-        html += `<pre><code>${codeBlockContent}</code></pre>`;
-        inCodeBlock = false;
-        codeBlockContent = '';
+        html += `<pre><code>${codeBlockContent}</code></pre>`
+        inCodeBlock = false
+        codeBlockContent = ''
       } else {
-        inCodeBlock = true;
+        inCodeBlock = true
       }
-      continue;
+      continue
     }
 
     if (inCodeBlock) {
-      codeBlockContent += line + '\n';
-      continue;
+      codeBlockContent += line + '\n'
+      continue
     }
 
     // 处理标题
     if (/^(#+) (.*)$/.test(line)) {
-      let [, hashes, content] = line.match(/^(#+) (.*)$/)!;
-      let level: number = hashes.length;
+      let [, hashes, content] = line.match(/^(#+) (.*)$/)!
+      let level: number = hashes.length
       if (inList) {
-        html += `<ul>${listItems.join('')}</ul>`;
-        inList = false;
-        listItems = [];
+        html += `<ul>${listItems.join('')}</ul>`
+        inList = false
+        listItems = []
       }
-      html += `<h${level}>${content}</h${level}>`;
+      html += `<h${level}>${content}</h${level}>`
     }
     // 处理无序列表
     else if (/^([*-]) (.*)$/.test(line)) {
-      let [, , content] = line.match(/^([*-]) (.*)$/)!;
+      let [, , content] = line.match(/^([*-]) (.*)$/)!
       if (!inList) {
-        inList = true;
+        inList = true
       }
-      listItems.push(`<li>${content}</li>`);
+      listItems.push(`<li>${content}</li>`)
     }
     // 处理段落
     else {
       if (inList) {
-        html += `<ul>${listItems.join('')}</ul>`;
-        inList = false;
-        listItems = [];
+        html += `<ul>${listItems.join('')}</ul>`
+        inList = false
+        listItems = []
       }
       if (line) {
-        html += `<p>${line}</p>`;
+        html += `<p>${line}</p>`
       }
     }
   }
 
   // 如果最后处于列表状态，闭合列表
   if (inList) {
-    html += `<ul>${listItems.join('')}</ul>`;
+    html += `<ul>${listItems.join('')}</ul>`
   }
 
   // 如果最后处于代码块状态，闭合代码块
   if (inCodeBlock) {
-    html += `<pre><code>${codeBlockContent}</code></pre>`;
+    html += `<pre><code>${codeBlockContent}</code></pre>`
   }
 
   // 处理加粗
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 
   // 处理斜体
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
 
-  return html;
+  return html
 }
+
 export function showMessageDialog(
   title: string,
   confirmButtonText: string,
@@ -268,9 +273,11 @@ export async function download(url: string) {
 export function post(title: string, path: string, body: any) {
   return fetchReest('POST', title, path, body)
 }
+
 export function put(title: string, path: string, body: any) {
   return fetchReest('PUT', title, path, body)
 }
+
 export function get(title: string, path: string, body: any) {
   return fetchReest('GET', title, path, body)
 }
@@ -419,6 +426,27 @@ export function xhrPromise(config: any) {
   })
 }
 
+export function syntaxHighlight(json: string): string {
+  // 转义特殊字符防止 XSS
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  // 正则匹配 JSON 元素并分配类名
+  return json.replace(
+    /("(\\u[\dA-Fa-f]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+    (match) => {
+      let cls = 'number'
+      if (/^"/.test(match)) {
+        cls = match.endsWith(':') ? 'key' : 'string' // 键名与字符串区分
+      } else if (/true|false/.test(match)) {
+        cls = 'boolean'
+      } else if (/null/.test(match)) {
+        cls = 'null'
+      }
+      return `<span class="${cls}">${match}</span>` // 直接内联类名判断[1,6](@ref)
+    },
+  )
+}
+
 export interface NetWork {
   name: string
   displayName: string
@@ -426,6 +454,7 @@ export interface NetWork {
   ipv4: string
   ipAddresses: string[]
 }
+
 // 定义类型化的注入键
 export interface Version {
   frpcVersion: string

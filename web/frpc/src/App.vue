@@ -10,7 +10,7 @@
   <div id="app">
     <header class="grid-content header-color">
       <div class="header-content">
-        <div class="brand">
+        <div class="brand" @click="handleDevelopment">
           <el-tooltip placement="right" effect="light">
             <template #content>
               <el-descriptions :column="1" border label-width="110px">
@@ -134,6 +134,9 @@
             <el-menu-item index="/">客户端信息</el-menu-item>
             <el-menu-item index="/configure">配置</el-menu-item>
             <el-menu-item index="/log">日志</el-menu-item>
+            <el-menu-item index="/development" v-if="isDevelopment"
+            >开发中模式
+            </el-menu-item>
             <el-menu-item index="">帮助</el-menu-item>
           </el-menu>
         </el-col>
@@ -255,6 +258,38 @@ const dialogFormVisible = ref(false)
 const form = ref({
   binUrl: '',
 })
+const isDevelopment = ref(false)
+const clickCount = ref(0)
+let timer: number | null = null
+const handleDevelopment = () => {
+  // 首次点击启动定时器（1秒内有效）
+  if (clickCount.value === 0) {
+    timer = window.setTimeout(() => {
+      clickCount.value = 0
+      timer = null
+    }, 1000)
+  }
+
+  clickCount.value++
+
+  // 触发条件：5次点击
+  if (clickCount.value === 5) {
+    console.log('连续点击了5次！')
+    // 执行目标操作（例如提交表单、跳转页面等）
+    executeTargetAction()
+    // 重置状态
+    clickCount.value = 0
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+  }
+}
+const executeTargetAction = () => {
+  // 这里编写业务逻辑，例如调用接口或跳转页面
+  showWarmTips('进入开发者模式')
+  isDevelopment.value = true
+}
 
 const handleSelect = (key: string) => {
   if (key == '') {
@@ -321,10 +356,11 @@ const fetchData = () => {
     })
     .then((json) => {
       if (json) {
-        version.value = json
-        title.value = `Frpc ${json.data.appVersion}`
+        const vv = json.data as Version // 类型断言
+        version.value = vv
+        title.value = `Frpc ${vv.appVersion}`
         //document.title = title.value
-        document.title = `Frpc ${json.data.hostName}`
+        document.title = `Frpc ${vv.hostName}`
       }
     })
 }
