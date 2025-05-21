@@ -355,6 +355,7 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 				ip = v.IP
 			}
 
+			glog.Debugf("address: %+v", addr)
 			// 忽略回环地址
 			if ip.IsLoopback() {
 				continue
@@ -443,6 +444,20 @@ func GetPrimaryIP() (string, error) {
 	return ifaces[0].IPAddresses[0], nil
 }
 
+func isBadName(name string) bool {
+	badNames := []string{
+		"virtual",
+		"vmware",
+		"docker",
+	}
+	for _, badName := range badNames {
+		if strings.Contains(strings.ToLower(name), badName) {
+			return true
+		}
+	}
+	return false
+}
+
 // GetDeviceInfo 获取主IP地址、Mac地址（默认网关所在接口的IP）
 func GetDeviceInfo() (*NetworkInterface, error) {
 	ifaces, err := GetNetworkInterfaces()
@@ -457,10 +472,13 @@ func GetDeviceInfo() (*NetworkInterface, error) {
 	face := &ifaces[0]
 	// 优先选择非虚拟接口
 	for _, iface := range ifaces {
-		if !strings.Contains(strings.ToLower(iface.Name), "virtual") &&
-			!strings.Contains(strings.ToLower(iface.Name), "vmware") &&
-			!strings.Contains(strings.ToLower(iface.Name), "docker") {
-			//return &iface, nil
+		//if !strings.Contains(strings.ToLower(iface.Name), "virtual") &&
+		//	!strings.Contains(strings.ToLower(iface.Name), "vmware") &&
+		//	!strings.Contains(strings.ToLower(iface.Name), "docker") {
+		//	//return &iface, nil
+		//	face = &iface
+		//}
+		if !isBadName(iface.Name) {
 			face = &iface
 		}
 		//glog.Debugf("获取设备信息：%+v", iface)
