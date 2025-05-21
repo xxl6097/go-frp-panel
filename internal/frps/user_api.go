@@ -715,7 +715,7 @@ func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fileName := fmt.Sprintf("%s_frpc.toml", body.User.User)
+	fileName := fmt.Sprintf("%s.%s.frpc.toml", body.Addr, body.User.User)
 	if GetCfgModel() == nil {
 		msg := fmt.Errorf("GetCfgModel is nil")
 		glog.Error(msg)
