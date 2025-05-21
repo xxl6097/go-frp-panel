@@ -102,7 +102,7 @@ const fetchRunApi = (action: string, data: any) => {
       if (json.code === 0) {
         addLog(json.data)
       } else {
-        const rawJson = JSON.stringify(json, null, 2)
+        const rawJson = JSON.stringify(json.data, null, 2)
         const highlightedJSON = syntaxHighlight(rawJson)
         addLog(highlightedJSON)
       }
