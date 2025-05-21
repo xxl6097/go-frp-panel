@@ -9,7 +9,7 @@
             style="width: 50%"
           ></el-input>
           <el-button @click="handleGetEnv" style="width: 50%"
-            >获取环境变量
+          >获取环境变量
           </el-button>
         </div>
         <div style="display: flex; margin-left: 5px; margin-right: 5px">
@@ -19,7 +19,7 @@
             placeholder="请输入命令"
           ></el-input>
           <el-button @click="handleCMD" style="width: 50%" plain
-            >执行命令
+          >执行命令
           </el-button>
         </div>
         <div style="display: flex; margin-left: 5px; margin-right: 5px">
@@ -100,11 +100,11 @@ const fetchRunApi = (action: string, data: any) => {
     .then((json) => {
       console.log(json)
       if (json.code === 0) {
-        addLog(json.data)
-      } else {
         const rawJson = JSON.stringify(json.data, null, 2)
         const highlightedJSON = syntaxHighlight(rawJson)
         addLog(highlightedJSON)
+      } else {
+        addLog(json.msg)
       }
     })
     .catch(() => {

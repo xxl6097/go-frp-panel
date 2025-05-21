@@ -100,11 +100,11 @@ const fetchRunApi = (action: string, data: any) => {
     .then((json) => {
       console.log(json)
       if (json.code === 0) {
-        addLog(json.data)
-      } else {
         const rawJson = JSON.stringify(json.data, null, 2)
         const highlightedJSON = syntaxHighlight(rawJson)
         addLog(highlightedJSON)
+      } else {
+        addLog(json.msg)
       }
     })
     .catch(() => {
