@@ -344,6 +344,7 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 			continue
 		}
 
+		glog.Debugf("iface: %+v", iface)
 		var ipAddresses []string
 		var ipv4 string
 		for _, addr := range addrs {
