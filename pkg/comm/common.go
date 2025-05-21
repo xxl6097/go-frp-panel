@@ -1,8 +1,11 @@
 package comm
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
+	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
+	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/gservice/gore"
@@ -11,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -21,6 +25,71 @@ type commapi struct {
 	igs  gore.IGService
 	obj  any
 	pool *sync.Pool // use sync.Pool caching buf to reduce gc ratio
+}
+
+func (this *commapi) ApiCMD(w http.ResponseWriter, r *http.Request) {
+	res, f := Response(r)
+	defer f(w)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		glog.Error("body读取失败", err)
+		res.Err(err)
+		return
+	}
+	if body == nil {
+		msg := "body is nil"
+		glog.Error(msg)
+		res.Err(fmt.Errorf(msg))
+		return
+	}
+	var msg iface2.Message[any]
+	err = json.Unmarshal(body, &msg)
+	if err != nil {
+		glog.Error("解析Json对象失败", err)
+		res.Err(err)
+		return
+	}
+	switch msg.Action {
+	case ws.CLIENT_NETWORLD:
+		arr, e := utils2.GetNetworkInterfaces()
+		if e != nil {
+			res.Err(e)
+		} else {
+			res.Any(arr)
+		}
+		break
+	case ws.CMD:
+		data, ok := msg.Data.(map[string]interface{})
+		if ok {
+			glog.Infof("data %+v", data)
+			d := data["data"]
+			if d == nil {
+				glog.Errorf("data is nil %+v", msg.Data)
+				break
+			}
+			v, okk := d.(string)
+			if !okk {
+				glog.Infof("string err %+v", d)
+				break
+			}
+			arrData := strings.Split(v, " ")
+			var cmd *exec.Cmd
+			if len(arrData) >= 2 {
+				cmd = exec.Command(arrData[0], arrData[1:]...)
+			} else {
+				cmd = exec.Command(arrData[0])
+			}
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				res.Err(err)
+				return
+			}
+			res.Any(string(output))
+		} else {
+			res.Err(fmt.Errorf("cmd err %+v", msg.Data))
+		}
+		break
+	}
 }
 
 func NewCommApi(install gore.IGService, obj any) *commapi {

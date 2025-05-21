@@ -20,6 +20,8 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 
 	subRouter.HandleFunc("/api/files", this.upgrade.ApiFiles).Methods("PUT")
 
+	subRouter.HandleFunc("/api/run", this.upgrade.ApiCMD).Methods("POST")
+
 	// apis
 	//subRouter.HandleFunc("/api/panelinfo", this.apiPanelinfo).Methods("GET")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")

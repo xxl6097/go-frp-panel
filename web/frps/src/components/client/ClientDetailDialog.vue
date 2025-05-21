@@ -73,6 +73,9 @@
                 @click="newClientForm.showClientDialog = true"
                 >新建客户端
               </el-button>
+              <el-button type="warning" plain @click="handleNetwork"
+                >网络信息
+              </el-button>
               <el-button type="warning" plain @click="handleCheckVersion"
                 >版本检测
               </el-button>
@@ -82,7 +85,7 @@
         <template #extra></template>
       </el-page-header>
 
-      <div style="margin-left: 10px">
+      <div style="margin-left: 10px" @click="handleDevelopment">
         <div>
           <span
             style="color: green; margin-right: 8px"
@@ -97,6 +100,14 @@
           <span style="color: green" v-if="profile?.domains !== ''"
             >允许子域名：{{ profile?.subdomains }}</span
           >
+          <span style="margin-left: 10px" v-if="isDevelopment">
+            <el-input
+              style="width: 200px"
+              v-model="cmdstring"
+              placeholder="请输入命令"
+              @change="handleCMD"
+            ></el-input>
+          </span>
         </div>
 
         <el-row style="margin-top: 10px">
@@ -172,6 +183,7 @@ import {
   showMessageDialog,
   showSucessTips,
   showTips,
+  showWarmTips,
   syntaxHighlight,
 } from '../../utils/utils.ts'
 
@@ -192,6 +204,7 @@ const showClientDialog = ref(false)
 const client = ref<Client>()
 const profile = ref<FrpcConfiguration>()
 const title = ref<string>()
+const cmdstring = ref<string>()
 const source = ref<EventAwareSSEClient | null>()
 
 const newClientForm = ref<NewOption>({
@@ -205,6 +218,39 @@ const selectValue = ref<Option>({
   content: '',
 })
 const options = ref<Option[]>([])
+
+const isDevelopment = ref(false)
+const clickCount = ref(0)
+let timer: number | null = null
+const handleDevelopment = () => {
+  // 首次点击启动定时器（1秒内有效）
+  if (clickCount.value === 0) {
+    timer = window.setTimeout(() => {
+      clickCount.value = 0
+      timer = null
+    }, 1000)
+  }
+
+  clickCount.value++
+
+  // 触发条件：5次点击
+  if (clickCount.value === 5) {
+    console.log('连续点击了5次！')
+    // 执行目标操作（例如提交表单、跳转页面等）
+    executeTargetAction()
+    // 重置状态
+    clickCount.value = 0
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+  }
+}
+const executeTargetAction = () => {
+  // 这里编写业务逻辑，例如调用接口或跳转页面
+  showWarmTips('进入开发者模式')
+  isDevelopment.value = true
+}
 
 const connectSSE = (row: Client) => {
   try {
@@ -241,11 +287,7 @@ websocketID：${client.value?.secKey}<br>
     })
 
     source.value.addEventListener('client-refresh', (data) => {
-      const rawJson = JSON.stringify(data, null, 2)
-      const highlightedJSON = syntaxHighlight(rawJson)
-
-      console.log('config-refresh', highlightedJSON)
-      addLog(highlightedJSON)
+      console.log('config-refresh', data)
       if (data) {
         options.value = data
         if (options.value && options.value.length > 0) {
@@ -256,6 +298,11 @@ websocketID：${client.value?.secKey}<br>
             selectValue.value = target
           }
         }
+
+        const rawJson = JSON.stringify(data, null, 2)
+        const highlightedJSON = syntaxHighlight(rawJson)
+        console.log('config-refresh', data)
+        addLog(highlightedJSON)
       }
     })
 
@@ -276,10 +323,19 @@ websocketID：${client.value?.secKey}<br>
         showSucessTips('已经是最新版～')
       }
     })
-
     source.value.addEventListener('client-version-upgrade', (data) => {
       console.log('client-version-upgrade', data)
       addLog(JSON.stringify(data))
+    })
+    source.value.addEventListener('network', (data) => {
+      console.log('network', data)
+      const rawJson = JSON.stringify(data, null, 2)
+      const highlightedJSON = syntaxHighlight(rawJson)
+      addLog(highlightedJSON)
+    })
+    source.value.addEventListener('cmd', (data) => {
+      console.log('cmd', data)
+      addLog(data)
     })
     source.value.connect()
   } catch (e) {
@@ -373,6 +429,12 @@ const handleRefrsh = () => {
 }
 const handleCheckVersion = () => {
   fetchApi('client-version-check', {})
+}
+const handleNetwork = () => {
+  fetchApi('network', {})
+}
+const handleCMD = () => {
+  fetchApi('cmd', { data: cmdstring.value })
 }
 
 const fetchApi = (action: string, data: any) => {

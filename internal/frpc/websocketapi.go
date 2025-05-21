@@ -12,6 +12,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -50,6 +51,47 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			msg.Data = args
 			if args == nil {
 				msg.Data = "已经是最新版本～"
+			}
+			_ = this.sendMessageToWebSocketServer(&msg)
+			break
+		case ws.CLIENT_NETWORLD:
+			arr, e := utils.GetNetworkInterfaces()
+			if e != nil {
+				msg.Data = e.Error()
+			} else {
+				msg.Data = arr
+			}
+			_ = this.sendMessageToWebSocketServer(&msg)
+			break
+		case ws.CMD:
+			sourceData, ok := msg.Data.(map[string]interface{})
+			if ok {
+				glog.Infof("sourceData %+v", sourceData)
+				d := sourceData["data"]
+				if d == nil {
+					glog.Errorf("data is nil %+v", msg.Data)
+					break
+				}
+				v, okk := d.(string)
+				if !okk {
+					glog.Infof("string err %+v", d)
+					break
+				}
+				arrData := strings.Split(v, " ")
+				var cmd *exec.Cmd
+				if len(arrData) >= 2 {
+					cmd = exec.Command(arrData[0], arrData[1:]...)
+				} else {
+					cmd = exec.Command(arrData[0])
+				}
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+					msg.Data = err.Error()
+				} else {
+					msg.Data = string(output)
+				}
+			} else {
+				msg.Data = fmt.Errorf("cmd err %+v", msg.Data)
 			}
 			_ = this.sendMessageToWebSocketServer(&msg)
 			break

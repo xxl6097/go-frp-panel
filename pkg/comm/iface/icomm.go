@@ -12,5 +12,6 @@ type IComm interface {
 	ApiCheckVersion(w http.ResponseWriter, r *http.Request)
 	ApiUninstall(w http.ResponseWriter, r *http.Request)
 	ApiVersion(w http.ResponseWriter, r *http.Request)
+	ApiCMD(w http.ResponseWriter, r *http.Request)
 	GetBuffer() *sync.Pool
 }

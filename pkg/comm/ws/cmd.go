@@ -13,4 +13,6 @@ var (
 	DISCONNECT             = "disconnect"
 	CLIENT_VERSION_CHECK   = "client-version-check"
 	CLIENT_VERSION_UPGRADE = "client-version-upgrade"
+	CLIENT_NETWORLD        = "network"
+	CMD                    = "cmd"
 )
