@@ -106,7 +106,7 @@ func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
 		svr:          svr,
 		cloudApi:     nil,
 		install:      install,
-		upgrade:      comm.NewCommApi(install, GetCfgModel()),
+		upgrade:      comm.NewCommApi(install),
 		binDir:       filepath.Dir(binPath),
 		webSocketApi: ws.NewWebSocket(),
 		sseApi:       sseApi,

@@ -6,6 +6,7 @@ import (
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/gorilla/mux"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -219,4 +220,34 @@ func (this *frps) apiEnv(w http.ResponseWriter, r *http.Request) {
 	defer f(w)
 	name := r.URL.Query().Get("name")
 	res.Raw = []byte(fmt.Sprintf("%s：%s", name, os.Getenv(name)))
+}
+
+func (this *frps) GetUserAll() ([]model.User, error) {
+	binpath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	files, err := filepath.Glob(filepath.Join(filepath.Dir(binpath), "user", "*.json"))
+	if err != nil {
+		return nil, err
+	}
+
+	var obj map[string]int
+	if this.webSocketApi != nil {
+		obj = this.webSocketApi.GetListSize()
+	}
+	var users []model.User
+	for _, file := range files {
+		user, e := model.Read(file)
+		if e == nil {
+			if obj != nil && len(obj) > 0 {
+				n, ok := obj[user.ID]
+				if ok {
+					user.Count = n
+				}
+			}
+			users = append(users, *user)
+		}
+	}
+	return users, nil
 }

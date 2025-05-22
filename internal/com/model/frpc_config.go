@@ -1,9 +1,10 @@
-package frps
+package model
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"log"
@@ -23,6 +24,20 @@ type User struct {
 	Domains    []string `json:"domains,omitempty"`
 	Subdomains []string `json:"subdomains,omitempty"`
 	Enable     bool     `json:"enable,omitempty"`
+}
+
+type FrpcBuffer struct {
+	AdminUser  string `json:"adminUser,omitempty"`
+	AdminPass  string `json:"adminPass,omitempty"`
+	AdminPort  int    `json:"adminPort,omitempty"`
+	ServerAddr string `json:"serverAddr,omitempty"`
+	User       User   `json:"user,omitempty"`
+}
+
+type ConfigBodyData struct {
+	BinAddress   string           `json:"binAddress,omitempty"`
+	UserConfig   *User            `json:"userConfig,omitempty"`
+	ClientConfig *v1.ClientConfig `json:"clientConfig,omitempty"`
 }
 
 func (u *User) CreateUserByID() error {
@@ -104,36 +119,6 @@ func DeleteUser(id string) error {
 		return errors.New("id is empty")
 	}
 	return os.Remove(GetJsonPath(id))
-}
-
-func (this *frps) GetUserAll() ([]User, error) {
-	binpath, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-	files, err := filepath.Glob(filepath.Join(filepath.Dir(binpath), "user", "*.json"))
-	if err != nil {
-		return nil, err
-	}
-
-	var obj map[string]int
-	if this.webSocketApi != nil {
-		obj = this.webSocketApi.GetListSize()
-	}
-	var users []User
-	for _, file := range files {
-		user, e := Read(file)
-		if e == nil {
-			if obj != nil && len(obj) > 0 {
-				n, ok := obj[user.ID]
-				if ok {
-					user.Count = n
-				}
-			}
-			users = append(users, *user)
-		}
-	}
-	return users, nil
 }
 
 //	type UserGorm struct {

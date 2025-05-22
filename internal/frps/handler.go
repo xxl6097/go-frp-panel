@@ -5,6 +5,7 @@ import (
 	plugin "github.com/fatedier/frp/pkg/plugin/server"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"log"
 	"net/http"
@@ -109,7 +110,7 @@ func (c *frps) JudgeToken(id string, token string) plugin.Response {
 		res.Reject = true
 		res.RejectReason = "ID和Token不能为空"
 	} else {
-		ok, err := JudgeToken(id, token)
+		ok, err := model.JudgeToken(id, token)
 		if ok {
 			res.Unchange = true
 		} else {
@@ -141,7 +142,7 @@ func (c *frps) JudgePort(content *plugin.NewProxyContent) plugin.Response {
 	userDomains := content.CustomDomains
 	userSubdomain := content.SubDomain
 
-	ok, err := JudgePort(id, proxyType, userPort, userDomains, userSubdomain)
+	ok, err := model.JudgePort(id, proxyType, userPort, userDomains, userSubdomain)
 	if ok {
 		res.Reject = true
 		res.RejectReason = err.Error()

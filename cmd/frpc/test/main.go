@@ -5,9 +5,9 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
-	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
 )
 
 func main() {
@@ -27,14 +27,6 @@ func main() {
 			User:     "admin",
 			Password: "admin",
 		},
-	}
-
-	cfgBuffer := &comm.BufferConfig{
-		Addr:  ccc.ServerAddr,
-		Port:  ccc.ServerPort,
-		User:  ccc.User,
-		Token: ccc.User,
-		Ports: []any{8089, "8200-9000"},
 	}
 
 	tcpProxy := v1.TypedProxyConfig{
@@ -60,7 +52,7 @@ func main() {
 		Proxies:            proxies,
 	}
 	glog.Infof("ClientConfig:%+v", cfg)
-	frpc.SetCfgModel(&frpc.CfgModel{Frpc: *cfg, Cfg: cfgBuffer})
+	frpc.SetCfgModel(&frpc.CfgModel{Frpc: *cfg})
 
 	err := frp.WriteFrpcMainConfigWithOut(cfg)
 	//err = frp.WriteFrpcMainConfig(cfg)
@@ -68,6 +60,7 @@ func main() {
 		glog.Warnf("write content to frpc config file error: %v", err)
 	}
 
+	_ = ReadFrcMainConfigWithOut()
 	//fmt.Println(cfgPath)
 	//fmt.Println(string(utils.ObjectToTomlText(cfg)))
 	cls, err := frpc2.NewFrpc(nil)
@@ -76,4 +69,19 @@ func main() {
 	}
 	fmt.Printf("http://localhost:%d\n", cfg.WebServer.Port)
 	cls.Run()
+}
+
+func ReadFrcMainConfigWithOut() error {
+	content, err := frp.ReadFrpToml(frp.GetFrpcMainTomlFileName())
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(content))
+	cfg := v1.ClientConfig{}
+	err = utils.TomlTextToObject(content, &cfg)
+	if err != nil {
+		return err
+	}
+	fmt.Println(cfg)
+	return nil
 }

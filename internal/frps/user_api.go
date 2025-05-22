@@ -3,13 +3,11 @@ package frps
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/internal/frpc"
+	model2 "github.com/xxl6097/go-frp-panel/internal/com/model"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -33,7 +31,7 @@ func (this *frps) apiUserCreate(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 	//fmt.Println(string(body))
-	u, err := utils.GetDataByJson[User](r)
+	u, err := utils.GetDataByJson[model2.User](r)
 	if err != nil {
 		res.Err(err)
 		return
@@ -66,7 +64,7 @@ func (this *frps) apiUserDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, u := range *users {
-		err = DeleteUser(u.ID)
+		err = model2.DeleteUser(u.ID)
 	}
 	//err = this.repo.Delete(u.User)
 	//if err != nil {
@@ -101,7 +99,7 @@ func (this *frps) apiUserDeleteAll(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiUserUpdate(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	u, err := utils.GetDataByJson[User](r)
+	u, err := utils.GetDataByJson[model2.User](r)
 	if err != nil {
 		res.Err(err)
 		return
@@ -199,316 +197,317 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 //	glog.Error(u)
 //}
 
-func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
-	res := &comm2.GeneralResponse{Code: 0}
+//func (this *frps) apiClientGenPut(w http.ResponseWriter, r *http.Request) {
+//	res := &comm2.GeneralResponse{Code: 0}
+//
+//	var body struct {
+//		Addr      string               `json:"addr"`
+//		Port      int                  `json:"port"`
+//		ApiPort   int                  `json:"apiPort"`
+//		User      model2.User          `json:"user"`
+//		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+//		WebServer *v1.WebServerConfig  `json:"webserver"`
+//	}
+//	jstr := r.FormValue("data")
+//	err := json.Unmarshal([]byte(jstr), &body)
+//	glog.Infof("data:%+v", body)
+//
+//	err = r.ParseMultipartForm(32 << 20)
+//	if err != nil {
+//		res.Error("body can't be empty")
+//		glog.Error(res.Msg)
+//		return
+//	}
+//	// 获取上传的文件
+//	file, handler, err := r.FormFile("file")
+//	if err != nil {
+//		res.Error("body no file")
+//		return
+//	}
+//	defer file.Close()
+//
+//	glog.Info(handler.Filename)
+//
+//	binPath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), handler.Filename)
+//	dst, err := os.Create(binPath)
+//	if err != nil {
+//		res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
+//		return
+//	}
+//	defer utils2.DeleteAll(binPath, "upload gen file")
+//	buf := this.upgrade.GetBuffer().Get().([]byte)
+//	defer this.upgrade.GetBuffer().Put(buf)
+//	_, err = io.CopyBuffer(dst, file, buf)
+//	dst.Close()
+//	if err != nil {
+//		res.Error(err.Error())
+//		return
+//	}
+//	glog.Info("上传成功", binPath)
+//
+//	tpl, err := os.Open(binPath)
+//	if err != nil {
+//		msg := fmt.Errorf("打开文件失败：%v", err)
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+//		return
+//	}
+//	defer tpl.Close()
+//
+//	fileName := filepath.Base(binPath)
+//	w.Header().Add("Content-Transfer-Encoding", "binary")
+//	w.Header().Add("Content-Type", "application/octet-stream")
+//	if stat, err := tpl.Stat(); err == nil {
+//		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
+//	}
+//	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+//	//cfgBuffer := ukey.GetBuffer()
+//	if GetCfgModel() == nil {
+//		msg := fmt.Errorf("GetCfgModel is nil")
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+//		return
+//	}
+//	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
+//	bindPort := GetCfgModel().Frps.BindPort
+//	if body.Port > 0 {
+//		bindPort = body.Port
+//	}
+//	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+//	cfg := comm2.BufferConfig{
+//		Addr:          body.Addr,
+//		Port:          bindPort,
+//		Authorization: authorization,
+//		ApiPort:       body.ApiPort,
+//		ID:            body.User.ID,
+//		User:          body.User.User,
+//		Token:         body.User.Token,
+//		Comment:       body.User.Comment,
+//		Ports:         body.User.Ports,
+//		Domains:       body.User.Domains,
+//		Subdomains:    body.User.Subdomains,
+//		Proxy:         body.Proxy,
+//		WebServer:     body.WebServer,
+//	}
+//
+//	glog.Infof("BufferConfig: %+v", cfg)
+//	cfgNewBytes, err := ukey.GenConfig(cfg, false)
+//	if err != nil {
+//		msg := fmt.Errorf("文件签名失败：%v", err)
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
+//		return
+//	}
+//
+//	//err = frpc.TestLoadBuffer(cfgNewBytes)
+//	//glog.Infof("TestLoadBuffer: %+v\n", err)
+//
+//	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+//	outFile, err := os.Create(dstFile)
+//	if err != nil {
+//		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+//		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+//		return
+//	}
+//	defer outFile.Close()
+//	defer utils2.DeleteAll(dstFile, "gen file")
+//
+//	prevBuffer := make([]byte, 0)
+//	for {
+//		thisBuffer := make([]byte, 1024)
+//		n, err := tpl.Read(thisBuffer)
+//		thisBuffer = thisBuffer[:n]
+//		tempBuffer := append(prevBuffer, thisBuffer...)
+//		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
+//		if bufIndex > -1 {
+//			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
+//		}
+//		//w.Write(tempBuffer[:len(prevBuffer)])
+//		outFile.Write(tempBuffer[:len(prevBuffer)])
+//		prevBuffer = tempBuffer[len(prevBuffer):]
+//		if err != nil {
+//			break
+//		}
+//	}
+//	if len(prevBuffer) > 0 {
+//		//w.Write(prevBuffer)
+//		outFile.Write(prevBuffer)
+//		prevBuffer = nil
+//	}
+//	http.ServeFile(w, r, dstFile)
+//}
 
-	var body struct {
-		Addr      string               `json:"addr"`
-		Port      int                  `json:"port"`
-		ApiPort   int                  `json:"apiPort"`
-		User      User                 `json:"user"`
-		Proxy     *v1.TypedProxyConfig `json:"proxy"`
-		WebServer *v1.WebServerConfig  `json:"webserver"`
-	}
-	jstr := r.FormValue("data")
-	err := json.Unmarshal([]byte(jstr), &body)
-	glog.Infof("data:%+v", body)
-
-	err = r.ParseMultipartForm(32 << 20)
-	if err != nil {
-		res.Error("body can't be empty")
-		glog.Error(res.Msg)
-		return
-	}
-	// 获取上传的文件
-	file, handler, err := r.FormFile("file")
-	if err != nil {
-		res.Error("body no file")
-		return
-	}
-	defer file.Close()
-
-	glog.Info(handler.Filename)
-
-	binPath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), handler.Filename)
-	dst, err := os.Create(binPath)
-	if err != nil {
-		res.Error(fmt.Sprintf("create file %s error: %v", handler.Filename, err))
-		return
-	}
-	defer utils2.DeleteAll(binPath, "upload gen file")
-	buf := this.upgrade.GetBuffer().Get().([]byte)
-	defer this.upgrade.GetBuffer().Put(buf)
-	_, err = io.CopyBuffer(dst, file, buf)
-	dst.Close()
-	if err != nil {
-		res.Error(err.Error())
-		return
-	}
-	glog.Info("上传成功", binPath)
-
-	tpl, err := os.Open(binPath)
-	if err != nil {
-		msg := fmt.Errorf("打开文件失败：%v", err)
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
-		return
-	}
-	defer tpl.Close()
-
-	fileName := filepath.Base(binPath)
-	w.Header().Add("Content-Transfer-Encoding", "binary")
-	w.Header().Add("Content-Type", "application/octet-stream")
-	if stat, err := tpl.Stat(); err == nil {
-		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
-	}
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	//cfgBuffer := ukey.GetBuffer()
-	if GetCfgModel() == nil {
-		msg := fmt.Errorf("GetCfgModel is nil")
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
-		return
-	}
-	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
-	bindPort := GetCfgModel().Frps.BindPort
-	if body.Port > 0 {
-		bindPort = body.Port
-	}
-	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
-	cfg := comm2.BufferConfig{
-		Addr:          body.Addr,
-		Port:          bindPort,
-		Authorization: authorization,
-		ApiPort:       body.ApiPort,
-		ID:            body.User.ID,
-		User:          body.User.User,
-		Token:         body.User.Token,
-		Comment:       body.User.Comment,
-		Ports:         body.User.Ports,
-		Domains:       body.User.Domains,
-		Subdomains:    body.User.Subdomains,
-		Proxy:         body.Proxy,
-		WebServer:     body.WebServer,
-	}
-
-	glog.Infof("BufferConfig: %+v", cfg)
-	cfgNewBytes, err := ukey.GenConfig(cfg, false)
-	if err != nil {
-		msg := fmt.Errorf("文件签名失败：%v", err)
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
-		return
-	}
-
-	//err = frpc.TestLoadBuffer(cfgNewBytes)
-	//glog.Infof("TestLoadBuffer: %+v\n", err)
-
-	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
-	outFile, err := os.Create(dstFile)
-	if err != nil {
-		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
-		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
-		return
-	}
-	defer outFile.Close()
-	defer utils2.DeleteAll(dstFile, "gen file")
-
-	prevBuffer := make([]byte, 0)
-	for {
-		thisBuffer := make([]byte, 1024)
-		n, err := tpl.Read(thisBuffer)
-		thisBuffer = thisBuffer[:n]
-		tempBuffer := append(prevBuffer, thisBuffer...)
-		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
-		if bufIndex > -1 {
-			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
-		}
-		//w.Write(tempBuffer[:len(prevBuffer)])
-		outFile.Write(tempBuffer[:len(prevBuffer)])
-		prevBuffer = tempBuffer[len(prevBuffer):]
-		if err != nil {
-			break
-		}
-	}
-	if len(prevBuffer) > 0 {
-		//w.Write(prevBuffer)
-		outFile.Write(prevBuffer)
-		prevBuffer = nil
-	}
-	http.ServeFile(w, r, dstFile)
-}
-
-func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	body, err := utils.GetDataByJson[struct {
-		BinPath   string               `json:"binPath"`
-		BinUrl    string               `json:"binUrl"`
-		Addr      string               `json:"addr"`
-		Port      int                  `json:"port"`
-		ApiPort   int                  `json:"apiPort"`
-		User      User                 `json:"user"`
-		Proxy     *v1.TypedProxyConfig `json:"proxy"`
-		WebServer *v1.WebServerConfig  `json:"webserver"`
-	}](r)
-	if err != nil {
-		glog.Error("解析Json对象失败", err)
-		return
-	}
-	if body == nil {
-		msg := "json对象nil"
-		glog.Error(msg)
-		http.Error(w, "json对象nil", http.StatusInternalServerError)
-		return
-	}
-	glog.Debugf("客户端生成参数:%+v", body)
-	if utils2.IsURL(body.BinPath) {
-		if this.githubProxys != nil {
-			var urls []string
-			for _, proxy := range this.githubProxys {
-				newUrl := fmt.Sprintf("%s%s", proxy, body.BinPath)
-				urls = append(urls, newUrl)
-			}
-			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
-			body.BinPath = dstPath
-		} else {
-			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinPath)
-			if err != nil {
-				msg := fmt.Errorf("下载文件失败～%v", err)
-				glog.Error(msg)
-				http.Error(w, msg.Error(), http.StatusNotImplemented)
-				return
-			}
-			body.BinPath = dstPath
-		}
-	}
-	if utils2.IsURL(body.BinUrl) {
-		if this.githubProxys != nil {
-			var urls []string
-			for _, proxy := range this.githubProxys {
-				newUrl := fmt.Sprintf("%s%s", proxy, body.BinUrl)
-				urls = append(urls, newUrl)
-			}
-			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
-			body.BinPath = dstPath
-		} else {
-			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
-			if err != nil {
-				msg := fmt.Errorf("下载文件失败～%v", err)
-				glog.Error(msg)
-				http.Error(w, msg.Error(), http.StatusNotImplemented)
-				return
-			}
-			body.BinPath = dstPath
-		}
-	}
-	if body.User.User == "" {
-		msg := fmt.Errorf("用户名空")
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusBadGateway)
-		return
-	}
-	binPath := body.BinPath
-	if binPath == "" {
-		msg := fmt.Errorf("bin文件路径空")
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusServiceUnavailable)
-		return
-	}
-	glog.Infof("binPath: %s %+v\n", binPath, body)
-	tpl, err := os.Open(binPath)
-	if err != nil {
-		msg := fmt.Errorf("打开文件失败：%v", err)
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
-		return
-	}
-	defer tpl.Close()
-
-	fileName := filepath.Base(binPath)
-	w.Header().Add("Content-Transfer-Encoding", "binary")
-	w.Header().Add("Content-Type", "application/octet-stream")
-	if stat, err := tpl.Stat(); err == nil {
-		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
-	}
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	//cfgBuffer := ukey.GetBuffer()
-	if GetCfgModel() == nil {
-		msg := fmt.Errorf("GetCfgModel is nil")
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
-		return
-	}
-	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
-	bindPort := GetCfgModel().Frps.BindPort
-	if body.Port > 0 {
-		bindPort = body.Port
-	}
-
-	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
-	cfg := comm2.BufferConfig{
-		Addr:          body.Addr,
-		ApiPort:       body.ApiPort,
-		Authorization: authorization,
-		Port:          bindPort,
-		ID:            body.User.ID,
-		User:          body.User.User,
-		Token:         body.User.Token,
-		Comment:       body.User.Comment,
-		Ports:         body.User.Ports,
-		Domains:       body.User.Domains,
-		Subdomains:    body.User.Subdomains,
-		Proxy:         body.Proxy,
-		WebServer:     body.WebServer,
-	}
-
-	glog.Infof("BufferConfig: %+v", cfg)
-	cfgNewBytes, err := ukey.GenConfig(cfg, false)
-	if err != nil {
-		msg := fmt.Errorf("文件签名失败：%v", err)
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
-		return
-	}
-
-	//err = frpc.TestLoadBuffer(cfgNewBytes)
-	//glog.Infof("TestLoadBuffer: %+v\n", err)
-
-	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
-	outFile, err := os.Create(dstFile)
-	if err != nil {
-		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
-		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
-		return
-	}
-	defer outFile.Close()
-	defer utils2.DeleteAll(dstFile, "gen file")
-
-	prevBuffer := make([]byte, 0)
-	for {
-		thisBuffer := make([]byte, 1024)
-		n, err := tpl.Read(thisBuffer)
-		thisBuffer = thisBuffer[:n]
-		tempBuffer := append(prevBuffer, thisBuffer...)
-		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
-		if bufIndex > -1 {
-			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
-		}
-		//w.Write(tempBuffer[:len(prevBuffer)])
-		outFile.Write(tempBuffer[:len(prevBuffer)])
-		prevBuffer = tempBuffer[len(prevBuffer):]
-		if err != nil {
-			break
-		}
-	}
-	if len(prevBuffer) > 0 {
-		//w.Write(prevBuffer)
-		outFile.Write(prevBuffer)
-		prevBuffer = nil
-	}
-	http.ServeFile(w, r, dstFile)
-}
+//
+//func (this *frps) apiClientGen(w http.ResponseWriter, r *http.Request) {
+//	ctx, cancel := context.WithCancel(context.Background())
+//	defer cancel()
+//	body, err := utils.GetDataByJson[struct {
+//		BinPath   string               `json:"binPath"`
+//		BinUrl    string               `json:"binUrl"`
+//		Addr      string               `json:"addr"`
+//		Port      int                  `json:"port"`
+//		ApiPort   int                  `json:"apiPort"`
+//		User      model2.User          `json:"user"`
+//		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+//		WebServer *v1.WebServerConfig  `json:"webserver"`
+//	}](r)
+//	if err != nil {
+//		glog.Error("解析Json对象失败", err)
+//		return
+//	}
+//	if body == nil {
+//		msg := "json对象nil"
+//		glog.Error(msg)
+//		http.Error(w, "json对象nil", http.StatusInternalServerError)
+//		return
+//	}
+//	glog.Debugf("客户端生成参数:%+v", body)
+//	if utils2.IsURL(body.BinPath) {
+//		if this.githubProxys != nil {
+//			var urls []string
+//			for _, proxy := range this.githubProxys {
+//				newUrl := fmt.Sprintf("%s%s", proxy, body.BinPath)
+//				urls = append(urls, newUrl)
+//			}
+//			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
+//			body.BinPath = dstPath
+//		} else {
+//			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinPath)
+//			if err != nil {
+//				msg := fmt.Errorf("下载文件失败～%v", err)
+//				glog.Error(msg)
+//				http.Error(w, msg.Error(), http.StatusNotImplemented)
+//				return
+//			}
+//			body.BinPath = dstPath
+//		}
+//	}
+//	if utils2.IsURL(body.BinUrl) {
+//		if this.githubProxys != nil {
+//			var urls []string
+//			for _, proxy := range this.githubProxys {
+//				newUrl := fmt.Sprintf("%s%s", proxy, body.BinUrl)
+//				urls = append(urls, newUrl)
+//			}
+//			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
+//			body.BinPath = dstPath
+//		} else {
+//			dstPath, err := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
+//			if err != nil {
+//				msg := fmt.Errorf("下载文件失败～%v", err)
+//				glog.Error(msg)
+//				http.Error(w, msg.Error(), http.StatusNotImplemented)
+//				return
+//			}
+//			body.BinPath = dstPath
+//		}
+//	}
+//	if body.User.User == "" {
+//		msg := fmt.Errorf("用户名空")
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusBadGateway)
+//		return
+//	}
+//	binPath := body.BinPath
+//	if binPath == "" {
+//		msg := fmt.Errorf("bin文件路径空")
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusServiceUnavailable)
+//		return
+//	}
+//	glog.Infof("binPath: %s %+v\n", binPath, body)
+//	tpl, err := os.Open(binPath)
+//	if err != nil {
+//		msg := fmt.Errorf("打开文件失败：%v", err)
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+//		return
+//	}
+//	defer tpl.Close()
+//
+//	fileName := filepath.Base(binPath)
+//	w.Header().Add("Content-Transfer-Encoding", "binary")
+//	w.Header().Add("Content-Type", "application/octet-stream")
+//	if stat, err := tpl.Stat(); err == nil {
+//		w.Header().Add(`Content-Length`, strconv.FormatInt(stat.Size(), 10))
+//	}
+//	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+//	//cfgBuffer := ukey.GetBuffer()
+//	if GetCfgModel() == nil {
+//		msg := fmt.Errorf("GetCfgModel is nil")
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+//		return
+//	}
+//	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
+//	bindPort := GetCfgModel().Frps.BindPort
+//	if body.Port > 0 {
+//		bindPort = body.Port
+//	}
+//
+//	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+//	cfg := comm2.BufferConfig{
+//		Addr:          body.Addr,
+//		ApiPort:       body.ApiPort,
+//		Authorization: authorization,
+//		Port:          bindPort,
+//		ID:            body.User.ID,
+//		User:          body.User.User,
+//		Token:         body.User.Token,
+//		Comment:       body.User.Comment,
+//		Ports:         body.User.Ports,
+//		Domains:       body.User.Domains,
+//		Subdomains:    body.User.Subdomains,
+//		Proxy:         body.Proxy,
+//		WebServer:     body.WebServer,
+//	}
+//
+//	glog.Infof("BufferConfig: %+v", cfg)
+//	cfgNewBytes, err := ukey.GenConfig(cfg, false)
+//	if err != nil {
+//		msg := fmt.Errorf("文件签名失败：%v", err)
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
+//		return
+//	}
+//
+//	//err = frpc.TestLoadBuffer(cfgNewBytes)
+//	//glog.Infof("TestLoadBuffer: %+v\n", err)
+//
+//	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+//	outFile, err := os.Create(dstFile)
+//	if err != nil {
+//		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+//		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+//		return
+//	}
+//	defer outFile.Close()
+//	defer utils2.DeleteAll(dstFile, "gen file")
+//
+//	prevBuffer := make([]byte, 0)
+//	for {
+//		thisBuffer := make([]byte, 1024)
+//		n, err := tpl.Read(thisBuffer)
+//		thisBuffer = thisBuffer[:n]
+//		tempBuffer := append(prevBuffer, thisBuffer...)
+//		bufIndex := bytes.Index(tempBuffer, cfgBuffer)
+//		if bufIndex > -1 {
+//			tempBuffer = bytes.Replace(tempBuffer, cfgBuffer, cfgNewBytes, -1)
+//		}
+//		//w.Write(tempBuffer[:len(prevBuffer)])
+//		outFile.Write(tempBuffer[:len(prevBuffer)])
+//		prevBuffer = tempBuffer[len(prevBuffer):]
+//		if err != nil {
+//			break
+//		}
+//	}
+//	if len(prevBuffer) > 0 {
+//		//w.Write(prevBuffer)
+//		outFile.Write(prevBuffer)
+//		prevBuffer = nil
+//	}
+//	http.ServeFile(w, r, dstFile)
+//}
 
 func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
 	userDir, err := utils.GetUserDir()
@@ -682,96 +681,91 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
-	res := &comm2.GeneralResponse{Code: 0}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	body, err := utils.GetDataByJson[struct {
-		BinPath   string               `json:"binPath"`
-		BinUrl    string               `json:"binUrl"`
-		Addr      string               `json:"addr"`
-		Port      int                  `json:"port"`
-		ApiPort   int                  `json:"apiPort"`
-		User      User                 `json:"user"`
-		Proxy     *v1.TypedProxyConfig `json:"proxy"`
-		WebServer *v1.WebServerConfig  `json:"webserver"`
-	}](r)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		glog.Error("GetDataByJson", err)
-		return
-	}
-	if body == nil {
-		res.Err(errors.New("body is nil"))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
-		dstPath, err1 := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
-		if err1 == nil {
-			body.BinPath = dstPath
-		}
-	}
-
-	fileName := fmt.Sprintf("%s.%s.frpc.toml", body.Addr, body.User.User)
-	if GetCfgModel() == nil {
-		msg := fmt.Errorf("GetCfgModel is nil")
-		glog.Error(msg)
-		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
-		return
-	}
-	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
-	bindPort := GetCfgModel().Frps.BindPort
-	if body.Port > 0 {
-		bindPort = body.Port
-	}
-	///////////////
-	ccc := v1.ClientCommonConfig{
-		ServerAddr: body.Addr,
-		ServerPort: bindPort,
-		User:       body.User.User,
-		Metadatas: map[string]string{
-			"token":         body.User.Token,
-			"authorization": authorization,
-			"id":            body.User.ID,
-			"apiPort":       fmt.Sprintf("%d", body.ApiPort),
-		},
-	}
-	if body.WebServer != nil && body.WebServer.Port != 0 && body.WebServer.User != "" && body.WebServer.Password != "" && body.WebServer.Addr != "" {
-		ccc.WebServer = *body.WebServer
-	}
-
-	var proxies []v1.TypedProxyConfig
-	if body.Proxy != nil && comm2.HasProxyes(body.Proxy) {
-		proxies = append(proxies, *body.Proxy)
-	}
-
-	cc := v1.ClientConfig{
-		ClientCommonConfig: ccc,
-		Proxies:            proxies,
-	}
-	cfg := &frpc.CfgModel{
-		Frpc: cc,
-	}
-	buffer := utils.ObjectToTomlText(cfg.Frpc)
-
-	//sb := strings.Builder{}
-	//sb.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", body.Addr))
-	//sb.WriteString(fmt.Sprintf("serverPort = %d\n", bindPort))
-	//sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
-	//sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
-	//sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.SseId))
-	//size := sb.Len()
-	//
-	w.Header().Add("Content-Transfer-Encoding", "binary")
-	w.Header().Add("Content-Type", "application/octet-stream")
-	w.Header().Add(`Content-Length`, strconv.Itoa(len(buffer)))
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	//w.Write([]byte(sb.String()))
-	_, _ = w.Write(buffer)
-}
+//func (this *frps) apiClientToml(w http.ResponseWriter, r *http.Request) {
+//	res := &comm2.GeneralResponse{Code: 0}
+//
+//	ctx, cancel := context.WithCancel(context.Background())
+//	defer cancel()
+//
+//	body, err := utils.GetDataByJson[struct {
+//		BinPath   string               `json:"binPath"`
+//		BinUrl    string               `json:"binUrl"`
+//		Addr      string               `json:"addr"`
+//		Port      int                  `json:"port"`
+//		ApiPort   int                  `json:"apiPort"`
+//		User      model2.User          `json:"user"`
+//		Proxy     *v1.TypedProxyConfig `json:"proxy"`
+//		WebServer *v1.WebServerConfig  `json:"webserver"`
+//	}](r)
+//	if err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		glog.Error("GetDataByJson", err)
+//		return
+//	}
+//	if body == nil {
+//		res.Err(errors.New("body is nil"))
+//		w.WriteHeader(http.StatusInternalServerError)
+//		return
+//	}
+//	if body.BinUrl != "" && utils2.IsURL(body.BinUrl) {
+//		dstPath, err1 := utils2.DownloadFileWithCancel(ctx, body.BinUrl)
+//		if err1 == nil {
+//			body.BinPath = dstPath
+//		}
+//	}
+//
+//	fileName := fmt.Sprintf("%s.%s.frpc.toml", body.Addr, body.User.User)
+//	if GetCfgModel() == nil {
+//		msg := fmt.Errorf("GetCfgModel is nil")
+//		glog.Error(msg)
+//		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
+//		return
+//	}
+//	authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", GetCfgModel().Frps.WebServer.User, GetCfgModel().Frps.WebServer.Password)))
+//	bindPort := GetCfgModel().Frps.BindPort
+//	if body.Port > 0 {
+//		bindPort = body.Port
+//	}
+//	ccc := v1.ClientCommonConfig{
+//		ServerAddr: body.Addr,
+//		ServerPort: bindPort,
+//		User:       body.User.User,
+//		//frps 网页后台，生成frpc toml配置信息
+//		Metadatas: frp.GetMetadatas(body.User.Token, body.User.ID, fmt.Sprintf("%d", body.ApiPort), authorization),
+//	}
+//	if body.WebServer != nil && body.WebServer.Port != 0 && body.WebServer.User != "" && body.WebServer.Password != "" && body.WebServer.Addr != "" {
+//		ccc.WebServer = *body.WebServer
+//	}
+//
+//	var proxies []v1.TypedProxyConfig
+//	if body.Proxy != nil && comm2.HasProxyes(body.Proxy) {
+//		proxies = append(proxies, *body.Proxy)
+//	}
+//
+//	cc := v1.ClientConfig{
+//		ClientCommonConfig: ccc,
+//		Proxies:            proxies,
+//	}
+//	cfg := &frpc.CfgModel{
+//		Frpc: cc,
+//	}
+//	buffer := utils.ObjectToTomlText(cfg.Frpc)
+//
+//	//sb := strings.Builder{}
+//	//sb.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", body.Addr))
+//	//sb.WriteString(fmt.Sprintf("serverPort = %d\n", bindPort))
+//	//sb.WriteString(fmt.Sprintf("user = \"%s\"\n", body.User.User))
+//	//sb.WriteString(fmt.Sprintf("metadatas.token = \"%s\"\n", body.User.Token))
+//	//sb.WriteString(fmt.Sprintf("metadatas.id = \"%s\"\n", body.User.SseId))
+//	//size := sb.Len()
+//	//
+//	w.Header().Add("Content-Transfer-Encoding", "binary")
+//	w.Header().Add("Content-Type", "application/octet-stream")
+//	w.Header().Add(`Content-Length`, strconv.Itoa(len(buffer)))
+//	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+//	//w.Write([]byte(sb.String()))
+//	_, _ = w.Write(buffer)
+//}
 
 func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)

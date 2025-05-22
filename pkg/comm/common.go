@@ -23,7 +23,6 @@ import (
 
 type commapi struct {
 	igs  gore.IGService
-	obj  any
 	pool *sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
@@ -92,10 +91,9 @@ func (this *commapi) ApiCMD(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewCommApi(install gore.IGService, obj any) *commapi {
+func NewCommApi(install gore.IGService) *commapi {
 	return &commapi{
 		igs: install,
-		obj: obj,
 		pool: &sync.Pool{
 			New: func() interface{} { return make([]byte, 32*1024) },
 		},

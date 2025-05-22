@@ -470,7 +470,11 @@ import {
 } from '../utils/utils.ts'
 import { ElButton, FormInstance, FormRules } from 'element-plus'
 import router from '../router'
-import { FrpcConfiguration } from '../utils/type.ts'
+import {
+  FrpcConfiguration,
+  ConfigBodyData,
+  TypedProxyConfig,
+} from '../utils/type.ts'
 
 const innerBtn = ref<InstanceType<typeof ElButton>>()
 const innerGenBtn = ref<InstanceType<typeof ElButton>>()
@@ -512,7 +516,7 @@ const newUserForm = ref({
 const clientForm = ref({
   addr: '',
   port: 0,
-  apiPort: window.location.port,
+  apiPort: parseInt(window.location.port, 10),
   url: '',
   ops: null,
   loading: false,
@@ -713,122 +717,20 @@ const handleSelectionChange = (rows: FrpcConfiguration[]) => {
   console.log('--->', rows)
 }
 
-const handleGenClientByPut = (options: any) => {
-  const { file } = options
-  const body = {
-    id: newUserForm.value.id,
-    user: newUserForm.value.user,
-    token: newUserForm.value.token,
-    comment: newUserForm.value.comment,
-    ports: toPorts(newUserForm.value.ports),
-    domains: newUserForm.value.domains.split(','),
-    subdomains: newUserForm.value.subdomains.split(','),
-    enable: newUserForm.value.enable,
-  }
-  const data = {
-    user: body,
-    binUrl: clientForm.value.url,
-    addr: clientForm.value.addr,
-    port: clientForm.value.port,
-    apiPort: clientForm.value.apiPort,
-    data: clientForm.value,
-    proxy: clientForm.value.proxy,
-    webserver: clientForm.value.webserver,
-  }
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('data', JSON.stringify(data))
-  //const loading = showLoading('用户导入中...')
-  // 使用 fetch 发送请求
-  // fetch('../api/client/gen', {
-  //   method: 'PUT',
-  //   body: formData,
-  // })
-  //   .then((response) => {
-  //     return response.json()
-  //   })
-  //   .finally(() => {
-  //     loading.close()
-  //   })
-
-  DownLoadFile('客户端生成中', 'PUT', '../api/client/gen', formData).finally(
-    () => {},
-  )
-}
-
-// 调用接口创建客户端
-const downloadClientByGen = () => {
-  clientForm.value.loading = true
-  console.log('downloadClientByGen.newUserForm', newUserForm.value)
-  console.log('clientForm', clientForm.value)
-  const node = getFilePathByValue(options.value, clientForm.value.ops)
-  const body = {
-    id: newUserForm.value.id,
-    user: newUserForm.value.user,
-    token: newUserForm.value.token,
-    comment: newUserForm.value.comment,
-    ports: toPorts(newUserForm.value.ports),
-    domains: newUserForm.value.domains.split(','),
-    subdomains: newUserForm.value.subdomains.split(','),
-    enable: newUserForm.value.enable,
-  }
-  if (node && node.filePath !== '') {
-    const data = {
-      binPath: node.filePath,
-      addr: clientForm.value.addr,
-      port: clientForm.value.port,
-      user: body,
-      data: clientForm.value,
-      apiPort: clientForm.value.apiPort,
-      proxy: clientForm.value.proxy,
-      webserver: clientForm.value.webserver,
-    }
-    console.log('data1', data)
-    downloadByPost(
-      '客户端生成中',
-      '../api/client/gen',
-      JSON.stringify(data),
-    ).finally(() => {
-      genClientDialogVisible.value = false
-      clientForm.value.loading = false
-    })
-  } else {
-    if (clientForm.value.url === '') {
-      showErrorTips('生成客户端失败～')
-      genClientDialogVisible.value = false
-    } else {
-      const data = {
-        binUrl: clientForm.value.url,
-        addr: clientForm.value.addr,
-        port: clientForm.value.port,
-        user: body,
-        data: clientForm.value,
-        apiPort: clientForm.value.apiPort,
-        proxy: clientForm.value.proxy,
-        webserver: clientForm.value.webserver,
-      }
-
-      console.log('data2', data)
-      downloadByPost(
-        '客户端生成中',
-        '../api/client/gen',
-        JSON.stringify(data),
-      ).finally(() => {
-        genClientDialogVisible.value = false
-        clientForm.value.loading = false
-      })
-      console.log('download----2----')
-    }
-  }
-}
-
-// 调用接口创建客户端
-const downloadClientTomlFile = () => {
-  const data = {
-    addr: clientForm.value.addr,
-    port: clientForm.value.port,
-    apiPort: clientForm.value.apiPort,
-    user: {
+function createClientBodyData() {
+  const bodyData: Partial<ConfigBodyData> = {
+    clientConfig: {
+      serverAddr: clientForm.value.addr,
+      serverPort: clientForm.value.apiPort,
+      proxies: [clientForm.value.proxy as TypedProxyConfig],
+      webServer: {
+        addr: clientForm.value.webserver.addr,
+        port: clientForm.value.webserver.port,
+        user: clientForm.value.webserver.user,
+        password: clientForm.value.webserver.password,
+      },
+    },
+    userConfig: {
       id: newUserForm.value.id,
       user: newUserForm.value.user,
       token: newUserForm.value.token,
@@ -838,11 +740,52 @@ const downloadClientTomlFile = () => {
       subdomains: newUserForm.value.subdomains.split(','),
       enable: newUserForm.value.enable,
     },
-    data: clientForm.value,
-    proxy: clientForm.value.proxy,
-    webserver: clientForm.value.webserver,
   }
+  console.log('--->', bodyData)
+  return bodyData
+}
 
+// 调用接口创建客户端
+const downloadClientByGen = () => {
+  clientForm.value.loading = true
+  console.log('downloadClientByGen.newUserForm', newUserForm.value)
+  console.log('clientForm', clientForm.value)
+  const data = createClientBodyData()
+  const node = getFilePathByValue(options.value, clientForm.value.ops)
+  if (node && node.filePath !== '') {
+    data.binAddress = node.filePath
+  } else if (clientForm.value.url !== '') {
+    data.binAddress = clientForm.value.url
+  } else {
+    showErrorTips('生成客户端失败～')
+    genClientDialogVisible.value = false
+    return
+  }
+  downloadByPost(
+    '客户端生成中',
+    '../api/client/gen',
+    JSON.stringify(data),
+  ).finally(() => {
+    genClientDialogVisible.value = false
+    clientForm.value.loading = false
+  })
+}
+
+const handleGenClientByPut = (options: any) => {
+  const { file } = options
+  const data = createClientBodyData()
+  data.binAddress = clientForm.value.url
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('data', JSON.stringify(data))
+  DownLoadFile('客户端生成中', 'PUT', '../api/client/gen', formData).finally(
+    () => {},
+  )
+}
+
+// 调用接口创建客户端
+const downloadClientTomlFile = () => {
+  const data = createClientBodyData()
   console.log('downloadClientTomlFile', clientForm.value, data)
   downloadByPost(
     '配置生成中',
@@ -852,6 +795,145 @@ const downloadClientTomlFile = () => {
     genClientDialogVisible.value = false
   })
 }
+
+// const handleGenClientByPut = (options: any) => {
+//   const { file } = options
+//   const body = {
+//     id: newUserForm.value.id,
+//     user: newUserForm.value.user,
+//     token: newUserForm.value.token,
+//     comment: newUserForm.value.comment,
+//     ports: toPorts(newUserForm.value.ports),
+//     domains: newUserForm.value.domains.split(','),
+//     subdomains: newUserForm.value.subdomains.split(','),
+//     enable: newUserForm.value.enable,
+//   }
+//   const data = {
+//     user: body,
+//     binUrl: clientForm.value.url,
+//     addr: clientForm.value.addr,
+//     port: clientForm.value.port,
+//     apiPort: clientForm.value.apiPort,
+//     data: clientForm.value,
+//     proxy: clientForm.value.proxy,
+//     webserver: clientForm.value.webserver,
+//   }
+//   const formData = new FormData()
+//   formData.append('file', file)
+//   formData.append('data', JSON.stringify(data))
+//   //const loading = showLoading('用户导入中...')
+//   // 使用 fetch 发送请求
+//   // fetch('../api/client/gen', {
+//   //   method: 'PUT',
+//   //   body: formData,
+//   // })
+//   //   .then((response) => {
+//   //     return response.json()
+//   //   })
+//   //   .finally(() => {
+//   //     loading.close()
+//   //   })
+//
+//   DownLoadFile('客户端生成中', 'PUT', '../api/client/gen', formData).finally(
+//     () => {},
+//   )
+// }
+// 调用接口创建客户端
+// const downloadClientByGen = () => {
+//   clientForm.value.loading = true
+//   console.log('downloadClientByGen.newUserForm', newUserForm.value)
+//   console.log('clientForm', clientForm.value)
+//   const node = getFilePathByValue(options.value, clientForm.value.ops)
+//   const body = {
+//     id: newUserForm.value.id,
+//     user: newUserForm.value.user,
+//     token: newUserForm.value.token,
+//     comment: newUserForm.value.comment,
+//     ports: toPorts(newUserForm.value.ports),
+//     domains: newUserForm.value.domains.split(','),
+//     subdomains: newUserForm.value.subdomains.split(','),
+//     enable: newUserForm.value.enable,
+//   }
+//   if (node && node.filePath !== '') {
+//     const data = {
+//       binPath: node.filePath,
+//       addr: clientForm.value.addr,
+//       port: clientForm.value.port,
+//       user: body,
+//       data: clientForm.value,
+//       apiPort: clientForm.value.apiPort,
+//       proxy: clientForm.value.proxy,
+//       webserver: clientForm.value.webserver,
+//     }
+//     console.log('data1', data)
+//     downloadByPost(
+//       '客户端生成中',
+//       '../api/client/gen',
+//       JSON.stringify(data),
+//     ).finally(() => {
+//       genClientDialogVisible.value = false
+//       clientForm.value.loading = false
+//     })
+//   } else {
+//     if (clientForm.value.url === '') {
+//       showErrorTips('生成客户端失败～')
+//       genClientDialogVisible.value = false
+//     } else {
+//       const data = {
+//         binUrl: clientForm.value.url,
+//         addr: clientForm.value.addr,
+//         port: clientForm.value.port,
+//         user: body,
+//         data: clientForm.value,
+//         apiPort: clientForm.value.apiPort,
+//         proxy: clientForm.value.proxy,
+//         webserver: clientForm.value.webserver,
+//       }
+//
+//       console.log('data2', data)
+//       downloadByPost(
+//         '客户端生成中',
+//         '../api/client/gen',
+//         JSON.stringify(data),
+//       ).finally(() => {
+//         genClientDialogVisible.value = false
+//         clientForm.value.loading = false
+//       })
+//       console.log('download----2----')
+//     }
+//   }
+// }
+//
+// // 调用接口创建客户端
+// const downloadClientTomlFile = () => {
+//   const data = {
+//     addr: clientForm.value.addr,
+//     port: clientForm.value.port,
+//     apiPort: clientForm.value.apiPort,
+//     user: {
+//       id: newUserForm.value.id,
+//       user: newUserForm.value.user,
+//       token: newUserForm.value.token,
+//       comment: newUserForm.value.comment,
+//       ports: toPorts(newUserForm.value.ports),
+//       domains: newUserForm.value.domains.split(','),
+//       subdomains: newUserForm.value.subdomains.split(','),
+//       enable: newUserForm.value.enable,
+//     },
+//     data: clientForm.value,
+//     proxy: clientForm.value.proxy,
+//     webserver: clientForm.value.webserver,
+//   }
+//
+//   console.log('downloadClientTomlFile', clientForm.value, data)
+//   downloadByPost(
+//     '配置生成中',
+//     '../api/client/toml',
+//     JSON.stringify(data),
+//   ).finally(() => {
+//     genClientDialogVisible.value = false
+//   })
+// }
 
 const getFilePathByValue = (opt: any, valuePath: any) => {
   const child = opt.find((item: any) => item.value === valuePath[0])

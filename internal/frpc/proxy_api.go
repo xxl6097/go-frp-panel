@@ -2,7 +2,6 @@ package frpc
 
 import (
 	"fmt"
-	"github.com/fatedier/frp/pkg/config"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -87,7 +86,6 @@ func (this *frpc) apiProxyPortCheck(w http.ResponseWriter, r *http.Request) {
 	res, f := comm.Response(r)
 	defer f(w)
 	name := r.URL.Query().Get("name")
-
 	port := r.URL.Query().Get("port")
 	if port == "" {
 		res.Error("port is empty")
@@ -99,42 +97,23 @@ func (this *frpc) apiProxyPortCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var host string
+	var cls *frpClient
 	if name == "" {
-		if this.cfgBuffer != nil {
-			host = this.cfgBuffer.Addr
-		} else {
-			res.Error("服务器地址获取失败")
-			return
-		}
+		cls = this.cls
 	} else {
-		binpath, err := os.Executable()
-		if err != nil {
-			res.Err(fmt.Errorf("get executable path err: %v", err))
-			return
-		}
-		cfgDir := filepath.Join(filepath.Dir(binpath), "config")
-		cfgFilePath := filepath.Join(cfgDir, name)
-		cfg, _, _, _, err := config.LoadClientConfig(cfgFilePath, true)
-		if err != nil {
-			res.Err(fmt.Errorf("配置文件解析失败: %v", err))
-			return
-		}
-		if cfg == nil || cfg.ServerAddr == "" {
-			res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-			return
-		}
-		host = cfg.ServerAddr
 		if v, ok := this.svrs[name]; ok {
-			if v.cfg == nil || v.cfg.ServerAddr == "" {
-				res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-				return
-			}
-			host = v.cfg.ServerAddr
-		} else {
-			res.Err(fmt.Errorf("配置文件解析空 %+v", cfg))
-			return
+			cls = v
 		}
 	}
+	if cls == nil {
+		res.Err(fmt.Errorf("[%s] cls is nil", name))
+		return
+	}
+	if cls.cfg == nil {
+		res.Err(fmt.Errorf("[%s] cls.cfg is nil", name))
+		return
+	}
+	host = cls.cfg.ServerAddr
 	if utils.IsPortOpen(host, num, time.Second*3) {
 		res.Error("端口被占用")
 		return

@@ -292,6 +292,7 @@ export function downloadByPost(title: string, path: string, body: any) {
     })
       .then(async (response) => {
         //if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        console.log('response', response)
         if (response.ok) {
           const disposition = response.headers.get('Content-Disposition')
           const filename = getFilenameFromContentDisposition(
@@ -300,9 +301,11 @@ export function downloadByPost(title: string, path: string, body: any) {
           return response.blob().then((blob) => ({ blob, filename }))
         } else {
           const text = await response.text()
-          console.log('downloadByPost', text, response)
-          showErrorTips(text)
-          throw new Error(`HTTP ${response.statusText} ${text}`)
+          console.log('downloadByPost2', text, response)
+          //showErrorTips(text)
+          throw new Error(
+            `HTTP ${response.status} ${response.statusText} 【${text}】`,
+          )
         }
       })
       .then(({ blob, filename }) => {
@@ -316,7 +319,7 @@ export function downloadByPost(title: string, path: string, body: any) {
         resolve(filename)
       })
       .catch((error) => {
-        console.log('downloadByPost', path, error)
+        console.log('downloadByPost err', path, error)
         showErrorTips(error.message)
         reject(error.message)
       })

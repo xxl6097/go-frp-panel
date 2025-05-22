@@ -1,12 +1,17 @@
 package frp
 
 import (
+	"encoding/json"
 	"fmt"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	utils2 "github.com/xxl6097/go-service/gservice/utils"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 func WriteFrpToml(cfgFilePath string, data any) error {
@@ -129,4 +134,134 @@ func GetFrpcTomlDirByDir(bindir string) (string, error) {
 		return "", fmt.Errorf("make dir err: %v", err)
 	}
 	return cfgDir, nil
+}
+
+func GetMetadatas(token, id, apiPort, authorization string) map[string]string {
+	return map[string]string{
+		"token":         token,
+		"id":            id,
+		"apiPort":       apiPort,
+		"authorization": authorization,
+	}
+}
+
+func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
+	if obj == nil {
+		return "", fmt.Errorf("obj is nil")
+	}
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return "", fmt.Errorf("json marshal err: %v", err)
+	}
+	return utils.Encrypt(data, nil), nil
+}
+func GetPort(i interface{}) int {
+	switch v := i.(type) {
+	case *v1.TCPProxyConfig:
+		fmt.Printf("Received an TCPProxyConfig.RemotePort: %d\n", v.RemotePort)
+		return v.RemotePort
+	default:
+		fmt.Println()
+	}
+	return 0
+}
+func DecodeSecret(text string) *model.FrpcBuffer {
+	if text == "" {
+		return nil
+	}
+	jsonString := utils.Encrypt([]byte(text), nil)
+	if jsonString == "" {
+		return nil
+	}
+	var obj model.FrpcBuffer
+	err := json.Unmarshal([]byte(jsonString), &obj)
+	if err != nil {
+		return nil
+	}
+	return &obj
+}
+
+func HasProxyes(p *v1.TypedProxyConfig) bool {
+	if p == nil {
+		return false
+	}
+	pc := p.ProxyConfigurer
+	if pc == nil {
+		return false
+	}
+	switch v := pc.(type) {
+	case *v1.TCPProxyConfig:
+		if v == nil {
+			return false
+		}
+		if v.RemotePort == 0 {
+			return false
+		}
+	case *v1.UDPProxyConfig:
+		if v == nil {
+			return false
+		}
+		if v.RemotePort == 0 {
+			return false
+		}
+	}
+	bc := pc.GetBaseConfig()
+	if bc == nil {
+		return false
+	}
+	if bc.Name == "" {
+		return false
+	}
+	if bc.Type == "" {
+		return false
+	}
+	if bc.LocalIP == "" {
+		return false
+	}
+	if bc.LocalPort == 0 {
+		return false
+	}
+	return true
+}
+
+func ParsePorts(ps []any) []int {
+	var ports []int
+	for _, port := range ps {
+		if str, ok := port.(string); ok {
+			if strings.Contains(str, "-") {
+				allowedRanges := strings.Split(str, "-")
+				if len(allowedRanges) != 2 {
+					break
+				}
+				start, err := strconv.Atoi(strings.TrimSpace(allowedRanges[0]))
+				if err != nil {
+					break
+				}
+				end, err := strconv.Atoi(strings.TrimSpace(allowedRanges[1]))
+				if err != nil {
+					break
+				}
+				for i := min(start, end); i <= max(start, end); i++ {
+					ports = append(ports, i)
+				}
+			} else {
+				if str == "" {
+					break
+				}
+				allowed, err := strconv.Atoi(str)
+				if err != nil {
+					break
+				}
+				ports = append(ports, allowed)
+			}
+		} else {
+			num, okk := port.(float64)
+			if okk {
+				ports = append(ports, int(num))
+				break
+			}
+		}
+
+	}
+	return ports
 }

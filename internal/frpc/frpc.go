@@ -12,6 +12,7 @@ import (
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatedier/frp/pkg/util/system"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
@@ -27,17 +28,17 @@ import (
 
 type frpClient struct {
 	svr            *client.Service
+	config         *model.FrpcBuffer
 	configFilePath string
 	cfg            *v1.ClientCommonConfig
 	proxyCfg       []v1.ProxyConfigurer
 	visitorCfg     []v1.VisitorConfigurer
 }
 type frpc struct {
-	install   gore.IGService
-	upgrade   iface.IComm
-	cls       *frpClient
-	cfgBuffer *comm2.BufferConfig
-	svrs      map[string]*frpClient
+	install gore.IGService
+	upgrade iface.IComm
+	cls     *frpClient
+	svrs    map[string]*frpClient
 }
 
 func New(i gore.IGService) (iface.IFrpc, error) {
@@ -80,11 +81,10 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfgModel := GetCfgModel()
 	this := &frpc{
 		install: i,
 		svrs:    make(map[string]*frpClient),
-		upgrade: comm2.NewCommApi(i, cfgModel),
+		upgrade: comm2.NewCommApi(i),
 		cls: &frpClient{
 			svr:            svr,
 			configFilePath: cfgFilePath,
@@ -93,8 +93,12 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 			visitorCfg:     visitorCfgs,
 		},
 	}
-	if cfgModel.Cfg != nil {
-		this.cfgBuffer = cfgModel.Cfg
+
+	if cfg.Metadatas != nil {
+		secret := cfg.Metadatas["secret"]
+		if secret != "" {
+			this.cls.config = frp.DecodeSecret(secret)
+		}
 	}
 	ws.GetClientInstance().NewClient(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
 	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)

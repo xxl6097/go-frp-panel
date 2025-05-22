@@ -81,15 +81,23 @@ func (this *frpc) startService(
 	if err != nil {
 		return err
 	}
-
-	name := path.Base(cfgFile)
-	this.svrs[name] = &frpClient{
+	fc := frpClient{
 		svr:            svr,
 		cfg:            cfg,
 		proxyCfg:       proxyCfgs,
 		visitorCfg:     visitorCfgs,
 		configFilePath: cfgFile,
 	}
+	name := path.Base(cfgFile)
+	this.svrs[name] = &fc
+
+	if cfg.Metadatas != nil {
+		secret := cfg.Metadatas["secret"]
+		if secret != "" {
+			fc.config = frp.DecodeSecret(secret)
+		}
+	}
+
 	glog.Debug("创建frpc客户端", name)
 
 	ws.GetClientInstance().NewClient(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
@@ -236,31 +244,32 @@ func (this *frpc) upgradeMainConfig() error {
 	return nil
 }
 
-func (this *frpc) getPort(i interface{}) int {
-	switch v := i.(type) {
-	case *v1.TCPProxyConfig:
-		fmt.Printf("Received an TCPProxyConfig.RemotePort: %d\n", v.RemotePort)
-		return v.RemotePort
-	default:
-		fmt.Println()
-	}
-	return 0
-}
-
 func (this *frpc) getTcpProxyArray(name string) []int {
 	glog.Debug("info frpc", name)
+	var cls *frpClient
 	if name == "" {
-		//主客户端
-		ports := this.cfgBuffer.ParsePorts()
-		for _, c := range this.cls.proxyCfg {
-			port := this.getPort(c)
-			if port > 0 {
-				ports = utils.RemoveSlice[int](ports, port)
-			}
-		}
-		return ports
+		cls = this.cls
+	} else {
+		cls = this.svrs[name]
 	}
-	return nil
+	if cls == nil {
+		return nil
+	}
+	if cls.config == nil {
+		return nil
+	}
+	if cls.config.User.Ports == nil {
+		return nil
+	}
+	//主客户端
+	ports := frp.ParsePorts(cls.config.User.Ports)
+	for _, c := range cls.proxyCfg {
+		port := frp.GetPort(c)
+		if port > 0 {
+			ports = utils.RemoveSlice[int](ports, port)
+		}
+	}
+	return ports
 }
 
 func (this *frpc) newClient(cfgFilePath string) error {
