@@ -30,20 +30,22 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 		switch msg.Action {
 		case ws.CLIENT_REBOOT:
 			if this.install == nil {
+				glog.Error("install is nil")
 				return
 			}
 			err = this.install.Restart()
 			if err != nil {
-				glog.Error(err)
+				glog.Error("重启失败", err)
 			}
 			break
 		case ws.CLIENT_UNINSTALL:
 			if this.install == nil {
+				glog.Error("install is nil")
 				return
 			}
 			err = this.install.Uninstall()
 			if err != nil {
-				glog.Error(err)
+				glog.Error("卸载失败", err)
 			}
 			break
 		case ws.CLIENT_VERSION_CHECK:

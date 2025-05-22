@@ -170,18 +170,12 @@
   </el-dialog>
 
   <!-- 生成服务端 -->
-  <el-dialog v-model="frpsForm.isShow" title="生成客户端" width="500px">
+  <el-dialog v-model="frpsForm.isShow" title="生成Frps服务端" width="500px">
     <el-form label-width="130px">
-      <el-form-item label="frps绑定端口：">
+      <el-form-item label="Frps绑定端口：">
         <el-input v-model="frpsForm.bindPort" placeholder="请输入bindport" />
       </el-form-item>
-      <el-form-item label="Admin管理地址：">
-        <el-input
-          v-model="frpsForm.adminAddr"
-          placeholder="请输入Admin管理地址"
-        />
-      </el-form-item>
-      <el-form-item label="Admin管理地址：">
+      <el-form-item label="Admin管理端口：">
         <el-input
           v-model="frpsForm.adminPort"
           placeholder="请输入Admin管理端口"
@@ -210,7 +204,7 @@
         type="primary"
         @click="fetchFrpsGen()"
         :loading="frpsForm.isLoading"
-        >确定
+        >生成
       </el-button>
     </template>
   </el-dialog>
