@@ -12,7 +12,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
 	github.com/xxl6097/glog v0.1.23
-	github.com/xxl6097/go-service v0.4.61
+	github.com/xxl6097/go-service v0.4.63
 	golang.org/x/net v0.35.0
 	golang.org/x/text v0.22.0
 )
