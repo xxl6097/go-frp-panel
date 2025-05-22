@@ -90,7 +90,11 @@ func (c *Websocketclient) Connect() error {
 			return err
 		}
 
-		glog.Printf("%s 连接失败，尝试重连 %v %v", c.url, err, resp.Status)
+		var errMsg string
+		if resp != nil {
+			errMsg = resp.Status
+		}
+		glog.Printf("%s 连接失败，尝试重连 %v %v", c.url, err, errMsg)
 		time.Sleep(c.reconnectDelay)
 	}
 }
