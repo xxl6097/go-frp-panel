@@ -61,7 +61,7 @@ func (c *frps) apiHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			response.Reject = true
 			response.RejectReason = err.Error()
-			glog.Printf("handle %s error: %v\n", r.URL.Path, err)
+			glog.Printf("handle %s error: %v reqest: %+v\n", r.URL.Path, err, request.Op)
 		}
 		bb, e := json.Marshal(response)
 		if e != nil {
