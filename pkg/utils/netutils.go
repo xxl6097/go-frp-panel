@@ -310,6 +310,19 @@ func GetLocalIp() string {
 	return ""
 }
 
+func IsPublicIPv4(ip net.IP) bool {
+	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsPrivate() {
+		return false
+	}
+	return ip.To4() != nil
+}
+
+func IsClassC(ip net.IP) bool {
+	// 检查是否属于 C 类地址范围（192.0.0.0 ~ 223.255.255.255）
+	firstByte := ip.To4()[0]
+	return firstByte >= 192 && firstByte <= 223
+}
+
 // NetworkInterface 网络接口信息
 type NetworkInterface struct {
 	Name        string   `json:"name"`        // 接口名称
@@ -359,6 +372,9 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 			//glog.Debugf("address: %+v", addr)
 			// 忽略回环地址
 			if ip.IsLoopback() {
+				continue
+			}
+			if IsPublicIPv4(ip) && IsClassC(ip) {
 				continue
 			}
 
@@ -479,7 +495,7 @@ func GetDeviceInfo() (*NetworkInterface, error) {
 		//	//return &iface, nil
 		//	face = &iface
 		//}
-		if !isBadName(iface.Name) {
+		if !isBadName(iface.Name) && iface.Name != "" && iface.Ipv4 != "" && iface.MacAddress != "" && iface.IPAddresses != nil {
 			face = &iface
 		}
 		//glog.Debugf("获取设备信息：%+v", iface)
