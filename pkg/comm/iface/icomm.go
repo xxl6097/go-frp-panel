@@ -14,4 +14,5 @@ type IComm interface {
 	ApiVersion(w http.ResponseWriter, r *http.Request)
 	ApiCMD(w http.ResponseWriter, r *http.Request)
 	GetBuffer() *sync.Pool
+	ApiClear(w http.ResponseWriter, r *http.Request)
 }

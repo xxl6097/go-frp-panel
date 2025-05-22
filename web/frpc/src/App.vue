@@ -97,6 +97,9 @@
                     >版本检测
                   </el-dropdown-item>
                   <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
+                  <el-dropdown-item @click="handleClearData"
+                    >清空数据
+                  </el-dropdown-item>
                   <el-dropdown-item @click="showVersion"
                     >查看版本
                   </el-dropdown-item>
@@ -135,7 +138,7 @@
             <el-menu-item index="/configure">配置</el-menu-item>
             <el-menu-item index="/log">日志</el-menu-item>
             <el-menu-item index="/development" v-if="isDevelopment"
-            >开发中模式
+              >开发中模式
             </el-menu-item>
             <el-menu-item index="">帮助</el-menu-item>
           </el-menu>
@@ -343,6 +346,25 @@ const uninstall = () => {
             loading.close()
             window.location.reload()
           }, 4000)
+        })
+    },
+    () => {},
+  )
+}
+
+const handleClearData = () => {
+  showWarmDialog(
+    `确定清空应用数据吗？`,
+    () => {
+      fetch('../api/clear', { credentials: 'include', method: 'DELETE' })
+        .then((res) => {
+          return res.json()
+        })
+        .then((json) => {
+          showTips(json.code, json.msg)
+        })
+        .catch(() => {
+          showErrorTips('清空失败')
         })
     },
     () => {},

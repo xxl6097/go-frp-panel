@@ -336,6 +336,30 @@ func (this *commapi) ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// /api/shutdown
+func (this *commapi) ApiClear(w http.ResponseWriter, r *http.Request) {
+	res, f := Response(r)
+	defer f(w)
+	glog.Infof("Http request: [%s]", r.URL.Path)
+	binPath, err := os.Executable()
+	if err != nil {
+		res.Error(fmt.Sprintf("获取当前可执行文件路径出错: %v\n", err))
+		glog.Error(res.Msg)
+		return
+	}
+	binDir := filepath.Dir(binPath)
+	clientsDir := filepath.Join(binDir, "clients")
+	err = utils.DeleteAll(clientsDir)
+	logDir := glog.GetCrossPlatformDataDir()
+	err = utils.DeleteAll(logDir)
+	upDir := utils.GetUpgradeDir()
+	err = utils.DeleteAll(upDir)
+	if err != nil {
+		res.Err(err)
+	} else {
+		res.Msg = "删除成功"
+	}
+}
 func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
