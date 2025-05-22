@@ -65,7 +65,7 @@ func (s *Service) OnVersion() string {
 }
 
 func (this *Service) OnRun(i gore.IGService) error {
-	frps.Assert()
+	//frps.Assert()
 	glog.Printf("启动 %s %s\n", pkg.AppName, pkg.AppVersion)
 	cfg := frps.GetCfgModel()
 	if cfg == nil {
@@ -176,36 +176,30 @@ func (this *Service) GetAny(binDir string) any {
 //}
 
 func (this *Service) menu() *frps.CfgModel {
-	frps.Assert()
 	cfg := frps.GetCfgModel()
-	if cfg != nil {
-		this.webServer = &cfg.Frps.WebServer
-		if cfg.Frps.BindPort > 0 {
-			return nil
-		}
+	if cfg == nil {
+		cfg = &frps.CfgModel{}
 	}
-
-	bindPort := utils2.InputIntDefault("Frps绑定端口(默认:6000):", 6000)
-	adminPort := utils2.InputIntDefault("管理后台端口(默认:6500):", 6500)
-	addr := utils2.InputStringEmpty("管理后台地址(默认:0.0.0.0)：", "0.0.0.0")
-	username := utils2.InputStringEmpty("管理后台用户名(默认:admin)：", "admin")
-	password := utils2.InputString("管理后台密码：")
+	if cfg.Frps.BindPort <= 0 {
+		cfg.Frps.BindPort = utils2.InputIntDefault("Frps绑定端口(默认:6000):", 6000)
+	}
+	if cfg.Frps.WebServer.Port <= 0 {
+		cfg.Frps.WebServer.Port = utils2.InputIntDefault("管理后台端口(默认:6500):", 6500)
+	}
+	if cfg.Frps.WebServer.Addr == "" {
+		cfg.Frps.WebServer.Addr = utils2.InputStringEmpty("管理后台地址(默认:0.0.0.0)：", "0.0.0.0")
+	}
+	if cfg.Frps.WebServer.User == "" {
+		cfg.Frps.WebServer.User = utils2.InputStringEmpty("管理后台用户名(默认:admin)：", "admin")
+	}
+	if cfg.Frps.WebServer.Password == "" {
+		cfg.Frps.WebServer.Password = utils2.InputString("管理后台密码：")
+	}
 	temp := glog.GetCrossPlatformDataDir("frps", "log")
-	cm := &frps.CfgModel{
-		Frps: v1.ServerConfig{
-			BindPort: bindPort,
-			WebServer: v1.WebServerConfig{
-				User:     username,
-				Password: password,
-				Port:     adminPort,
-				Addr:     addr,
-			},
-			Log: v1.LogConfig{
-				To:      filepath.Join(temp, "frps.log"),
-				MaxDays: 3,
-				Level:   "error",
-			},
-		},
+	cfg.Frps.Log = v1.LogConfig{
+		To:      filepath.Join(temp, "frps.log"),
+		MaxDays: 3,
+		Level:   "error",
 	}
-	return cm
+	return cfg
 }

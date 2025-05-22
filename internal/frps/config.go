@@ -19,9 +19,9 @@ type CfgModel struct {
 	Data any             `json:"data"`
 }
 
-func Test(c *CfgModel) {
-	cfgData = c
-}
+//func Test(c *CfgModel) {
+//	cfgData = c
+//}
 
 func load() error {
 	defer glog.Flush()
@@ -38,44 +38,50 @@ func load() error {
 		return err
 	}
 	cfgData = &c
-	glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
+	//glog.Printf("%d 配置加载成功：%+v\n", os.Getpid(), cfgData)
 	pkg.Version()
 	return nil
 }
 
 func GetCfgModel() *CfgModel {
+	if cfgData == nil {
+		err := load()
+		if err != nil {
+			return nil
+		}
+	}
 	return cfgData
 }
 func SetCfgModel(temp *CfgModel) {
 	cfgData = temp
 }
 
-func PrintCfg() {
-	if cfgBytes != nil {
-		glog.Println(string(cfgBytes))
-	}
-}
+//func PrintCfg() {
+//	if cfgBytes != nil {
+//		glog.Println(string(cfgBytes))
+//	}
+//}
 
-func IsInit() error {
-	//glog.Println("IsInit")
-	defer glog.Flush()
-	err := load()
-	if err != nil {
-		//glog.Println(err)
-		return err
-	}
-	return nil
-}
+//func IsInit() error {
+//	//glog.Println("IsInit")
+//	defer glog.Flush()
+//	err := load()
+//	if err != nil {
+//		//glog.Println(err)
+//		return err
+//	}
+//	return nil
+//}
 
-func Assert() {
-	//glog.Println("Assert")
-	if IsInit() != nil {
-		if utils.IsMacOs() {
-			return
-		}
-		os.Exit(0)
-	}
-}
+//func Assert() {
+//	//glog.Println("Assert")
+//	if IsInit() != nil {
+//		if utils.IsMacOs() {
+//			return
+//		}
+//		os.Exit(0)
+//	}
+//}
 
 func (this *frps) InitClientsConfig() {
 	host := os.Getenv("CLOUD_HOST")

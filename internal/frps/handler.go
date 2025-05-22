@@ -2,7 +2,6 @@ package frps
 
 import (
 	"encoding/json"
-	"fmt"
 	plugin "github.com/fatedier/frp/pkg/plugin/server"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
@@ -36,107 +35,127 @@ func decodeMetas(mapData map[string]string) *model.User {
 		return nil
 	}
 	return &buffer.User
-
 }
 
-func (c *frps) judge(mapData map[string]string) (*plugin.Response, *model.User, error) {
-	if mapData == nil || len(mapData) == 0 {
-		return nil, nil, fmt.Errorf("metas is nil")
-	}
-	user := decodeMetas(mapData)
-	if user == nil {
-		return nil, nil, fmt.Errorf("user is nil")
-	}
-	res := c.JudgeToken(user.ID, user.Token)
-	return &res, user, nil
-}
 func (c *frps) apiHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
+	request, err := utils.BindJSON[plugin.Request](r)
+	jsonStr, err := json.Marshal(request.Content)
 	var response plugin.Response
-	request, e1 := utils.BindJSON[plugin.Request](r)
-	if e1 != nil {
-		err = e1
-	}
-	defer func() {
-		if err != nil {
-			response.Reject = true
-			response.RejectReason = err.Error()
-			glog.Printf("handle %s error: %v reqest: %+v\n", r.URL.Path, err, request.Op)
-		}
-		bb, e := json.Marshal(response)
-		if e != nil {
-			glog.Printf("【%s】Failed %v\n", request.Op, err)
-			w.WriteHeader(http.StatusInternalServerError)
-		} else {
-			//glog.Printf("【%s】Sucess %s\n", request.Op, string(bb))
-			_, _ = w.Write(bb)
-		}
-	}()
-
-	jsonStr, e := json.Marshal(request.Content)
-	if e != nil {
-		err = e
-		return
-	}
-	var dataMap map[string]string
 	if request.Op == "Login" {
 		content := plugin.LoginContent{}
 		err = json.Unmarshal(jsonStr, &content)
-		if err == nil {
-			dataMap = content.Metas
-		}
+		response = c.HandleLogin(&content)
 	} else if request.Op == "NewProxy" {
 		content := plugin.NewProxyContent{}
 		err = json.Unmarshal(jsonStr, &content)
-		if err == nil {
-			res, user, e2 := c.judge(content.User.Metas)
-			if e2 != nil {
-				err = e2
-			} else {
-				if res.Reject {
-					response = *res
-				} else {
-					response = c.JudgePort(user.ID, &content)
-				}
-			}
-		}
+		response = c.HandleNewProxy(&content)
 	} else if request.Op == "Ping" {
 		content := plugin.PingContent{}
 		err = json.Unmarshal(jsonStr, &content)
-		if err == nil {
-			dataMap = content.User.Metas
-		}
+		response = c.HandlePing(&content)
 	} else if request.Op == "NewWorkConn" {
 		content := plugin.NewWorkConnContent{}
 		err = json.Unmarshal(jsonStr, &content)
-		if err == nil {
-			dataMap = content.User.Metas
-		}
+		response = c.HandleNewWorkConn(&content)
 	} else if request.Op == "NewUserConn" {
 		content := plugin.NewUserConnContent{}
 		err = json.Unmarshal(jsonStr, &content)
-		if err == nil {
-			dataMap = content.User.Metas
-		}
+		response = c.HandleNewUserConn(&content)
 	}
-	if dataMap != nil && len(dataMap) > 0 {
-		res, _, e2 := c.judge(dataMap)
-		if e2 != nil {
-			err = e2
-		} else {
-			response = *res
-		}
+
+	if err != nil {
+		glog.Printf("handle %s error: %v\n", r.URL.Path, err)
+		response.RejectReason = err.Error()
+		response.Reject = true
 	}
-	//bb, err := json.Marshal(response)
-	//if err != nil {
-	//	glog.Printf("【%s】Failed %v\n", request.Op, err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//} else {
-	//	//glog.Printf("【%s】Sucess %s\n", request.Op, string(bb))
-	//	w.Write(bb)
-	//}
+	bb, err := json.Marshal(response)
+	if err != nil {
+		glog.Printf("【%s】Failed %v\n", request.Op, err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		//glog.Printf("【%s】Sucess %s\n", request.Op, string(bb))
+		w.Write(bb)
+	}
 }
 
+func (c *frps) HandleLogin(content *plugin.LoginContent) plugin.Response {
+	//token := content.Metas["token"]
+	//id := content.Metas["id"]
+	user := decodeMetas(content.Metas)
+	if user == nil {
+		var res plugin.Response
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	return c.JudgeToken(user.ID, user.ID)
+}
+
+func (c *frps) HandleNewProxy(content *plugin.NewProxyContent) plugin.Response {
+	//token := content.User.Metas["token"]
+	//id := content.User.Metas["id"]
+	//judgeToken := c.JudgeToken(id, token)
+	//if judgeToken.Reject {
+	//	return judgeToken
+	//}
+	//return c.JudgePort(content)
+
+	user := decodeMetas(content.User.Metas)
+	if user == nil {
+		var res plugin.Response
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	judgeToken := c.JudgeToken(user.ID, user.ID)
+	if judgeToken.Reject {
+		return judgeToken
+	}
+	return c.JudgePort(content)
+}
+
+func (c *frps) HandlePing(content *plugin.PingContent) plugin.Response {
+	//token := content.User.Metas["token"]
+	//id := content.User.Metas["id"]
+	//return c.JudgeToken(id, token)
+	user := decodeMetas(content.User.Metas)
+	if user == nil {
+		var res plugin.Response
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	return c.JudgeToken(user.ID, user.ID)
+}
+
+func (c *frps) HandleNewWorkConn(content *plugin.NewWorkConnContent) plugin.Response {
+	//token := content.User.Metas["token"]
+	//id := content.User.Metas["id"]
+	//return c.JudgeToken(id, token)
+	user := decodeMetas(content.User.Metas)
+	if user == nil {
+		var res plugin.Response
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	return c.JudgeToken(user.ID, user.ID)
+}
+
+func (c *frps) HandleNewUserConn(content *plugin.NewUserConnContent) plugin.Response {
+	//token := content.User.Metas["token"]
+	//id := content.User.Metas["id"]
+	//return c.JudgeToken(id, token)
+	user := decodeMetas(content.User.Metas)
+	if user == nil {
+		var res plugin.Response
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	return c.JudgeToken(user.ID, user.ID)
+}
 func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	var res plugin.Response
 	if id == "" || token == "" {
@@ -157,8 +176,7 @@ func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	return res
 }
 
-func (c *frps) JudgePort(id string, content *plugin.NewProxyContent) plugin.Response {
-	//glog.Debugf("JudgePort %+v", content.User)
+func (c *frps) JudgePort(content *plugin.NewProxyContent) plugin.Response {
 	var res plugin.Response
 	supportProxyTypes := []string{
 		"tcp", "tcpmux", "udp", "http", "https",
@@ -170,6 +188,13 @@ func (c *frps) JudgePort(id string, content *plugin.NewProxyContent) plugin.Resp
 		return res
 	}
 
+	user := decodeMetas(content.User.Metas)
+	if user == nil {
+		res.Reject = true
+		res.RejectReason = "ID和Token不能为空"
+		return res
+	}
+	id := user.ID
 	//user := content.User.User
 	//id := content.User.Metas["id"]
 	userPort := content.RemotePort
