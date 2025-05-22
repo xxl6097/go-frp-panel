@@ -104,6 +104,7 @@ export interface UserConfig {
 
 export interface ConfigBodyData {
   binAddress: string
+  serverAdminPort: number | undefined
   userConfig: Partial<UserConfig>
   clientConfig: Partial<ClientConfig>
 }

@@ -30,6 +30,7 @@ func (this *frps) createConfigData(body *model2.ConfigBodyData) error {
 		return e
 	}
 
+	body.ClientConfig.User = body.UserConfig.User
 	if body.ClientConfig.WebServer.Port <= 0 ||
 		body.ClientConfig.WebServer.Addr == "" ||
 		body.ClientConfig.WebServer.User == "" ||
@@ -53,20 +54,19 @@ func (this *frps) createConfigData(body *model2.ConfigBodyData) error {
 		body.ClientConfig.Proxies = proxies
 	}
 
-	if body.UserConfig != nil {
-		config := model2.FrpcBuffer{
-			User:       *body.UserConfig,
-			ServerAddr: body.ClientConfig.ServerAddr,
-			ServerPort: body.ClientConfig.ServerPort,
-			AdminUser:  body.ClientConfig.WebServer.User,
-			AdminPass:  body.ClientConfig.WebServer.Password,
+	config := model2.FrpcBuffer{
+		User:            *body.UserConfig,
+		AdminUser:       body.ClientConfig.WebServer.User,
+		AdminPass:       body.ClientConfig.WebServer.Password,
+		ServerAddr:      body.ClientConfig.ServerAddr,
+		ServerPort:      body.ClientConfig.ServerPort,
+		ServerAdminPort: body.ServerAdminPort,
+	}
+	if keycode, e1 := frp.EncodeSecret(&config); e1 == nil {
+		if body.ClientConfig.Metadatas == nil {
+			body.ClientConfig.Metadatas = make(map[string]string)
 		}
-		if keycode, e1 := frp.EncodeSecret(&config); e1 == nil {
-			if body.ClientConfig.Metadatas == nil {
-				body.ClientConfig.Metadatas = make(map[string]string)
-			}
-			body.ClientConfig.Metadatas["secret"] = keycode
-		}
+		body.ClientConfig.Metadatas["secret"] = keycode
 	}
 	return nil
 }

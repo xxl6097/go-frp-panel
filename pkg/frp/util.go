@@ -180,7 +180,7 @@ func DecodeSecret(text string) *model.FrpcBuffer {
 	if err != nil {
 		return nil
 	}
-	glog.Debugf("%+v", obj)
+	//glog.Debugf("%+v", obj)
 	return &obj
 }
 

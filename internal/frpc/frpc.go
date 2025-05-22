@@ -130,7 +130,7 @@ func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
 				return
 			}
 			id := cls.config.User.ID
-			addr := fmt.Sprintf("%s:%d", cls.config.ServerAddr, cls.config.ServerPort)
+			addr := fmt.Sprintf("%s:%d", cls.config.ServerAddr, cls.config.ServerAdminPort)
 			authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cls.config.AdminUser, cls.config.AdminPass)))
 			ws.GetClientInstance().NewClient(id, addr, authorization)
 			ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)

@@ -27,17 +27,19 @@ type User struct {
 }
 
 type FrpcBuffer struct {
-	AdminUser  string `json:"adminUser,omitempty"`
-	AdminPass  string `json:"adminPass,omitempty"`
-	ServerPort int    `json:"serverPort,omitempty"`
-	ServerAddr string `json:"serverAddr,omitempty"`
-	User       User   `json:"user,omitempty"`
+	AdminUser       string `json:"adminUser,omitempty"`
+	AdminPass       string `json:"adminPass,omitempty"`
+	ServerAdminPort int    `json:"serverAdminPort,omitempty"`
+	ServerPort      int    `json:"serverPort,omitempty"`
+	ServerAddr      string `json:"serverAddr,omitempty"`
+	User            User   `json:"user,omitempty"`
 }
 
 type ConfigBodyData struct {
-	BinAddress   string           `json:"binAddress,omitempty"`
-	UserConfig   *User            `json:"userConfig,omitempty"`
-	ClientConfig *v1.ClientConfig `json:"clientConfig,omitempty"`
+	BinAddress      string           `json:"binAddress,omitempty"`
+	ServerAdminPort int              `json:"serverAdminPort,omitempty"`
+	UserConfig      *User            `json:"userConfig,omitempty"`
+	ClientConfig    *v1.ClientConfig `json:"clientConfig,omitempty"`
 }
 
 func (u *User) CreateUserByID() error {

@@ -267,21 +267,21 @@
       <el-form label-width="130px">
         <el-form-item label="Frps服务地址：">
           <el-input
-            v-model="clientForm.addr"
+            v-model="clientForm.serverAddr"
             placeholder="请输入Frps服务地址"
           />
         </el-form-item>
         <el-form-item label="Frps服务端口：">
           <el-input-number
             controls-position="right"
-            v-model="clientForm.port"
+            v-model="clientForm.serverPort"
             placeholder="请输入Frps服务端口"
           />
         </el-form-item>
         <el-form-item label="Frps Admin端口：">
           <el-input-number
             controls-position="right"
-            v-model="clientForm.apiPort"
+            v-model="clientForm.serverAdminPort"
             placeholder="请输入Frps Admin端口"
           />
         </el-form-item>
@@ -514,9 +514,9 @@ const newUserForm = ref({
 })
 
 const clientForm = ref({
-  addr: '',
-  port: 0,
-  apiPort: parseInt(window.location.port, 10),
+  serverAddr: '',
+  serverPort: 0,
+  serverAdminPort: parseInt(window.location.port, 10),
   url: '',
   ops: null,
   loading: false,
@@ -719,9 +719,10 @@ const handleSelectionChange = (rows: FrpcConfiguration[]) => {
 
 function createClientBodyData() {
   const bodyData: Partial<ConfigBodyData> = {
+    serverAdminPort: clientForm.value.serverAdminPort,
     clientConfig: {
-      serverAddr: clientForm.value.addr,
-      serverPort: clientForm.value.apiPort,
+      serverAddr: clientForm.value.serverAddr,
+      serverPort: clientForm.value.serverPort,
       proxies: [clientForm.value.proxy as TypedProxyConfig],
       webServer: {
         addr: clientForm.value.webserver.addr,
@@ -1267,7 +1268,7 @@ const updateDialogWidth = () => {
 onMounted(() => {
   window.addEventListener('resize', updateDialogWidth)
   updateDialogWidth()
-  clientForm.value.addr = window.location.hostname
+  clientForm.value.serverAddr = window.location.hostname
 })
 
 onUnmounted(() => {
@@ -1289,7 +1290,7 @@ const fetchServerData = () => {
     .then((res) => res.json())
     .then((json) => {
       if (json.code === 0) {
-        clientForm.value.port = json.data.bindPort
+        clientForm.value.serverPort = json.data.bindPort
       }
     })
     .catch(() => {
