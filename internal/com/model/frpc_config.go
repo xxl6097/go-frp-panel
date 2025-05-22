@@ -196,7 +196,7 @@ func JudgeToken(id, token string) (bool, error) {
 		return false, fmt.Errorf("[token校验]frps服务器不存在该用户ID:%v,err: %v", id, err)
 	}
 	if u.Token != token {
-		return false, fmt.Errorf("[token校验]SseId【%s】的token【%s】校验错误❌", id, token)
+		return false, fmt.Errorf("[token校验]FrpID【%s】的token【%s】校验错误❌", id, token)
 	}
 	if !u.Enable {
 		return false, fmt.Errorf("[token校验]用户【%s】被禁用", id)

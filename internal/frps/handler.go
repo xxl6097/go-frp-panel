@@ -89,7 +89,7 @@ func (c *frps) HandleLogin(content *plugin.LoginContent) plugin.Response {
 		res.RejectReason = "ID和Token不能为空"
 		return res
 	}
-	return c.JudgeToken(user.ID, user.ID)
+	return c.JudgeToken(user.ID, user.Token)
 }
 
 func (c *frps) HandleNewProxy(content *plugin.NewProxyContent) plugin.Response {
@@ -108,7 +108,7 @@ func (c *frps) HandleNewProxy(content *plugin.NewProxyContent) plugin.Response {
 		res.RejectReason = "ID和Token不能为空"
 		return res
 	}
-	judgeToken := c.JudgeToken(user.ID, user.ID)
+	judgeToken := c.JudgeToken(user.ID, user.Token)
 	if judgeToken.Reject {
 		return judgeToken
 	}
@@ -126,7 +126,7 @@ func (c *frps) HandlePing(content *plugin.PingContent) plugin.Response {
 		res.RejectReason = "ID和Token不能为空"
 		return res
 	}
-	return c.JudgeToken(user.ID, user.ID)
+	return c.JudgeToken(user.ID, user.Token)
 }
 
 func (c *frps) HandleNewWorkConn(content *plugin.NewWorkConnContent) plugin.Response {
@@ -140,7 +140,7 @@ func (c *frps) HandleNewWorkConn(content *plugin.NewWorkConnContent) plugin.Resp
 		res.RejectReason = "ID和Token不能为空"
 		return res
 	}
-	return c.JudgeToken(user.ID, user.ID)
+	return c.JudgeToken(user.ID, user.Token)
 }
 
 func (c *frps) HandleNewUserConn(content *plugin.NewUserConnContent) plugin.Response {
@@ -154,7 +154,7 @@ func (c *frps) HandleNewUserConn(content *plugin.NewUserConnContent) plugin.Resp
 		res.RejectReason = "ID和Token不能为空"
 		return res
 	}
-	return c.JudgeToken(user.ID, user.ID)
+	return c.JudgeToken(user.ID, user.Token)
 }
 func (c *frps) JudgeToken(id string, token string) plugin.Response {
 	var res plugin.Response
