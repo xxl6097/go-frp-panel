@@ -195,7 +195,7 @@ func GetClientInstance() *Client {
 		instance = &Client{
 			clients: make(map[string]*Websocketclient),
 		}
-		glog.Println("Singleton client instance created")
+		glog.Println("WebSocket Singleton client instance created")
 	})
 	return instance
 }

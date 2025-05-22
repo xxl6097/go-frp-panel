@@ -96,9 +96,13 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 
 	if cfg.Metadatas != nil {
 		secret := cfg.Metadatas["secret"]
+		glog.Debugf("secret %+v", secret)
 		if secret != "" {
 			this.cls.config = frp.DecodeSecret(secret)
+			glog.Debugf("解析secret %+v", this.cls.config)
 		}
+	} else {
+		glog.Error("cfg.Metadatas is nil")
 	}
 	ws.GetClientInstance().NewClient(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
 	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
