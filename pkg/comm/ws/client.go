@@ -86,7 +86,7 @@ func (c *Websocketclient) Connect() error {
 
 		reconnects++
 		if c.maxReconnects > 0 && reconnects > c.maxReconnects {
-			err = fmt.Errorf("连接失败，已达到最大重连次数: %w", err)
+			err = fmt.Errorf("连接失败，已达到最大重连次数: %w 连接次数：%d 次数上限：%d", err, reconnects, c.maxReconnects)
 			return err
 		}
 
