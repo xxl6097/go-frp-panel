@@ -141,12 +141,8 @@ github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 h1:EWU6Pktpas0n8lL
 github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37/go.mod h1:HpMP7DB2CyokmAh4lp0EQnnWhmycP/TvwBGzvuie+H0=
 github.com/xxl6097/glog v0.1.23 h1:Of4SasEGWxDW7DMkcxSPVbxa0u19dOX9iuxuxqvU/Z4=
 github.com/xxl6097/glog v0.1.23/go.mod h1:Ug/BU4gFQMUoDgY1t8bJZU9T472CXcj70BekRC+fz+k=
-github.com/xxl6097/go-service v0.4.60 h1:1bnP1xDwwft3s9MpbGXidsTq/UVMy1zF73ge34QGDME=
-github.com/xxl6097/go-service v0.4.60/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
-github.com/xxl6097/go-service v0.4.61 h1:SfnHgwhCx5ImokDSPU/RXxFH2DS3MeUv4Yk0w56A0V0=
-github.com/xxl6097/go-service v0.4.61/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
-github.com/xxl6097/go-service v0.4.63 h1:hPOTShKiIPg5Uz71HC3aWfB9OCJc54FCrPyimUs51w4=
-github.com/xxl6097/go-service v0.4.63/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
+github.com/xxl6097/go-service v0.4.65 h1:NQsVWdL2O2ecpCVASjkXa9NEycHSfnXL6Sz/u5bN4aM=
+github.com/xxl6097/go-service v0.4.65/go.mod h1:d9JcsZyYKryr48f2oq1Ycc3SG6Dx+CS/jSu8FRsg8+Q=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/mock v0.5.0 h1:KAMbZvZPyBPWgD14IrIQ38QCyjwpvVVV6K/bHl1IwQU=
 go.uber.org/mock v0.5.0/go.mod h1:ge71pBPLYDk7QIi1LupWxdAykm7KIEFchiOqd6z7qMM=
