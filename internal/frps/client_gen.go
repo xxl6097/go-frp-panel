@@ -54,10 +54,21 @@ func (this *frps) createConfigData(body *model2.ConfigBodyData) error {
 		body.ClientConfig.Proxies = proxies
 	}
 
+	cfg := GetCfgModel()
+	if cfg == nil {
+		return fmt.Errorf("GetCfgModel() is nil")
+	}
+	if cfg.Frps.WebServer.User == "" {
+		return fmt.Errorf("GetCfgModel() fg.Frps.WebServer.User is nil")
+	}
+	if cfg.Frps.WebServer.Password == "" {
+		return fmt.Errorf("GetCfgModel() fg.Frps.WebServer.Password is nil")
+	}
+
 	config := model2.FrpcBuffer{
 		User:            *body.UserConfig,
-		AdminUser:       body.ClientConfig.WebServer.User,
-		AdminPass:       body.ClientConfig.WebServer.Password,
+		AdminUser:       cfg.Frps.WebServer.User,
+		AdminPass:       cfg.Frps.WebServer.Password,
 		ServerAddr:      body.ClientConfig.ServerAddr,
 		ServerPort:      body.ClientConfig.ServerPort,
 		ServerAdminPort: body.ServerAdminPort,

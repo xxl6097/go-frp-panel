@@ -160,6 +160,7 @@ func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
 	if obj == nil {
 		return "", fmt.Errorf("obj is nil")
 	}
+	glog.Debugf("EncodeSecret obj: %+v", obj)
 	data, err := json.Marshal(obj)
 	if err != nil {
 		return "", fmt.Errorf("json marshal err: %v", err)
