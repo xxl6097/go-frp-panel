@@ -164,7 +164,7 @@ func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("json marshal err: %v", err)
 	}
-	fmt.Println(string(data))
+	glog.Println(string(data))
 	return utils.Encrypt(data, nil), nil
 }
 func DecodeSecret(text string) *model.FrpcBuffer {
@@ -180,6 +180,7 @@ func DecodeSecret(text string) *model.FrpcBuffer {
 	if err != nil {
 		return nil
 	}
+	glog.Debugf("%+v", obj)
 	return &obj
 }
 
