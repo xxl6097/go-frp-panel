@@ -403,6 +403,32 @@ func IsExist(filePath string) bool {
 	return false
 }
 
+func IsDirEmpty(dirPath string) (bool, error) {
+	// 步骤1：验证是否为有效目录
+	info, err := os.Stat(dirPath)
+	if err != nil {
+		return false, fmt.Errorf("路径无效: %v", err)
+	}
+	if !info.IsDir() {
+		return false, fmt.Errorf("路径不是目录")
+	}
+
+	// 步骤2：打开目录
+	file, err := os.Open(dirPath)
+	if err != nil {
+		return false, fmt.Errorf("无法打开目录: %v", err)
+	}
+	defer file.Close()
+
+	// 步骤3：读取目录内容
+	entries, err := file.Readdir(0) // 0表示读取所有条目
+	if err != nil {
+		return false, fmt.Errorf("读取目录失败: %v", err)
+	}
+
+	return len(entries) == 0, nil
+}
+
 func GetUserDir() (string, error) {
 	binpath, err := os.Executable()
 	if err != nil {

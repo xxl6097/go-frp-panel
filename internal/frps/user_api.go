@@ -825,6 +825,7 @@ func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
 	switch r.Method {
 	case "GET", "get":
+		glog.Debug("同步配置...get")
 		if !utils2.FileExists(fpath) {
 			res.Result(100, "接口设置～", this.cloudApi)
 		} else {
@@ -844,6 +845,7 @@ func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 		}
 		break
 	case "POST", "post":
+		glog.Debug("同步配置...post")
 		body, err := utils.GetDataByJson[model.CloudApi](r)
 		if err != nil {
 			res.Err(err)

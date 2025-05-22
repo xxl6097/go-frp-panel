@@ -16,6 +16,10 @@ func Export(obj model.CloudApi) error {
 	if err != nil {
 		return err
 	}
+	if ok, e := IsDirEmpty(userDir); ok || e != nil {
+		glog.Error("IsDirEmpty", userDir)
+		return err
+	}
 	fileName := fmt.Sprintf("user_%s.zip", GetFileNameByTime())
 	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
 	_ = utils2.EnsureDir(tempDir)
