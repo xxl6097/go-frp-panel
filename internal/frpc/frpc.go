@@ -2,6 +2,7 @@ package frpc
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
@@ -94,19 +95,7 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 		},
 	}
 
-	if cfg.Metadatas != nil {
-		secret := cfg.Metadatas["secret"]
-		glog.Debugf("secret %+v", secret)
-		if secret != "" {
-			this.cls.config = frp.DecodeSecret(secret)
-			glog.Debugf("解析secret %+v", this.cls.config)
-		}
-	} else {
-		glog.Error("cfg.Metadatas is nil")
-	}
-	ws.GetClientInstance().NewClient(cfg.Metadatas["id"], fmt.Sprintf("%s:%s", cfg.ServerAddr, cfg.Metadatas["apiPort"]), cfg.Metadatas["authorization"])
-	ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
-	ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
+	decodeConfigAndRunWebSocket(this, this.cls)
 
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	if shouldGracefulClose {
@@ -126,6 +115,25 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 	name := path.Base(cfgFilePath)
 	this.svrs[name] = this.cls
 	return this, nil
+}
+
+func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
+	if cls != nil && cls.cfg != nil && cls.cfg.Metadatas != nil {
+		secret := cls.cfg.Metadatas["secret"]
+		glog.Debugf("secret %+v", secret)
+		if secret != "" {
+			cls.config = frp.DecodeSecret(secret)
+			glog.Debugf("解析secret %+v", cls.config)
+			id := cls.config.User.ID
+			addr := fmt.Sprintf("%s:%s", cls.config.ServerAddr, cls.config.AdminPort)
+			authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cls.config.AdminUser, cls.config.AdminPass)))
+			ws.GetClientInstance().NewClient(id, addr, authorization)
+			ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
+			ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
+		}
+	} else {
+		glog.Error("cfg.Metadatas is nil")
+	}
 }
 
 func (this *frpc) handleTermSignal(svr *client.Service) {
