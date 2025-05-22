@@ -23,6 +23,7 @@ type Service struct {
 }
 
 func Bootstrap() {
+	defer glog.Flush()
 	svr := &Service{}
 	err := gservice.Run(svr)
 	if err != nil {
