@@ -420,12 +420,12 @@
           >上传生成
         </el-button>
 
-        <el-button @click="downloadClientTomlFile">frpc toml配置</el-button>
+        <el-button @click="downloadClientTomlFile">配置下载</el-button>
         <el-button
           type="danger"
           @click="downloadClientByGen"
           :loading="clientForm.loading"
-          >直接生成
+          >程序生成
         </el-button>
       </template>
     </el-dialog>
