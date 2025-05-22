@@ -12,7 +12,7 @@ func main() {
 			User: "1234567890",
 		},
 		ServerAddr: "192.168.0.2",
-		AdminPort:  6500,
+		ServerPort: 6500,
 		AdminUser:  "admin",
 		AdminPass:  "admin",
 	}

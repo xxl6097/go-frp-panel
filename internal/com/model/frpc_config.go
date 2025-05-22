@@ -29,7 +29,7 @@ type User struct {
 type FrpcBuffer struct {
 	AdminUser  string `json:"adminUser,omitempty"`
 	AdminPass  string `json:"adminPass,omitempty"`
-	AdminPort  int    `json:"adminPort,omitempty"`
+	ServerPort int    `json:"serverPort,omitempty"`
 	ServerAddr string `json:"serverAddr,omitempty"`
 	User       User   `json:"user,omitempty"`
 }

@@ -57,7 +57,7 @@ func (this *frps) createConfigData(body *model2.ConfigBodyData) error {
 		config := model2.FrpcBuffer{
 			User:       *body.UserConfig,
 			ServerAddr: body.ClientConfig.ServerAddr,
-			AdminPort:  body.ClientConfig.WebServer.Port,
+			ServerPort: body.ClientConfig.ServerPort,
 			AdminUser:  body.ClientConfig.WebServer.User,
 			AdminPass:  body.ClientConfig.WebServer.Password,
 		}
