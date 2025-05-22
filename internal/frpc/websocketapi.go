@@ -43,7 +43,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 				glog.Error("install is nil")
 				return
 			}
-			err = this.install.Uninstall()
+			err = this.install.RunCmd("uninstall")
 			if err != nil {
 				glog.Error("卸载失败", err)
 			}
