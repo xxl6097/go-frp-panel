@@ -145,16 +145,6 @@ func GetMetadatas(token, id, apiPort, authorization string) map[string]string {
 	}
 }
 
-func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
-	if obj == nil {
-		return "", fmt.Errorf("obj is nil")
-	}
-	data, err := json.Marshal(obj)
-	if err != nil {
-		return "", fmt.Errorf("json marshal err: %v", err)
-	}
-	return utils.Encrypt(data, nil), nil
-}
 func GetPort(i interface{}) int {
 	switch v := i.(type) {
 	case *v1.TCPProxyConfig:
@@ -165,11 +155,23 @@ func GetPort(i interface{}) int {
 	}
 	return 0
 }
+
+func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
+	if obj == nil {
+		return "", fmt.Errorf("obj is nil")
+	}
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return "", fmt.Errorf("json marshal err: %v", err)
+	}
+	fmt.Println(string(data))
+	return utils.Encrypt(data, nil), nil
+}
 func DecodeSecret(text string) *model.FrpcBuffer {
 	if text == "" {
 		return nil
 	}
-	jsonString := utils.Encrypt([]byte(text), nil)
+	jsonString := utils.Decrypt(text, nil)
 	if jsonString == "" {
 		return nil
 	}

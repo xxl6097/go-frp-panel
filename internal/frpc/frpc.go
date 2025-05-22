@@ -118,12 +118,17 @@ func New(i gore.IGService) (iface.IFrpc, error) {
 }
 
 func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
+	defer glog.Flush()
 	if cls != nil && cls.cfg != nil && cls.cfg.Metadatas != nil {
 		secret := cls.cfg.Metadatas["secret"]
 		glog.Debugf("secret %+v", secret)
 		if secret != "" {
 			cls.config = frp.DecodeSecret(secret)
 			glog.Debugf("解析secret %+v", cls.config)
+			if cls.config == nil {
+				glog.Debug("config nil 无法启动wensocket ")
+				return
+			}
 			id := cls.config.User.ID
 			addr := fmt.Sprintf("%s:%s", cls.config.ServerAddr, cls.config.AdminPort)
 			authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cls.config.AdminUser, cls.config.AdminPass)))
