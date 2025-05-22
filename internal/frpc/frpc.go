@@ -152,7 +152,7 @@ func (this *frpc) Run() error {
 	err := retry.Do(func() error {
 		e := this.cls.svr.Run(context.Background())
 		if e != nil {
-			glog.Errorf("frpc启动错误[%s]: %v", this.cls.configFilePath, e)
+			glog.Errorf("frpc客户端连接失败[%s]: %v", this.cls.configFilePath, e)
 		}
 		return e
 	}, retry.Delay(time.Second*5), retry.Attempts(10))
