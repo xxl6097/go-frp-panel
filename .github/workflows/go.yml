@@ -15,35 +15,42 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-#      - name: 安装bsdiff工具链
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y bsdiff libbz2-dev
-#      - name: 验证安装
-#        run: |
-#          bsdiff -h
-#          bsdiff --version
-#          bspatch --version
-      - name: Setup Node.js
+      - name: Frps Web文件变动了
+        id: changed-frps-files         # 设置步骤ID，用于后续引用输出
+        uses: tj-actions/changed-files@v45
+        with:
+          files: "web/frps/**"         # 监控src目录下所有文件[1](@ref)
+          json: true              # 输出JSON格式（用于矩阵任务）[4](@ref)
+      - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - name: Install & Build & frps
+      - name: Build Web
+        if: steps.changed-frps-files.outputs.any_changed == 'true'
         run: |
           cd ./web/frps
           npm install
           npm run build
-      - name: Install & Build & frpc
+      - name: Frpc Web文件变动了
+        id: changed-frpc-files         # 设置步骤ID，用于后续引用输出
+        uses: tj-actions/changed-files@v45
+        with:
+          files: "web/frpc/**"         # 监控src目录下所有文件[1](@ref)
+          json: true              # 输出JSON格式（用于矩阵任务）[4](@ref)
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Build Web
+        if: steps.changed-frpc-files.outputs.any_changed == 'true'
         run: |
           cd ./web/frpc
           npm install
           npm run build
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-
       - name: Make Go
         run: |
           chmod +x ./build.sh
