@@ -432,7 +432,7 @@ function buildFrpcAndFrpsAll() {
   echo "所有任务完成"
 }
 
-function buildFrpcAndFrpsAllForGithubRelease() {
+function githubActions() {
   echo "===>version:${version}"
   apt-get install bsdiff
   echo "===>apt-get install bsdiff"
@@ -609,7 +609,7 @@ function bootstrap() {
   fi
   writeVersionGoFile
   case $1 in
-  all) (buildFrpcAndFrpsAllForGithubRelease) ;;
+  github) (githubActions) ;;
     *) (main)  ;;
   esac
 }
