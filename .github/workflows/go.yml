@@ -15,29 +15,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: 安装bsdiff工具链
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bsdiff libbz2-dev
-      - name: 验证安装
-        run: |
-          bsdiff -h
-          bsdiff --version
-          bspatch --version
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 20.x
-#      - name: Install & Build & frps
+#      - name: 安装bsdiff工具链
 #        run: |
-#          cd ./web/frps
-#          npm install
-#          npm run build
-#      - name: Install & Build & frpc
+#          sudo apt-get update
+#          sudo apt-get install -y bsdiff libbz2-dev
+#      - name: 验证安装
 #        run: |
-#          cd ./web/frpc
-#          npm install
-#          npm run build
+#          bsdiff -h
+#          bsdiff --version
+#          bspatch --version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Install & Build & frps
+        run: |
+          cd ./web/frps
+          npm install
+          npm run build
+      - name: Install & Build & frpc
+        run: |
+          cd ./web/frpc
+          npm install
+          npm run build
 
       - name: Set up Go
         uses: actions/setup-go@v5
