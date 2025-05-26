@@ -15,6 +15,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: 安装bsdiff工具链
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bsdiff libbz2-dev
+      - name: 验证安装
+        run: |
+          bsdiff --version
+          bspatch --version
 #      - name: Setup Node.js
 #        uses: actions/setup-node@v4
 #        with:
