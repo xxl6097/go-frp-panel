@@ -435,9 +435,9 @@ function buildFrpcAndFrpsAll() {
 function buildFrpcAndFrpsAllForGithubRelease() {
   echo "===>version:${version}"
   apt-get install bsdiff
-  cho "===>apt-get install bsdiff"
+  echo "===>apt-get install bsdiff"
   bsdiff -v
-  cho "===>bsdiff -v"
+  echo "===>bsdiff -v"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   buildFrpcAndFrpsAll
