@@ -21,6 +21,7 @@ jobs:
           sudo apt-get install -y bsdiff libbz2-dev
       - name: 验证安装
         run: |
+          bsdiff -h
           bsdiff --version
           bspatch --version
 #      - name: Setup Node.js
