@@ -434,6 +434,8 @@ function buildFrpcAndFrpsAll() {
 
 function githubActions() {
   echo "===>version:${version}"
+  bsdiff -h
+  bsdiff -V
   bsdiff --version
   bspatch --version
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
