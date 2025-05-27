@@ -65,6 +65,7 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/config/upload", this.apiConfigUpload)
 	subRouter.HandleFunc("/api/config/upgrade", this.apiConfigUpgrade)
 	subRouter.HandleFunc("/api/client/upload", this.apiClientUpload).Methods("POST")
+	subRouter.HandleFunc("/api/github/key", this.apiGithubKeySetting)
 }
 
 func (this *frps) webSocketHandler(helper *httppkg.RouterRegisterHelper) {

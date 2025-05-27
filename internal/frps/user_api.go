@@ -1080,3 +1080,47 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 
 	http.ServeFile(w, r, dstFile)
 }
+
+func (this *frps) apiGithubKeySetting(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer func() {
+		f(w)
+		utils.LoadGithubKey()
+	}()
+	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
+	switch r.Method {
+	case "GET", "get":
+		if utils2.FileExists(fpath) {
+			obj, err := utils.LoadWithGob[model.GithubKey](fpath)
+			if err != nil {
+				res.Result(100, err.Error(), nil)
+				return
+			}
+			res.Result(100, "github key setting～", obj)
+		} else {
+			res.Result(100, "github key no cache~", nil)
+		}
+		break
+	case "POST", "post":
+		body, err := utils.GetDataByJson[model.GithubKey](r)
+		if err != nil {
+			res.Err(err)
+			return
+		}
+		glog.Debugf("参数：%+v", body)
+		if body.ClientId != "" && body.ClientSecret != "" {
+			err = utils.SaveWithGob[model.GithubKey](*body, fpath)
+			if err != nil {
+				res.Err(err)
+				return
+			}
+			glog.Debug("SaveWithGob", fpath)
+			res.Ok("设置成功～")
+		} else {
+			res.Error("github key无效")
+		}
+		break
+	default:
+		break
+	}
+}

@@ -35,6 +35,9 @@
                   <el-dropdown-item @click="frpsForm.isShow = true"
                     >创建服务端
                   </el-dropdown-item>
+                  <el-dropdown-item @click="handleGithubKeySetting"
+                    >设置github
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -208,6 +211,31 @@
       </el-button>
     </template>
   </el-dialog>
+
+  <!-- 填写云Api信息设置 -->
+  <el-dialog
+    v-model="githubApiForm.isShow"
+    title="github key设置"
+    width="500px"
+  >
+    <el-form label-width="130px">
+      <el-form-item label="client id：">
+        <el-input
+          v-model="githubApiForm.clientId"
+          placeholder="请输入github client id"
+        />
+      </el-form-item>
+      <el-form-item label="client secret：">
+        <el-input
+          v-model="githubApiForm.clientSecret"
+          placeholder="请输入请输入github client secret"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button type="primary" @click="handleGithubKeySetting">确定</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -260,11 +288,57 @@ const frpsForm = ref({
   isLoading: false,
 })
 
+const githubApiForm = ref({
+  clientId: '',
+  clientSecret: '',
+  isShow: false,
+})
 const version = ref<Version>()
 provide('version', version)
 
 // const upgradeRef = ref(null)// 明确指定 ref 的类型
 const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
+
+// 配置上传云端
+const handleGithubKeySetting = () => {
+  console.log('handleGithubKeySetting:', githubApiForm.value)
+  if (githubApiForm.value.isShow) {
+    fetch('../api/github/key', {
+      credentials: 'include',
+      method: 'post',
+      body: JSON.stringify(githubApiForm.value),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('配置备份', json)
+        showTips(json.code, json.msg)
+        if (json.code === 0) {
+          githubApiForm.value.isShow = false
+        }
+      })
+      .finally(() => {
+        localStorage.setItem('githubKey', JSON.stringify(githubApiForm.value))
+      })
+  } else {
+    fetch('../api/github/key', {
+      credentials: 'include',
+      method: 'get',
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log('github key', json)
+        if (json.code === 100) {
+          githubApiForm.value.isShow = true
+          if (json.data) {
+            githubApiForm.value.clientId = json.data.clientId
+            githubApiForm.value.clientSecret = json.data.clientSecret
+          }
+        }
+        showTips(json.code, json.msg)
+      })
+      .finally(() => {})
+  }
+}
 
 const showUpgradeDialog = () => {
   if (upgradeRef.value) {
@@ -674,6 +748,15 @@ onMounted(() => {
   const result = mIndex.replace(/^#+/, '')
   console.log('index.menu.index', result)
   menuIndex.value = result
+
+  const jsonString = localStorage.getItem('githubKey')
+  if (jsonString) {
+    const obj = JSON.parse(jsonString)
+    if (obj) {
+      githubApiForm.value = obj
+    }
+    githubApiForm.value.isShow = false
+  }
 })
 fetchVersionData()
 fetchOptions()

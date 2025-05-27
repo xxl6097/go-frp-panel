@@ -2,10 +2,25 @@ package utils
 
 import (
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 )
+
+func init() {
+	LoadGithubKey()
+}
+
+func LoadGithubKey() {
+	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
+	obj, err := LoadWithGob[model.GithubKey](fpath)
+	if err == nil && obj.ClientId != "" && obj.ClientSecret != "" {
+		os.Setenv("GITHUB_CLIENT_ID", obj.ClientId)
+		os.Setenv("GITHUB_CLIENT_SECRET", obj.ClientSecret)
+	}
+}
 
 var githubProxys = []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
 var indexCount = 0
