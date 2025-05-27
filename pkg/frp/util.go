@@ -1,12 +1,12 @@
 package frp
 
 import (
+	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
@@ -162,8 +162,7 @@ func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
 	}
 
 	glog.Debugf("EncodeSecret obj: %+v", obj)
-	//data, err := json.Marshal(obj)
-	data, err := ukey.StructToGob(obj)
+	data, err := json.Marshal(obj)
 	if err != nil {
 		return "", fmt.Errorf("json marshal err: %v", err)
 	}
@@ -188,8 +187,7 @@ func DecodeSecret(text string) *model.FrpcBuffer {
 		return nil
 	}
 	var obj model.FrpcBuffer
-	//err := json.Unmarshal([]byte(jsonString), &obj)
-	err = ukey.GobToStruct(buffer, &obj)
+	err = json.Unmarshal(buffer, &obj)
 	if err != nil {
 		return nil
 	}
