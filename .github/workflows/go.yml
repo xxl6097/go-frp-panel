@@ -6,11 +6,20 @@ on:
   push:
     tags:
       - 'v[0-99]*.[0-99]*.[0-99]*'  # 匹配所有以 v 开头的标签（如 v1.0.0）
+env:
+  DELETE_RELEASE: yes
 jobs:
   goreleaser:
     #if: contains(github.event.head_commit.message, 'DEPLOY')  echo echo"github：${{ toJson(github) }}"
     runs-on: ubuntu-latest
     steps:
+      - name: Delete All Releases
+        if: ${{ env.DELETE_RELEASE == 'yes' }}
+        uses: emmanuel-oliveira/github-releases@v1
+        with:
+          mode: "delete"
+          githubToken: ${{ secrets.GH_TOKEN }}
+          itemsToKeep: 0  # 设为0表示删除全部Release
       - name: Checkout
         uses: actions/checkout@v4
         with:
