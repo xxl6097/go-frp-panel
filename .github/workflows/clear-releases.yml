@@ -1,6 +1,10 @@
+run-name: "删除版本 ${{ github.ref_name }}"
+env:
+  DELETE_RELEASE: yes
 jobs:
   delete-release:
     runs-on: ubuntu-latest
+    if: ${{ env.DELETE_RELEASE == 'yes' }}
     steps:
       - name: Delete All Releases
         uses: emmanuel-oliveira/github-releases@v1
