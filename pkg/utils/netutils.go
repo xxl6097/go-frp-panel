@@ -323,6 +323,15 @@ func IsClassC(ip net.IP) bool {
 	return firstByte >= 192 && firstByte <= 223
 }
 
+func IsClassCC(ip net.IP) bool {
+	firstByte := ip.To4()[0]
+	switch firstByte {
+	case 172, 198:
+		return true
+	}
+	return false
+}
+
 // NetworkInterface 网络接口信息
 type NetworkInterface struct {
 	Name        string   `json:"name"`        // 接口名称
@@ -374,14 +383,16 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 			if ip.IsLoopback() {
 				continue
 			}
-			if IsPublicIPv4(ip) && IsClassC(ip) {
-				continue
-			}
+			//if IsPublicIPv4(ip) && IsClassC(ip) {
+			//	continue
+			//}
 
 			// 获取IPv4和IPv6地址
 			if ip.To4() != nil {
 				ipAddresses = append(ipAddresses, ip.String())
-				ipv4 = ip.String()
+				if (IsPublicIPv4(ip) || IsClassCC(ip)) && !IsClassCC(ip) {
+					ipv4 = ip.String()
+				}
 			} else if ip.To16() != nil {
 				ipAddresses = append(ipAddresses, "["+ip.String()+"]")
 			}
@@ -475,6 +486,16 @@ func isBadName(name string) bool {
 	return false
 }
 
+func notEmpty(iface *NetworkInterface) bool {
+	if iface == nil {
+		return false
+	}
+	if iface.Name != "" && iface.Ipv4 != "" && iface.MacAddress != "" && iface.IPAddresses != nil {
+		return true
+	}
+	return false
+}
+
 // GetDeviceInfo 获取主IP地址、Mac地址（默认网关所在接口的IP）
 func GetDeviceInfo() (*NetworkInterface, error) {
 	ifaces, err := GetNetworkInterfaces()
@@ -495,7 +516,7 @@ func GetDeviceInfo() (*NetworkInterface, error) {
 		//	//return &iface, nil
 		//	face = &iface
 		//}
-		if !isBadName(iface.Name) && iface.Name != "" && iface.Ipv4 != "" && iface.MacAddress != "" && iface.IPAddresses != nil {
+		if !isBadName(iface.Name) && notEmpty(&iface) {
 			face = &iface
 		}
 		//glog.Debugf("获取设备信息：%+v", iface)
