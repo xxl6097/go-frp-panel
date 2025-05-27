@@ -1,12 +1,12 @@
 package frp
 
 import (
-	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
@@ -160,13 +160,19 @@ func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
 	if obj == nil {
 		return "", fmt.Errorf("obj is nil")
 	}
+
 	glog.Debugf("EncodeSecret obj: %+v", obj)
-	data, err := json.Marshal(obj)
+	//data, err := json.Marshal(obj)
+	data, err := ukey.StructToGob(obj)
 	if err != nil {
 		return "", fmt.Errorf("json marshal err: %v", err)
 	}
-	glog.Println(string(data))
-	return utils.Encrypt(data, nil), nil
+	buffer, err := utils2.GzipCompress(data)
+	if err != nil {
+		return "", fmt.Errorf("gzip compress err: %v", err)
+	}
+	//glog.Println(string(data))
+	return utils.Encrypt(buffer, nil), nil
 }
 func DecodeSecret(text string) *model.FrpcBuffer {
 	if text == "" {
@@ -176,8 +182,14 @@ func DecodeSecret(text string) *model.FrpcBuffer {
 	if jsonString == "" {
 		return nil
 	}
+	buffer, err := utils2.GzipDecompress([]byte(jsonString))
+	if err != nil {
+		glog.Errorf("gzip decompress err: %v", err)
+		return nil
+	}
 	var obj model.FrpcBuffer
-	err := json.Unmarshal([]byte(jsonString), &obj)
+	//err := json.Unmarshal([]byte(jsonString), &obj)
+	err = ukey.GobToStruct(buffer, &obj)
 	if err != nil {
 		return nil
 	}
