@@ -1,7 +1,7 @@
 #!/bin/bash
 GITHUB_USER="xxl6097"
 REPO_NAME="go-frp-panel"
-TOKEN="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"
+TOKEN=$(cat .token)
 
 # 获取所有 Release ID 列表
 releases=$(curl -s -H "Authorization: token $TOKEN" \
