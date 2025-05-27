@@ -329,7 +329,11 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 func (this *commapi) ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	args := utils2.CheckVersionFromGithub()
+	args, err := utils2.CheckVersionFromGithub()
+	if err != nil {
+		res.Err(err)
+		return
+	}
 	if args != nil && len(args) > 0 {
 		res.response(1, args[1], args[0])
 	} else {

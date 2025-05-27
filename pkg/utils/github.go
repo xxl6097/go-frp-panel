@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"io"
@@ -49,6 +50,10 @@ func reqestGithubApi(baseUrl string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close() // 必须关闭响应体 [1,5,8](@ref)
+	if resp.StatusCode != 200 {
+		glog.Error(resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("请求失败 %v %v", resp.StatusCode, resp.Status)
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		glog.Error("github请求失败", err)

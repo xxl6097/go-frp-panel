@@ -50,7 +50,10 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			}
 			break
 		case ws.CLIENT_VERSION_CHECK:
-			args := utils.CheckVersionFromGithub()
+			args, e := utils.CheckVersionFromGithub()
+			if e != nil {
+				glog.Error(e)
+			}
 			msg.Data = args
 			if args == nil {
 				msg.Data = "已经是最新版本～"

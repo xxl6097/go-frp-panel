@@ -275,7 +275,7 @@ func ParseMarkdownCodeToStringArray(body string) []string {
 	return r
 }
 
-func CheckVersionFromGithub() []string {
+func CheckVersionFromGithub() ([]string, error) {
 	//var baseUrl = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/latest"
 	var binVersionBinNameUrl = "https://github.com/xxl6097/go-frp-panel/releases/download/%s/%s"
 	//githubProxys := []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
@@ -325,7 +325,7 @@ func CheckVersionFromGithub() []string {
 				if index > 0 {
 					releaseNote = releaseNote[:index]
 				}
-				return []string{strings.Join(newProxy, ","), fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", tagName, releaseNote)}
+				return []string{strings.Join(newProxy, ","), fmt.Sprintf("### ✅ 新版本\r\n* %s\r\n%s", tagName, releaseNote)}, nil
 
 				//if IsURLValidAndAccessible(binVersionBinNameUrl) {
 				//	return []string{binVersionBinNameUrl, releaseNote}
@@ -342,6 +342,8 @@ func CheckVersionFromGithub() []string {
 				//}
 			}
 		}
+	} else {
+		fmt.Println(err)
 	}
-	return nil
+	return nil, err
 }
