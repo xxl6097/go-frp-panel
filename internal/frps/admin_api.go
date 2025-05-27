@@ -10,8 +10,8 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/ukey"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -70,34 +70,80 @@ func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
 	}
 	cfg := GetCfgModel()
 	cfg.Frps = frpsCfg
-	filePath, err := os.Executable()
-	if err != nil {
-		res.Error(fmt.Sprintf("%v", err))
-		return
-	}
 	//下载和接收的最新文件 名称为上传文件的原始名称
-	newBufferBytes, err := ukey.GenConfig(GetCfgModel(), false)
+	newBufferBytes, err := ukey.GenConfig(GetCfgBuffer(), false)
 	if err != nil {
 		res.Error(fmt.Sprintf("gen config err: %v", err))
 		glog.Error(res.Msg)
 		return
 	}
-	signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
-	if err != nil {
-		res.Error(err.Error())
-	} else {
-		//defer utils.Delete(signFilePath, "签名文件")
-		if this.install != nil {
-			err = this.install.Upgrade(r.Context(), signFilePath, "override")
-			if err != nil {
-				res.Error(fmt.Sprintf("更新失败～%v", err))
-				return
-			}
-			res.Ok("配置更新成功～")
+	if this.install != nil {
+		err = this.install.UpgradeByBuffer(newBufferBytes)
+		//err = this.install.Upgrade(r.Context(), signFilePath, "override")
+		if err != nil {
+			res.Error(fmt.Sprintf("更新失败～%v", err))
+			return
 		}
-
+		res.Ok("配置更新成功～")
 	}
 }
+
+//func (this *frps) apiServerConfigSet(w http.ResponseWriter, r *http.Request) {
+//	res, f := comm.Response(r)
+//	defer f(w)
+//	// 读取请求体
+//	tomlBytes, err := io.ReadAll(r.Body)
+//	if err != nil {
+//		res.Error(fmt.Sprintf("读取body失败%v", err))
+//		return
+//	}
+//	if utils2.IsPathExist(this.cfgFilePath) {
+//		err = utils.Write(this.cfgFilePath, tomlBytes)
+//		if err != nil {
+//			res.Error(err.Error())
+//		} else {
+//			res.Ok("配置更新成功～")
+//		}
+//		return
+//	}
+//	//glog.Println(tomlBytes)
+//	frpsCfg := v1.ServerConfig{}
+//	err = utils.TomlTextToObject(tomlBytes, &frpsCfg)
+//	if err != nil {
+//		res.Error(fmt.Sprintf("配置失败：%v", err))
+//		return
+//	}
+//	cfg := GetCfgModel()
+//	cfg.Frps = frpsCfg
+//	filePath, err := os.Executable()
+//	if err != nil {
+//		res.Error(fmt.Sprintf("%v", err))
+//		return
+//	}
+//	//下载和接收的最新文件 名称为上传文件的原始名称
+//	newBufferBytes, err := ukey.GenConfig(GetCfgBuffer(), false)
+//	if err != nil {
+//		res.Error(fmt.Sprintf("gen config err: %v", err))
+//		glog.Error(res.Msg)
+//		return
+//	}
+//	signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.GetBuffer(), filePath)
+//	if err != nil {
+//		res.Error(err.Error())
+//	} else {
+//		//defer utils.Delete(signFilePath, "签名文件")
+//		if this.install != nil {
+//			err = this.install.Upgrade(r.Context(), signFilePath)
+//			//err = this.install.Upgrade(r.Context(), signFilePath, "override")
+//			if err != nil {
+//				res.Error(fmt.Sprintf("更新失败～%v", err))
+//				return
+//			}
+//			res.Ok("配置更新成功～")
+//		}
+//
+//	}
+//}
 
 // /api/restart
 func (this *frps) apiRestart(w http.ResponseWriter, r *http.Request) {

@@ -3,7 +3,7 @@ package upload
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -70,7 +70,7 @@ func (this *pieces) UploadHandler(w http.ResponseWriter, r *http.Request) (error
 		return fmt.Errorf("missing file hash %v", http.StatusBadRequest), ""
 	}
 
-	appDir := glog.GetCrossPlatformDataDir("chunk")
+	appDir := glog.AppHome("chunk")
 	chunkDir := filepath.Join(appDir, hash, "chunk")
 	if _, err := os.Stat(chunkDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(chunkDir, 0755); err != nil {
@@ -91,7 +91,7 @@ func (this *pieces) UploadHandler(w http.ResponseWriter, r *http.Request) (error
 	_, err = io.Copy(file, r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to write chunk: %v", err), http.StatusInternalServerError)
-		defer utils.DeleteAll(appDir)
+		defer utils.DeleteAllDirector(appDir)
 		return fmt.Errorf("failed to write chunk: %v", err), ""
 	}
 
@@ -100,7 +100,7 @@ func (this *pieces) UploadHandler(w http.ResponseWriter, r *http.Request) (error
 		//if this.OutDir != "" {
 		//	outDir = this.OutDir
 		//}
-		defer utils.DeleteAll(appDir)
+		defer utils.DeleteAllDirector(appDir)
 		// 合并所有块
 		if err := this.mergeChunks(this.outDir, chunkDir, fileName, totalChunks); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to merge chunks: %v", err), http.StatusInternalServerError)

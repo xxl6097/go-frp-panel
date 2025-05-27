@@ -5,7 +5,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"net/http"
 	"os"
 	"path/filepath"

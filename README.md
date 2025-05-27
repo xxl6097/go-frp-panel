@@ -127,7 +127,8 @@ frpc创建多客户端：
 ## 依赖库
 
 ```shell
-go get -u github.com/xxl6097/go-service@v0.4.53
+go get -u github.com/xxl6097/go-service@v0.5.43
+go get -u github.com/xxl6097/glog@v0.1.35
 ```
 ## 赞赏
 

@@ -4,6 +4,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"io"
 	"net/http"
+	"os"
 )
 
 var githubProxys = []string{"https://ghfast.top/", "https://gh-proxy.com/", "https://ghproxy.1888866.xyz/"}
@@ -13,7 +14,15 @@ var GithuApi = "https://api.github.com/repos/xxl6097/go-frp-panel/releases/lates
 
 func reqestGithubApi(baseUrl string) ([]byte, error) {
 	glog.Debug("reqestGithubApi", baseUrl)
-	resp, err := http.Get(baseUrl)
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", baseUrl, nil)
+	clientId := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
+	if clientId != "" || clientSecret != "" {
+		req.SetBasicAuth(clientId, clientSecret) // 自动 Base64 编码
+	}
+	resp, err := client.Do(req)
+	//resp, err := http.Get(baseUrl)
 	if err != nil {
 		glog.Errorf("请求失败:%v\n", err)
 		//indexCount = (indexCount + 1) % len(githubProxys) // 当 counter 达到 3 时，加 1 后取模结果为 0

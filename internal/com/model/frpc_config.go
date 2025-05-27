@@ -6,7 +6,7 @@ import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -40,6 +40,10 @@ type ConfigBodyData struct {
 	ServerAdminPort int              `json:"serverAdminPort,omitempty"`
 	UserConfig      *User            `json:"userConfig,omitempty"`
 	ClientConfig    *v1.ClientConfig `json:"clientConfig,omitempty"`
+}
+
+func (this *ConfigBodyData) ClientConfigBytes() []byte {
+	return utils.ObjectToTomlText(this.ClientConfig)
 }
 
 func (u *User) CreateUserByID() error {

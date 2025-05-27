@@ -14,7 +14,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io/fs"
 	"path"
 	"path/filepath"
@@ -57,7 +57,7 @@ func (this *frpc) startService(
 ) error {
 	cfg.WebServer = v1.WebServerConfig{}
 	if cfg.Log.To == "" {
-		temp := filepath.Join(glog.GetCrossPlatformDataDir(), cfg.User, "app.log")
+		temp := filepath.Join(glog.AppHome(), cfg.User, "app.log")
 		cfg.Log = v1.LogConfig{
 			To:      temp,
 			MaxDays: 7,

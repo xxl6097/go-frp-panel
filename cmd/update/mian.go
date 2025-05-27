@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"strings"
 )
 
@@ -62,7 +62,7 @@ func main() {
 		var dst string
 		for {
 			fmt.Println("通道 ", i, s)
-			dstFilePath, err := utils2.DownloadFileWithCancel(ctx, s)
+			dstFilePath, err := utils2.DownloadWithCancel(ctx, s)
 			if err == nil {
 				dst = dstFilePath
 				break

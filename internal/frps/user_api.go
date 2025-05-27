@@ -11,8 +11,8 @@ import (
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/ukey"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -82,7 +82,7 @@ func (this *frps) apiUserDeleteAll(w http.ResponseWriter, r *http.Request) {
 		res.Err(err)
 		return
 	}
-	err = utils2.DeleteAll(userDir, "apiUserDeleteAll")
+	err = utils2.DeleteAllDirector(userDir)
 	if err != nil {
 		res.Err(err)
 		return
@@ -514,8 +514,8 @@ func (this *frps) OnFrpcConfigExport(fileName string) (error, string) {
 	if err != nil {
 		return err, ""
 	}
-	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
-	_ = utils2.EnsureDir(tempDir)
+	tempDir := filepath.Join(glog.AppHome(), "user")
+	_ = utils2.ResetDirector(tempDir)
 	zipFilePath := filepath.Join(tempDir, fileName)
 	err = utils.Zip(userDir, zipFilePath)
 	return err, zipFilePath
@@ -539,8 +539,8 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 	}
 	var zipFilePath string
 	fileName := fmt.Sprintf("user_%s.zip", utils.GetFileNameByTime())
-	tempDir := glog.GetCrossPlatformDataDir("user")
-	_ = utils2.EnsureDir(tempDir)
+	tempDir := glog.AppHome("user")
+	_ = utils2.ResetDirector(tempDir)
 	zipFilePath = filepath.Join(tempDir, fileName)
 	if users != nil && len(*users) > 0 {
 		var ids []string
@@ -558,7 +558,7 @@ func (this *frps) apiClientUserExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer utils2.Delete(zipFilePath, "用户配置")
+	defer utils2.DeleteAllDirector(zipFilePath)
 	tpl, err := os.Open(zipFilePath)
 	if err != nil {
 		res.Err(fmt.Errorf("打开文件失败：%v", err))
@@ -770,7 +770,7 @@ func (this *frps) apiClientUserImport(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
+	fpath := filepath.Join(glog.AppHome("obj"), "cloudApi.dat")
 	switch r.Method {
 	case "GET", "get":
 		if !utils2.FileExists(fpath) {
@@ -822,7 +822,7 @@ func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)
-	fpath := filepath.Join(glog.GetCrossPlatformDataDir("obj"), "cloudApi.dat")
+	fpath := filepath.Join(glog.AppHome("obj"), "cloudApi.dat")
 	switch r.Method {
 	case "GET", "get":
 		glog.Debug("同步配置...get")
@@ -979,7 +979,7 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		}
 		binPath = utils2.DownloadFileWithCancelByUrls(urls)
 	} else {
-		dstPath, e := utils2.DownloadFileWithCancel(ctx, binUrl)
+		dstPath, e := utils2.DownloadWithCancel(ctx, binUrl)
 		if e != nil {
 			msg := fmt.Errorf("下载文件失败～%v", e)
 			glog.Error(msg)
@@ -1022,13 +1022,13 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 				Addr:     body.AdminAddr,
 			},
 			Log: v1.LogConfig{
-				To:      filepath.Join(glog.GetCrossPlatformDataDir("log"), "frps.log"),
+				To:      filepath.Join(glog.AppHome("log"), "frps.log"),
 				MaxDays: 3,
 				Level:   "error",
 			},
 		},
 	}
-	cfgNewBytes, err := ukey.GenConfig(cfg, false)
+	cfgNewBytes, err := ukey.GenConfig(cfg.Bytes(), false)
 	if err != nil {
 		msg := fmt.Errorf("文件签名失败：%v", err)
 		glog.Error(msg)
@@ -1039,15 +1039,15 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	prevBuffer := make([]byte, 0)
 
-	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+	dstFile := filepath.Join(glog.AppHome("temp", utils2.GetID()), fileName)
 	outFile, err := os.Create(dstFile)
 	if err != nil {
-		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+		_ = utils2.DeleteAllDirector(dstFile)
 		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
 	defer outFile.Close()
-	defer utils2.DeleteAll(dstFile, "gen file")
+	_ = utils2.DeleteAllDirector(dstFile)
 
 	for {
 		thisBuffer := make([]byte, 1024)

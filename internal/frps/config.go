@@ -1,13 +1,12 @@
 package frps
 
 import (
-	"encoding/json"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/ukey"
+	"github.com/xxl6097/go-service/pkg/ukey"
 	"os"
 )
 
@@ -17,6 +16,10 @@ var cfgBytes []byte
 type CfgModel struct {
 	Frps v1.ServerConfig `json:"frps"`
 	Data any             `json:"data"`
+}
+
+func (this *CfgModel) Bytes() []byte {
+	return utils.ObjectToTomlText(this)
 }
 
 //func Test(c *CfgModel) {
@@ -32,7 +35,7 @@ func load() error {
 	}
 	cfgBytes = byteArray
 	c := CfgModel{}
-	err = json.Unmarshal(cfgBytes, &c)
+	err = utils.TomlTextToObject(byteArray, &c)
 	if err != nil {
 		glog.Println("cfgBytes解析错误", err)
 		return err
@@ -51,6 +54,14 @@ func GetCfgModel() *CfgModel {
 		}
 	}
 	return cfgData
+}
+
+func GetCfgBuffer() []byte {
+	cfg := GetCfgModel()
+	if cfg == nil {
+		return nil
+	}
+	return utils.ObjectToTomlText(cfg)
 }
 func SetCfgModel(temp *CfgModel) {
 	cfgData = temp

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path"
 	"path/filepath"

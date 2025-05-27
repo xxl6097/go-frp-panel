@@ -16,9 +16,5 @@ func init() {
 
 //go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
 func main() {
-	//err := gservice.Run(&service.Service{})
-	//if err != nil {
-	//	glog.Error("程序启动出错了", err)
-	//}
 	service.Bootstrap()
 }

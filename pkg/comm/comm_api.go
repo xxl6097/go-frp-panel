@@ -3,6 +3,7 @@ package comm
 import (
 	"encoding/json"
 	"github.com/xxl6097/glog/glog"
+	_ "github.com/xxl6097/go-frp-panel/assets/buffer"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
 )

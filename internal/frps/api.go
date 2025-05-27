@@ -16,7 +16,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"os"
 	"path/filepath"
 )
@@ -25,7 +25,7 @@ type frps struct {
 	svr                    *server.Service
 	webServer              *httppkg.Server
 	cfg                    *v1.ServerConfig
-	install                gore.IGService
+	install                igs.Service
 	upgrade                iface2.IComm
 	cloudApi               *model.CloudApi
 	webSocketApi           iface2.IWebSocket
@@ -48,7 +48,7 @@ func (this *frps) GetCloudApi() *model.CloudApi {
 	return this.cloudApi
 }
 
-func New(cfg *v1.ServerConfig, install gore.IGService) (iface2.IFrps, error) {
+func New(cfg *v1.ServerConfig, install igs.Service) (iface2.IFrps, error) {
 	sseApi := sse.NewServer()
 	sseApi.Start()
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,15 +21,15 @@ func Export(obj model.CloudApi) error {
 		return err
 	}
 	fileName := fmt.Sprintf("user_%s.zip", GetFileNameByTime())
-	tempDir := filepath.Join(glog.GetCrossPlatformDataDir(), "user")
-	_ = utils2.EnsureDir(tempDir)
+	tempDir := filepath.Join(glog.AppHome(), "user")
+	_ = utils.ResetDirector(tempDir)
 	zipFilePath := filepath.Join(tempDir, fileName)
 	err = Zip(userDir, zipFilePath)
 	if err != nil {
 		glog.Error("GetDataByJson", err)
 		return err
 	}
-	defer utils2.Delete(zipFilePath, "用户配置")
+	defer utils.DeleteAllDirector(zipFilePath)
 	envType := os.Getenv("ENV_TYPE")
 	if envType == "" {
 		envType = "uuxia"
@@ -51,7 +51,7 @@ func Export(obj model.CloudApi) error {
 }
 
 func Import(obj model.CloudApi) error {
-	dstFilePath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), "user_import.zip")
+	dstFilePath := filepath.Join(glog.AppHome("temp"), "user_import.zip")
 	envType := os.Getenv("ENV_TYPE")
 	if envType == "" {
 		envType = "uuxia"

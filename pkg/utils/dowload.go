@@ -3,16 +3,13 @@ package utils
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/utils"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
-	"time"
 )
 
 // ProgressWriter 自定义进度写入器结构体
@@ -59,66 +56,6 @@ func GetFilenameFromHeader(header http.Header) string {
 		}
 	}
 	return ""
-}
-
-func DownLoadBAK(url string, args ...string) (string, error) {
-	// 要下载的文件的 URL
-	// 发送 HTTP GET 请求
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// 检查响应状态码
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("请求失败，状态码: %d", resp.StatusCode)
-	}
-
-	var dstFile string
-	if args != nil && len(args) > 0 {
-		dstFile = args[0]
-	}
-	if dstFile == "" {
-		dstName := GetFileNameFromUrl(url)
-		if dstName == "" {
-			dstName = GetFilenameFromHeader(resp.Header)
-		}
-		if dstName == "" {
-			fileName := time.Now().Unix()
-			dstName = fmt.Sprintf("%d", fileName)
-		}
-		if dstName != "" {
-			dstFile = filepath.Join(utils.GetUpgradeDir(), dstName)
-		}
-	}
-	glog.Debug("download...", url, dstFile)
-
-	// 获取文件的总大小
-	totalSize := resp.ContentLength
-	if totalSize == -1 {
-		fmt.Println("无法获取文件大小，可能不支持 Content-Length 头信息。")
-		return "", fmt.Errorf("无法获取文件大小，可能不支持 Content-Length 头信息。")
-	}
-	sizeA := float64(resp.ContentLength) / 1024 / 1024
-	fmt.Printf("文件大小:%.2fM\n", sizeA)
-	// 创建一个本地文件用于保存下载的内容
-	file, err := os.Create(dstFile)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	// 创建进度写入器实例
-	pw := &ProgressWriter{TotalSize: totalSize, Progress: -1, Title: "文件下载："}
-	// 将响应体的数据复制到本地文件，并通过 ProgressWriter 跟踪进度
-	_, err = io.Copy(io.MultiWriter(file, pw), resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("下载出错: %v", err)
-	}
-
-	fmt.Println("下载完成")
-	return dstFile, nil
 }
 
 func SaveFile(file multipart.File, fileSize int64, saveFilePath string) error {

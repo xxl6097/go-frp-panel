@@ -1,11 +1,11 @@
 package frpc
 
 import (
-	"encoding/json"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
-	"github.com/xxl6097/go-service/gservice/ukey"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
 )
 
 var cfgData *CfgModel
@@ -15,6 +15,9 @@ type CfgModel struct {
 	Frpc v1.ClientConfig `json:"frpc"`
 }
 
+func (this *CfgModel) Bytes() []byte {
+	return utils.ObjectToTomlText(this)
+}
 func load() error {
 	defer glog.Flush()
 	byteArray, err := ukey.Load()
@@ -23,11 +26,7 @@ func load() error {
 	}
 	cfgBytes = byteArray
 	var cfg v1.ClientConfig
-	err = json.Unmarshal(cfgBytes, &cfg)
-	if err != nil {
-		glog.Println("ClientConfig解析错误", err)
-		return err
-	}
+	err = utils.TomlTextToObject(byteArray, &cfg)
 	cfgData = &CfgModel{
 		Frpc: cfg,
 	}

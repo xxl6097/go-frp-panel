@@ -9,8 +9,8 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore/util"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"io"
 	"net/http"
 	"os"
@@ -382,7 +382,7 @@ func (this *frpc) apiClientConfigExport(w http.ResponseWriter, r *http.Request) 
 	}
 	var zipFilePath string
 	fileName := fmt.Sprintf("config_%s.zip", utils.GetFileNameByTime())
-	tempDir := glog.GetCrossPlatformDataDir("config")
+	tempDir := glog.AppHome("config")
 	zipFilePath = filepath.Join(tempDir, fileName)
 	err = utils.Zip(cfgDir, zipFilePath)
 	if err != nil {
@@ -390,7 +390,7 @@ func (this *frpc) apiClientConfigExport(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	defer utils2.Delete(zipFilePath, "frpc配置")
+	defer utils2.DeleteAllDirector(zipFilePath)
 	tpl, err := os.Open(zipFilePath)
 	if err != nil {
 		res.Err(err)
@@ -485,7 +485,7 @@ func (this *frpc) update(url string) error {
 func (this *frpc) getUpgradeUrl(url string) string {
 	glog.Debugf("upgrade by url: %s", url)
 	urls := strings.Split(url, ",")
-	updir := utils2.GetUpgradeDir()
+	updir := glog.AppHome("upgrade")
 	_, _, free, _ := util.GetDiskUsage(updir)
 
 	if free < utils.GetSelfSize()*2 && urls != nil && len(urls) > 0 {

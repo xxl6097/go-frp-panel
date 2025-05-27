@@ -11,10 +11,10 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice"
-	"github.com/xxl6097/go-service/gservice/gore"
-	"github.com/xxl6097/go-service/gservice/ukey"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/gs"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"path/filepath"
 )
 
@@ -24,23 +24,23 @@ type Service struct {
 
 func Bootstrap() {
 	defer glog.Flush()
-	svr := &Service{}
-	err := gservice.Run(svr)
+	servs := Service{}
+	err := gs.Run(&servs)
 	if err != nil {
 		glog.Error("程序启动出错了", err)
 	}
-	if svr.wsc != nil {
+	if servs.wsc != nil {
 		face, e := utils.GetDeviceInfo()
 		var ip string
 		if e == nil {
 			ip = face.Ipv4
 		}
-		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, svr.wsc.Port, svr.wsc.User, svr.wsc.Password)
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, servs.wsc.Port, servs.wsc.User, servs.wsc.Password)
 	}
 	//glog.Println("服务程序启动成功", os.Getegid())
 }
 
-func (s *Service) OnInit() *service.Config {
+func (s *Service) OnConfig() *service.Config {
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,
@@ -54,7 +54,7 @@ func (s *Service) OnVersion() string {
 	return ver
 }
 
-func (this *Service) OnRun(i gore.IGService) error {
+func (this *Service) OnRun(i igs.Service) error {
 	//frpc.Assert()
 	glog.Printf("启动frpc_%s\n", pkg.AppVersion)
 	cfg := frpc.GetCfgModel()
@@ -72,7 +72,7 @@ func (this *Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this *Service) GetAny(binDir string) any {
+func (this *Service) GetAny(binDir string) []byte {
 	cfg := this.menu()
 	this.wsc = &cfg.Frpc.WebServer
 	err := frp.WriteFrpcMainConfigWithDir(binDir, cfg.Frpc)
@@ -91,7 +91,7 @@ func (this *Service) GetAny(binDir string) any {
 	//} else {
 	//	glog.Infof("write content to frpc config file success %s", cfgPath)
 	//}
-	return cfg
+	return cfg.Bytes()
 }
 
 //func (this *Service) menu1() *frpc.CfgModel {
@@ -182,7 +182,7 @@ func (this *Service) menu() *frpc.CfgModel {
 		cfg = &cfm.Frpc
 	}
 	cfg.Log = v1.LogConfig{
-		To:      filepath.Join(glog.GetCrossPlatformDataDir("frpc", "log"), "frpc.log"),
+		To:      filepath.Join(glog.AppHome("frpc", "log"), "frpc.log"),
 		MaxDays: 7,
 		Level:   "error",
 	}

@@ -11,7 +11,7 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter := helper.Router.NewRoute().Name("admin").Subrouter()
 	subRouter.Use(helper.AuthMiddleware)
 	staticPrefix := "/log/"
-	baseDir := glog.GetCrossPlatformDataDir()
+	baseDir := glog.AppHome()
 	subRouter.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(baseDir))))
 
 	subRouter.PathPrefix("/fserver/").Handler(http.StripPrefix("/fserver/", http.FileServer(http.Dir("/"))))

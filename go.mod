@@ -11,8 +11,8 @@ require (
 	github.com/kardianos/service v1.2.2
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
-	github.com/xxl6097/glog v0.1.23
-	github.com/xxl6097/go-service v0.4.71
+	github.com/xxl6097/glog v0.1.35
+	github.com/xxl6097/go-service v0.5.45
 	golang.org/x/net v0.35.0
 	golang.org/x/text v0.22.0
 )
@@ -31,6 +31,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/pprof v0.0.0-20241206021119-61a79c692802 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
+	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josephspurrier/goversioninfo v1.5.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect

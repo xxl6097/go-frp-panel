@@ -6,7 +6,7 @@ import (
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -112,7 +112,7 @@ func (this *frps) check() {
 	glog.Error("开始检测客户端...")
 	for {
 		this.checkFrpc()
-		time.Sleep(time.Hour)
+		time.Sleep(time.Hour * 8)
 	}
 }
 

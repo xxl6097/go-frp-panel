@@ -12,10 +12,10 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice"
-	"github.com/xxl6097/go-service/gservice/gore"
-	"github.com/xxl6097/go-service/gservice/ukey"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/gs"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
 )
@@ -28,7 +28,7 @@ type Service struct {
 func Bootstrap() {
 	defer glog.Flush()
 	svr := &Service{}
-	err := gservice.Run(svr)
+	err := gs.Run(svr)
 	if err != nil {
 		glog.Error("程序启动出错了", err)
 	}
@@ -39,7 +39,7 @@ func Bootstrap() {
 	glog.Println("服务程序启动成功", os.Getegid())
 }
 
-func (s *Service) OnInit() *service.Config {
+func (s *Service) OnConfig() *service.Config {
 	return &service.Config{
 		Name:        pkg.AppName,
 		DisplayName: pkg.DisplayName,
@@ -59,12 +59,12 @@ func (s *Service) OnVersion() string {
 	fmt.Println(string(ukey.GetBuffer()))
 	//这里需要打印config中buffer原始信息
 	ver := fmt.Sprintf("frps version:%s", version.Full())
-	fmt.Println("GetCrossPlatformDataDir", glog.GetCrossPlatformDataDir())
+	fmt.Println("GetCrossPlatformDataDir", glog.AppHome())
 	pkg.Version()
 	return ver
 }
 
-func (this *Service) OnRun(i gore.IGService) error {
+func (this *Service) OnRun(i igs.Service) error {
 	//frps.Assert()
 	glog.Printf("启动 %s %s\n", pkg.AppName, pkg.AppVersion)
 	cfg := frps.GetCfgModel()
@@ -94,13 +94,13 @@ func (this *Service) OnRun(i gore.IGService) error {
 	return err
 }
 
-func (this *Service) GetAny(binDir string) any {
+func (this *Service) GetAny(binDir string) []byte {
 	a := this.menu()
 	if a == nil {
 		return nil
 	}
 	this.webServer = &a.Frps.WebServer
-	return a
+	return a.Bytes()
 }
 
 //func (s *Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
@@ -195,7 +195,7 @@ func (this *Service) menu() *frps.CfgModel {
 	if cfg.Frps.WebServer.Password == "" {
 		cfg.Frps.WebServer.Password = utils2.InputString("管理后台密码：")
 	}
-	temp := glog.GetCrossPlatformDataDir("frps", "log")
+	temp := glog.AppHome("frps", "log")
 	cfg.Frps.Log = v1.LogConfig{
 		To:      filepath.Join(temp, "frps.log"),
 		MaxDays: 3,

@@ -3,14 +3,13 @@ package utils
 import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-service/gservice/gore/util"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"os"
 	"path/filepath"
 )
 
 func ShowUpDirSize() {
-	updir := utils.GetUpgradeDir()
+	updir := glog.AppHome("upgrade")
 	total, used, free, err := util.GetDiskUsage(updir)
 	glog.Printf("Current Working Directory: %s %v\n", updir, err)
 	glog.Printf("Total space: %d bytes %v\n", total, ByteCountIEC(total))
@@ -19,7 +18,7 @@ func ShowUpDirSize() {
 }
 
 func GetAppSpace() (string, string, string) {
-	dir := glog.GetCrossPlatformDataDir()
+	dir := glog.AppHome()
 	total, used, free, _ := util.GetDiskUsage(dir)
 	//glog.Printf("Current Working Directory: %s %v\n", dir, err)
 	//glog.Printf("Total space: %d bytes %v\n", total, ByteCountIEC(total))
@@ -31,7 +30,7 @@ func GetAppSpace() (string, string, string) {
 func HasDiskSpace() bool {
 	size := GetSelfSize()
 	size *= 16
-	dir := glog.GetCrossPlatformDataDir()
+	dir := glog.AppHome()
 	//total, used, free, err := util.GetDiskUsage(dir)
 	_, _, free, _ := util.GetDiskUsage(dir)
 	//glog.Printf("Current Working Directory: %s %v\n", dir, err)

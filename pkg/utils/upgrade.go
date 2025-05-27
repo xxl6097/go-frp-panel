@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/pkg"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	"github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -162,7 +163,6 @@ func checkForUpdate() (bool, string, error) {
 }
 
 func replaceBin(newPath string) error {
-	//return gservice.Upgrade(newPath)
 	return nil
 }
 
@@ -208,8 +208,8 @@ func SignAndInstall(newBufferBytes, oldBufferBytes []byte, newFilePath string) (
 
 	//signFilePath := fmt.Sprintf("%s.sign", binFilePath)
 	glog.Printf("开始签名文件 %s\n", newFilePath)
-	signFilePath := filepath.Join(utils.GetUpgradeDir(), fmt.Sprintf("%s.sign", filepath.Base(binFilePath)))
-	err = utils.GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
+	signFilePath := filepath.Join(glog.AppHome("upgrade"), fmt.Sprintf("%s.sign", filepath.Base(binFilePath)))
+	err = ukey.GenerateBin(newFilePath, signFilePath, oldBufferBytes, newBufferBytes)
 	if err != nil {
 		glog.Printf("签名失败 %v\n", err)
 		return "", err

@@ -10,8 +10,8 @@ import (
 	model2 "github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/ukey"
-	utils2 "github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/ukey"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -165,13 +165,13 @@ func (this *frps) apiCreateFrpcByUpload(w http.ResponseWriter, r *http.Request) 
 
 	glog.Info(handler.Filename)
 
-	binPath := filepath.Join(glog.GetCrossPlatformDataDir("temp"), handler.Filename)
+	binPath := filepath.Join(glog.AppHome("temp"), handler.Filename)
 	dst, err := os.Create(binPath)
 	if err != nil {
 		e = fmt.Errorf("create file %s error: %v", handler.Filename, err)
 		return
 	}
-	defer utils2.DeleteAll(binPath, "upload gen file")
+	defer utils2.DeleteAllDirector(binPath)
 	buf := this.upgrade.GetBuffer().Get().([]byte)
 	defer this.upgrade.GetBuffer().Put(buf)
 	_, err = io.CopyBuffer(dst, file, buf)
@@ -210,7 +210,7 @@ func (this *frps) apiCreateFrpcByUrl(w http.ResponseWriter, r *http.Request) {
 			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
 			body.BinAddress = dstPath
 		} else {
-			dstPath, err1 := utils2.DownloadFileWithCancel(ctx, body.BinAddress)
+			dstPath, err1 := utils2.DownloadWithCancel(ctx, body.BinAddress)
 			if err1 != nil {
 				e = fmt.Errorf("下载文件失败～%v", err1)
 				return
@@ -245,21 +245,22 @@ func (this *frps) serveFile(filePath string, body *model2.ConfigBodyData, w http
 	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+	ccb := body.ClientConfigBytes()
 	glog.Infof("ClientConfig: %+v", body.ClientConfig)
-	cfgNewBytes, err := ukey.GenConfig(body.ClientConfig, false)
+	cfgNewBytes, err := ukey.GenConfig(ccb, false)
 	if err != nil {
 		return fmt.Errorf("文件签名失败：%v", err)
 
 	}
-	dstFile := filepath.Join(glog.GetCrossPlatformDataDir("temp", utils2.SecureRandomID()), fileName)
+	dstFile := filepath.Join(glog.AppHome("temp", utils2.GetID()), fileName)
 	outFile, err := os.Create(dstFile)
 	if err != nil {
-		_ = utils2.DeleteAll(dstFile, "创建失败，删除")
+		_ = utils2.DeleteAllDirector(dstFile)
 		return fmt.Errorf("创建失败：%v", err)
 	}
 	defer func() {
 		_ = outFile.Close()
-		_ = utils2.DeleteAll(dstFile, "gen file")
+		_ = utils2.DeleteAllDirector(dstFile)
 	}()
 	prevBuffer := make([]byte, 0)
 	for {

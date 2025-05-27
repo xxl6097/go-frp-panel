@@ -8,9 +8,9 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
-	"github.com/xxl6097/go-service/gservice/gore/util"
-	"github.com/xxl6097/go-service/gservice/utils"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
+	"github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/utils/util"
 	"io"
 	"net/http"
 	"os"
@@ -22,7 +22,7 @@ import (
 )
 
 type commapi struct {
-	igs  gore.IGService
+	igs  igs.Service
 	pool *sync.Pool // use sync.Pool caching buf to reduce gc ratio
 }
 
@@ -91,7 +91,7 @@ func (this *commapi) ApiCMD(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewCommApi(install gore.IGService) *commapi {
+func NewCommApi(install igs.Service) *commapi {
 	return &commapi{
 		igs: install,
 		pool: &sync.Pool{
@@ -192,7 +192,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 		glog.Debugf("upgrade by url: %s", newFilePath)
 		urls := strings.Split(newFilePath, ",")
 
-		updir := utils.GetUpgradeDir()
+		updir := glog.AppHome()
 		_, _, free, err := util.GetDiskUsage(updir)
 		//glog.Printf("Current Working Directory: %s\n", updir)
 		//glog.Printf("Total space: %d bytes %v\n", total, utils2.ByteCountIEC(total))
@@ -219,7 +219,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
-		dstFilePath := filepath.Join(utils.GetUpgradeDir(), handler.Filename)
+		dstFilePath := filepath.Join(glog.AppHome("upgrade"), handler.Filename)
 		//dstFilePath 名称为上传文件的原始名称
 		dst, err := os.Create(dstFilePath)
 		if err != nil {
@@ -312,11 +312,12 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			time.Sleep(time.Second)
 			var err error
-			if utils.IsOpenWRT() {
-				err = this.igs.RunCmd("restart")
-			} else {
-				err = this.igs.Restart()
-			}
+			err = this.igs.Restart()
+			//if utils.IsOpenWRT() {
+			//	err = this.igs.RunCmd("restart")
+			//} else {
+			//	err = this.igs.Restart()
+			//}
 			if err != nil {
 				glog.Error("重启失败")
 			}
@@ -349,11 +350,10 @@ func (this *commapi) ApiClear(w http.ResponseWriter, r *http.Request) {
 	}
 	binDir := filepath.Dir(binPath)
 	clientsDir := filepath.Join(binDir, "clients")
-	err = utils.DeleteAll(clientsDir)
-	logDir := glog.GetCrossPlatformDataDir()
-	err = utils.DeleteAll(logDir)
-	upDir := utils.GetUpgradeDir()
-	err = utils.DeleteAll(upDir)
+	err = utils.DeleteAllDirector(clientsDir)
+	if this.igs != nil {
+		err = this.igs.ClearCache()
+	}
 	if err != nil {
 		res.Err(err)
 	} else {
@@ -373,7 +373,8 @@ func (this *commapi) ApiUninstall(w http.ResponseWriter, r *http.Request) {
 			//} else {
 			//	err = this.igs.Uninstall()
 			//}
-			err = this.igs.RunCmd("uninstall")
+			//err = this.igs.RunCmd("uninstall")
+			err = this.igs.UnInstall()
 			if err != nil {
 				glog.Error("uninstall 失败", err)
 			} else {

@@ -4,17 +4,12 @@ import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/internal/frps"
-	"github.com/xxl6097/go-service/gservice/ukey"
+	"github.com/xxl6097/go-service/pkg/ukey"
 )
 
 const B = '\x18'
 
 func main() {
-	//bindPort := gservice.InputInt("请输入Frps服务器绑定端口：")
-	//adminPort := gservice.InputInt("请输入管理后台端口：")
-	//addr := gservice.InputStringEmpty("请输入管理后台地址(默认0.0.0.0)：", "0.0.0.0")
-	//username := gservice.InputStringEmpty("请输入管理后台用户名(admin)：", "admin")
-	//password := gservice.InputString("请输入管理后台密码：")
 	cfg := &frps.CfgModel{
 		Frps: v1.ServerConfig{
 			BindPort: 7777,
@@ -30,7 +25,7 @@ func main() {
 		},
 	}
 	cfg.Frps.Complete()
-	newBytes, err := ukey.GenConfig(cfg, false)
+	newBytes, err := ukey.GenConfig(cfg.Bytes(), false)
 	if err != nil {
 		panic(err)
 	}

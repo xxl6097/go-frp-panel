@@ -19,7 +19,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/gservice/gore"
+	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"os"
 	"os/signal"
 	"path"
@@ -36,13 +36,13 @@ type frpClient struct {
 	visitorCfg     []v1.VisitorConfigurer
 }
 type frpc struct {
-	install gore.IGService
+	install igs.Service
 	upgrade iface.IComm
 	cls     *frpClient
 	svrs    map[string]*frpClient
 }
 
-func New(i gore.IGService) (iface.IFrpc, error) {
+func New(i igs.Service) (iface.IFrpc, error) {
 	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
 		return nil, err
