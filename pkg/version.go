@@ -31,6 +31,8 @@ var (
 	GitVersion       string // semantic version, derived by build scripts
 	GitReleaseCommit string
 	BinName          string // 运行文件名称，包含平台架构
+	GithubUser       string // github用户
+	GithubRepo       string // github项目名称
 )
 
 // Version 版本信息
@@ -53,6 +55,8 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitVersion", GitVersion))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitReleaseCommit", GitReleaseCommit))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "BinName", BinName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubUser", GithubUser))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubRepo", GithubRepo))
 	fmt.Println(sb.String())
 	return sb.String()
 }

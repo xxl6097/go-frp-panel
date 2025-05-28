@@ -43,6 +43,8 @@ var (
 	GitVersion       string // semantic version, derived by build scripts
 	GitReleaseCommit string
 	BinName          string // 运行文件名称，包含平台架构
+	GithubUser       string // github用户
+	GithubRepo       string // github项目名称
 )
 
 // Version 版本信息
@@ -65,6 +67,8 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitVersion", GitVersion))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GitReleaseCommit", GitReleaseCommit))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "BinName", BinName))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubUser", GithubUser))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubRepo", GithubRepo))
 	fmt.Println(sb.String())
 	return sb.String()
 }
@@ -284,6 +288,17 @@ version::get_version_vars() {
     GIT_RELEASE_COMMIT=$(git rev-list -n 1  "${GIT_RELEASE_TAG}")
 }
 
+function testModule() {
+  repo_url=${module}
+  # 统一处理协议前缀和.git后缀
+  clean_url=$(echo "$repo_url" | sed 's/^git@github.com://;s/^https:\/\///;s/\.git$//')
+  # 分割用户名和仓库名
+  username=$(echo "$clean_url" | cut -d'/' -f2)
+  reponame=$(echo "$clean_url" | cut -d'/' -f3)
+  echo "用户名: $username"
+  echo "仓库名: $reponame"
+}
+
 function buildLdflags() {
   local ldflags
   ldflags="-s -w"
@@ -307,6 +322,16 @@ function buildLdflags() {
   GIT_BRANCH=$(git name-rev --name-only HEAD)
   #GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
   # shellcheck disable=SC2089
+
+  repo_url=${module}
+  # 统一处理协议前缀和.git后缀
+  clean_url=$(echo "$repo_url" | sed 's/^git@github.com://;s/^https:\/\///;s/\.git$//')
+  # 分割用户名和仓库名
+  username=$(echo "$clean_url" | cut -d'/' -f2)
+  reponame=$(echo "$clean_url" | cut -d'/' -f3)
+  echo "用户名: $username"
+  echo "仓库名: $reponame"
+
   version::get_version_vars
   add_ldflag "DisplayName" "${DisplayName}_${version}"
   add_ldflag "Description" "${Description}"
@@ -320,6 +345,8 @@ function buildLdflags() {
   add_ldflag "GitTreeState" "${GIT_TREE_STATE}"
   add_ldflag "GitVersion" "${GIT_VERSION}"
   add_ldflag "GitReleaseCommit" "${GIT_RELEASE_COMMIT}"
+  add_ldflag "GithubUser" "${username}"
+  add_ldflag "GithubRepo" "${reponame}"
   echo "${ldflags[*]-}"
 }
 
@@ -611,4 +638,7 @@ function bootstrap() {
   esac
 }
 
+
+
 bootstrap $1 $2
+#testModule

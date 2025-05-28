@@ -6,7 +6,9 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/com/model"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
@@ -14,6 +16,9 @@ import (
 	"strings"
 )
 
+func init() {
+	github.Api().SetName(pkg.GithubUser, pkg.GithubRepo)
+}
 func WriteFrpToml(cfgFilePath string, data any) error {
 	if cfgFilePath == "" {
 		return fmt.Errorf("cfgFilePath is empty")

@@ -9,10 +9,14 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 )
 
 func init() {
 	pkg.BinName = "acfrpc_v0.3.98_linux_amd64"
+	pkg.GithubUser = "xxl6097"
+	pkg.GithubRepo = "go-frp-panel"
+	github.Api().SetName(pkg.GithubUser, pkg.GithubRepo)
 }
 func main() {
 	ccc := &v1.ClientCommonConfig{

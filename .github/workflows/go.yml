@@ -74,7 +74,7 @@ jobs:
           ls -lh ./pre_release_files
           echo "当前编译产物列表："
           ls -lh ./release/packages
-          echo "开始编译差量包，${{ github.ref_name }}"
+          echo "开始编译差量包 ${{ github.ref_name }}"
           differ "./pre_release_files" "./release/packages" ${{ github.ref_name }}
           echo "差量编译产物列表："
           ls -lh ./release/packages
