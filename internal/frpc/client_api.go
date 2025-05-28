@@ -9,6 +9,7 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
 	"io"
@@ -484,20 +485,17 @@ func (this *frpc) update(url string) error {
 
 func (this *frpc) getUpgradeUrl(url string) string {
 	glog.Debugf("upgrade by url: %s", url)
-	urls := strings.Split(url, ",")
 	updir := glog.AppHome("upgrade")
 	_, _, free, _ := util.GetDiskUsage(updir)
 
-	if free < utils.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
-		urls = []string{urls[0]}
+	if free < utils.GetSelfSize()*2 {
 		if err := utils.ClearTmpDir(); err != nil {
 			fmt.Println("/tmp清空失败:", err)
 		} else {
 			fmt.Println("/tmp清空完成")
 		}
 	}
-
-	newUrl := utils2.DownloadFileWithCancelByUrls(urls)
+	newUrl := utils2.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(url))
 	return newUrl
 }
 func (this *frpc) Upgrade(ctx context.Context, newFilePath string) error {

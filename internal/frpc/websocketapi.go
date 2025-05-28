@@ -115,12 +115,11 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 					glog.Errorf("data is nil %+v", msg.Data)
 					break
 				}
-				v, okk := d.([]interface{})
+				url, okk := d.(string)
 				if !okk {
-					glog.Infof("upgrade %+v", d)
+					glog.Infof("类型不正确，upgrade %+v", d)
 					break
 				}
-				url := v[0].(string)
 				msg.Data = fmt.Sprintf("开始下载 %v", url)
 				_ = this.sendMessageToWebSocketServer(&msg)
 				baseUrl := this.getUpgradeUrl(url)
