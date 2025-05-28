@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
-	"github.com/fatedier/frp/pkg/util/version"
 	"github.com/kardianos/service"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
@@ -13,7 +12,6 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/gs"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
-	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"path/filepath"
 )
@@ -51,10 +49,9 @@ func (s *Service) OnConfig() *service.Config {
 	}
 }
 func (s *Service) OnVersion() string {
-	fmt.Println(string(ukey.GetBuffer()))
-	ver := fmt.Sprintf("frpc version:%s", version.Full())
+	//fmt.Println(string(ukey.GetBuffer()))
 	pkg.Version()
-	return ver
+	return pkg.AppVersion
 }
 
 func (this *Service) OnRun(i igs.Service) error {

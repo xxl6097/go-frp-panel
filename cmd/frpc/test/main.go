@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	pkg.BinName = "acfrpc_v0.3.98_linux_amd64"
+	pkg.BinName = "acfrpc_v0.4.15_linux_amd64"
 	pkg.GithubUser = "xxl6097"
 	pkg.GithubRepo = "go-frp-panel"
 	github.Api().SetName(pkg.GithubUser, pkg.GithubRepo)
