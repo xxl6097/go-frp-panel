@@ -21,11 +21,11 @@ import (
 
 func (this *frpc) onWebSocketMessageHandle(data []byte) {
 	if data != nil {
-		//glog.Debugf("recv:%+v", string(data))
 		var msg iface.Message[any]
 		err := json.Unmarshal(data, &msg)
 		if err != nil {
 			glog.Error(err)
+			glog.Debugf("recv:%+v", string(data))
 			return
 		}
 		glog.Debugf("recv msg %+v", msg)
@@ -150,7 +150,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 }
 
 func (this *frpc) onWebSocketOpenHandle(conn *websocket.Conn, response *http.Response) {
-	glog.Debugf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
+	glog.Warnf("连接成功: %v,%v,Status:%v", conn.LocalAddr(), conn.RemoteAddr(), response.Status)
 }
 
 func (this *frpc) recvClientEvent(msg *iface.Message[any]) {

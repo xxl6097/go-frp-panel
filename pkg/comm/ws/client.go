@@ -186,6 +186,7 @@ func (c *Websocketclient) reconnect() {
 type Client struct {
 	cls     *Websocketclient
 	clients map[string]*Websocketclient
+	timeout int
 }
 
 var (
@@ -198,6 +199,7 @@ func GetClientInstance() *Client {
 	once.Do(func() {
 		instance = &Client{
 			clients: make(map[string]*Websocketclient),
+			timeout: 0,
 		}
 		glog.Println("WebSocket Singleton client instance created")
 	})
@@ -259,28 +261,31 @@ func (c *Client) NewClient(id, serverAddress, authorization string) {
 }
 
 func (c *Client) header(id, authorization string) *http.Header {
-	header := &http.Header{}
-	header.Set("Authorization", "Basic "+authorization)
+	h := &http.Header{}
+	h.Set("Authorization", "Basic "+authorization)
+	h.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
+	h.Set("AppVersion", pkg.AppVersion)
+	h.Set("FrpID", id)
+	h.Set("WebSocketID", uuid.New().String()) // 生成版本4的随机UUID
 	devInfo, err := utils.GetDeviceInfo()
 	if err == nil {
-		wsid := uuid.New().String() // 生成版本4的随机UUID
 		hostname, e := os.Hostname()
 		if e == nil {
-			header.Set("DevName", hostname)
-			glog.Debug("DevName", hostname)
+			h.Set("DevName", hostname)
 		}
-		header.Set("OsType", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
-		header.Set("LocalMacAddress", devInfo.MacAddress)
-		header.Set("AppVersion", pkg.AppVersion)
-		header.Set("LocalIpv4", devInfo.Ipv4)
-		header.Set("InterfaceName", devInfo.Name)
-		header.Set("DisplayName", devInfo.DisplayName)
-		header.Set("FrpID", id)
-		header.Set("WebSocketID", wsid)
+		h.Set("LocalMacAddress", devInfo.MacAddress)
+		h.Set("LocalIpv4", devInfo.Ipv4)
+		h.Set("InterfaceName", devInfo.Name)
+		h.Set("DisplayName", devInfo.DisplayName)
 	} else {
 		glog.Error("获取设备信息失败", err)
+		c.timeout++
+		time.Sleep(time.Second * 5)
+		if c.timeout < 20 {
+			return c.header(id, authorization)
+		}
 	}
-	return header
+	return h
 }
 
 // SendText 发送文本消息

@@ -29,8 +29,8 @@ func main() {
 
 		// 广播消息给所有客户端
 		server.Broadcast(iface.SSEEvent{
-			Event: "message",
-			Data:  map[string]string{"message": message, "timestamp": time.Now().String()},
+			Event:   "message",
+			Payload: map[string]string{"message": message, "timestamp": time.Now().String()},
 		})
 
 		w.WriteHeader(http.StatusOK)
