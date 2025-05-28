@@ -25,6 +25,16 @@ type Service struct {
 	webServer *v1.WebServerConfig
 }
 
+func (this *Service) OnFinish() {
+	if this.webServer != nil {
+		face, e := utils.GetDeviceInfo()
+		var ip string
+		if e == nil {
+			ip = face.Ipv4
+		}
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, this.webServer.Port, this.webServer.User, this.webServer.Password)
+	}
+}
 func Bootstrap() {
 	defer glog.Flush()
 	svr := &Service{}

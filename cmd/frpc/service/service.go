@@ -22,20 +22,23 @@ type Service struct {
 	wsc *v1.WebServerConfig
 }
 
+func (this *Service) OnFinish() {
+	if this.wsc != nil {
+		face, e := utils.GetDeviceInfo()
+		var ip string
+		if e == nil {
+			ip = face.Ipv4
+		}
+		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, this.wsc.Port, this.wsc.User, this.wsc.Password)
+	}
+}
+
 func Bootstrap() {
 	defer glog.Flush()
 	servs := Service{}
 	err := gs.Run(&servs)
 	if err != nil {
 		glog.Error("程序启动出错了", err)
-	}
-	if servs.wsc != nil {
-		face, e := utils.GetDeviceInfo()
-		var ip string
-		if e == nil {
-			ip = face.Ipv4
-		}
-		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, servs.wsc.Port, servs.wsc.User, servs.wsc.Password)
 	}
 	//glog.Println("服务程序启动成功", os.Getegid())
 }

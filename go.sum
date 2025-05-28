@@ -147,6 +147,8 @@ github.com/xxl6097/go-service v0.5.46 h1:Jp5zxN73J0s9iHXM2dr+noyZ3sdbcTy51L6xqQf
 github.com/xxl6097/go-service v0.5.46/go.mod h1:el/Q4wbWD7ikts+Hrf3W6Anuxd0iJUh7vCC+JhlFzIs=
 github.com/xxl6097/go-service v0.5.47 h1:5H6+H2YlyeLkC9EgH1oJ81CrEDMzmZEyACZo5NnQWk8=
 github.com/xxl6097/go-service v0.5.47/go.mod h1:el/Q4wbWD7ikts+Hrf3W6Anuxd0iJUh7vCC+JhlFzIs=
+github.com/xxl6097/go-service v0.5.75 h1:JnZgUlRnrV91kvIdoZB5DLu7KvhnYtDNfntxOWQ/1S0=
+github.com/xxl6097/go-service v0.5.75/go.mod h1:Ji27uMUkAcmPqwGHz4pXk8POPZO2bHvDZHqXQ3ir85U=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/mock v0.5.0 h1:KAMbZvZPyBPWgD14IrIQ38QCyjwpvVVV6K/bHl1IwQU=
 go.uber.org/mock v0.5.0/go.mod h1:ge71pBPLYDk7QIi1LupWxdAykm7KIEFchiOqd6z7qMM=
