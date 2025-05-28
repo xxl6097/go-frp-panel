@@ -606,6 +606,7 @@ function bootstrap() {
   writeVersionGoFile
   case $1 in
   github) (githubActions) ;;
+  version) (writeVersionGoFile) ;;
     *) (main)  ;;
   esac
 }

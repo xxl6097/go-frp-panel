@@ -399,7 +399,6 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 				if isPrivate && !isCC {
 					ipv4 = ip.String()
 				}
-				fmt.Println(ipv4)
 			} else if ip.To16() != nil {
 				ipAddresses = append(ipAddresses, "["+ip.String()+"]")
 			}

@@ -181,6 +181,7 @@ import { EventAwareSSEClient } from '../../utils/sseclient.ts'
 import {
   showLoading,
   showMessageDialog,
+  showMessageDialogWithCancel,
   showSucessTips,
   showTips,
   showWarmTips,
@@ -309,18 +310,39 @@ websocketID：${client.value?.secKey}<br>
     source.value.addEventListener('client-version-check', (data) => {
       console.log('client-version-check', data)
       addLog(JSON.stringify(data))
-      if (Array.isArray(data) && data && data.length >= 2) {
+      const type = Object.prototype.toString.call(data)
+      if (type === '[object String]') {
+        console.log('[object String]', data)
+        showSucessTips(data)
+      } else if (type === '[object Object]') {
+        console.log('[object Object]', data)
         const complexVersionRegex =
           /(\d+(?:\.\d+){1,3})(?:-[a-zA-Z0-9.]+)?(?:\+[a-zA-Z0-9.]+)?/
-        const text = data[1]
+        const text = data.releaseNotes
         const match = text.match(complexVersionRegex)
         const newVersionText = `发现新版本：${match?.[1] || ''} 需要升级吗？`
-        showMessageDialog('版本升级', '升级', newVersionText).then(() => {
-          console.log('发现新版本', data)
-          handleConfirmUpgrade(data)
-        })
-      } else {
-        showSucessTips('已经是最新版～')
+
+        if (data.patchUrl && data.patchUrl != '') {
+          showMessageDialogWithCancel(
+            '版本升级',
+            newVersionText,
+            '差量升级',
+            '全量升级',
+          )
+            .then(() => {
+              console.log('差量升级', data.patchUrl)
+              handleConfirmUpgrade(data.patchUrl)
+            })
+            .catch(() => {
+              console.log('全量升级', data.binUrl)
+              handleConfirmUpgrade(data.binUrl)
+            })
+        } else {
+          showMessageDialog('版本升级', '升级', newVersionText).then(() => {
+            console.log('全量升级', data.binUrl)
+            handleConfirmUpgrade(data.binUrl)
+          })
+        }
       }
     })
     source.value.addEventListener('client-version-upgrade', (data) => {

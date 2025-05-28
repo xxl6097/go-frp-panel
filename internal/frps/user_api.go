@@ -11,6 +11,8 @@ import (
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
+	model3 "github.com/xxl6097/go-service/pkg/github/model"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io"
@@ -776,7 +778,7 @@ func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 		if !utils2.FileExists(fpath) {
 			res.Result(100, "接口设置～", this.cloudApi)
 		} else {
-			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
+			obj, err := utils2.LoadWithGob[model.CloudApi](fpath)
 			if err != nil {
 				res.Err(err)
 			} else {
@@ -799,7 +801,7 @@ func (this *frps) apiConfigUpload(w http.ResponseWriter, r *http.Request) {
 		}
 		glog.Debugf("参数：%+v", body)
 		if body.Addr != "" {
-			err = utils.SaveWithGob[model.CloudApi](*body, fpath)
+			err = utils2.SaveWithGob[model.CloudApi](*body, fpath)
 			if err != nil {
 				res.Err(err)
 				return
@@ -829,7 +831,7 @@ func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 		if !utils2.FileExists(fpath) {
 			res.Result(100, "接口设置～", this.cloudApi)
 		} else {
-			obj, err := utils.LoadWithGob[model.CloudApi](fpath)
+			obj, err := utils2.LoadWithGob[model.CloudApi](fpath)
 			if err != nil {
 				res.Err(err)
 			} else {
@@ -853,7 +855,7 @@ func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 		}
 		glog.Debugf("参数：%+v", body)
 		if body.Addr != "" {
-			err = utils.SaveWithGob[model.CloudApi](*body, fpath)
+			err = utils2.SaveWithGob[model.CloudApi](*body, fpath)
 			if err != nil {
 				res.Err(err)
 				return
@@ -962,7 +964,12 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "body.Ops nil", http.StatusInternalServerError)
 		return
 	}
-	binUrl := this.getFrpsDownloadUrls(body.Ops[0], body.Ops[1])
+	//binUrl := this.getFrpsDownloadUrls(body.Ops[0], body.Ops[1])
+
+	binUrl := github.Api().GetDownloadUrl(func(tagName string, assets *model3.Assets) bool {
+		name := fmt.Sprintf("acfrps_%s_%s_%s", tagName, body.Ops[0], body.Ops[1])
+		return strings.Compare(strings.ToLower(name), strings.ToLower(assets.Name)) == 0
+	})
 
 	if binUrl == "" {
 		msg := "frps download url is nil"
@@ -1085,13 +1092,13 @@ func (this *frps) apiGithubKeySetting(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer func() {
 		f(w)
-		utils.LoadGithubKey()
+		github.LoadGithubKey()
 	}()
 	fpath := filepath.Join(glog.AppHome("obj"), "githubKey.dat")
 	switch r.Method {
 	case "GET", "get":
 		if utils2.FileExists(fpath) {
-			obj, err := utils.LoadWithGob[model.GithubKey](fpath)
+			obj, err := utils2.LoadWithGob[model3.GithubKey](fpath)
 			if err != nil {
 				res.Result(100, err.Error(), nil)
 				return
@@ -1102,14 +1109,14 @@ func (this *frps) apiGithubKeySetting(w http.ResponseWriter, r *http.Request) {
 		}
 		break
 	case "POST", "post":
-		body, err := utils.GetDataByJson[model.GithubKey](r)
+		body, err := utils.GetDataByJson[model3.GithubKey](r)
 		if err != nil {
 			res.Err(err)
 			return
 		}
 		glog.Debugf("参数：%+v", body)
 		if body.ClientId != "" && body.ClientSecret != "" {
-			err = utils.SaveWithGob[model.GithubKey](*body, fpath)
+			err = utils2.SaveWithGob[model3.GithubKey](*body, fpath)
 			if err != nil {
 				res.Err(err)
 				return

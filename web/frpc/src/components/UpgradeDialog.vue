@@ -9,6 +9,12 @@
         <div class="upgrade-popup-content" v-html="updateContent"></div>
         <div class="upgrade-popup-footer">
           <el-button @click="handleClose">稍后提醒</el-button>
+          <el-button
+            type="warning"
+            @click="handleConfirm"
+            v-if="patchUrl !== ''"
+            >差量升级
+          </el-button>
           <el-button type="primary" @click="handleConfirm">立即升级</el-button>
         </div>
       </div>
@@ -24,12 +30,21 @@ import {
   showLoading,
   showTips,
 } from '../utils/utils.ts'
+
 const showUpgradeDialog = ref(false)
 
-const showUpdateDialog = (message: string, binurl: string) => {
+const binUrl = ref<string>()
+const updateContent = ref<string>()
+const patchUrl = ref<string>()
+const showUpdateDialog = (
+  patchurl: string,
+  binurl: string,
+  message: string,
+) => {
   showUpgradeDialog.value = true
   updateContent.value = markdownToHtml(message)
   binUrl.value = binurl
+  patchUrl.value = patchurl
 }
 
 const upgradeByUrl = (binUrl: string) => {
@@ -45,6 +60,11 @@ const upgradeByUrl = (binUrl: string) => {
     })
     .then((json) => {
       showTips(json.code, json.msg)
+      if (json.code === 0) {
+        setTimeout(function () {
+          window.location.reload()
+        }, 1000)
+      }
     })
     .catch((error) => {
       console.log('更新失败', error)
@@ -52,9 +72,6 @@ const upgradeByUrl = (binUrl: string) => {
     })
     .finally(() => {
       loading.close()
-      setTimeout(function () {
-        window.location.reload()
-      }, 4000)
     })
 }
 
@@ -65,10 +82,13 @@ const checkVersion = () => {
     })
     .then((json) => {
       if (json.code === 0) {
+        showUpdateDialog(
+          json.data.patchUrl,
+          json.data.binUrl,
+          json.data.releaseNotes,
+        )
+      } else {
         showInfoTips(json.msg)
-      } else if (json.code === 1) {
-        console.log('--------->', showUpgradeDialog.value)
-        showUpdateDialog(json.msg, json.data)
       }
     })
 
@@ -103,8 +123,6 @@ const checkVersion = () => {
 defineExpose({
   openUpgradeDialog: checkVersion,
 })
-const binUrl = ref<string>()
-const updateContent = ref<string>()
 
 const handleConfirm = () => {
   showUpgradeDialog.value = false
@@ -177,6 +195,7 @@ const handleClose = () => {
   .upgrade-popup-overlay {
     background-color: rgba(0, 0, 0, 0.5);
   }
+
   .upgrade-popup {
     background-color: white;
   }
@@ -187,13 +206,16 @@ const handleClose = () => {
   .upgrade-popup-overlay {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
   .upgrade-popup {
     background-color: #333;
     color: white;
   }
+
   .upgrade-popup-header {
     border-bottom: 1px solid #555;
   }
+
   .upgrade-popup-footer {
     border-top: 1px solid #555;
   }

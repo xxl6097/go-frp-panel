@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 	"net/http"
 	"os"
 	"os/exec"
@@ -50,14 +52,17 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			}
 			break
 		case ws.CLIENT_VERSION_CHECK:
-			args, e := utils.CheckVersionFromGithub()
+			result, e := github.Api().DefaultRequest().CheckUpgrade(pkg.BinName, nil).Result()
+			//args, e := utils.CheckVersionFromGithub()
 			if e != nil {
 				glog.Error(e)
+				msg.Data = e.Error()
+			} else {
+				msg.Data = result
 			}
-			msg.Data = args
-			if args == nil {
-				msg.Data = "已经是最新版本～"
-			}
+			//if args == nil {
+			//	msg.Data = "已经是最新版本～"
+			//}
 			_ = this.sendMessageToWebSocketServer(&msg)
 			break
 		case ws.CLIENT_NETWORLD:

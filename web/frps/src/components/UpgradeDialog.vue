@@ -3,25 +3,12 @@
     <div class="upgrade-popup-content" v-html="updateContent"></div>
     <template #footer>
       <el-button @click="handleClose">稍后提醒</el-button>
+      <el-button type="warning" @click="handleConfirm" v-if="patchUrl !== ''"
+        >差量升级
+      </el-button>
       <el-button type="primary" @click="handleConfirm">立即升级</el-button>
     </template>
   </el-dialog>
-
-  <!--  <div>-->
-  <!--    <div v-if="showUpgradeDialog" class="upgrade-popup-overlay">-->
-  <!--      <div class="upgrade-popup">-->
-  <!--        <div class="upgrade-popup-header">-->
-  <!--          <h3>❤️ 发现新版本</h3>-->
-  <!--          <button @click="handleClose" class="close-button">×</button>-->
-  <!--        </div>-->
-  <!--        <div class="upgrade-popup-content" v-html="updateContent"></div>-->
-  <!--        <div class="upgrade-popup-footer">-->
-  <!--          <el-button @click="handleClose">稍后提醒</el-button>-->
-  <!--          <el-button type="primary" @click="handleConfirm">立即升级</el-button>-->
-  <!--        </div>-->
-  <!--      </div>-->
-  <!--    </div>-->
-  <!--  </div>-->
 </template>
 
 <script setup lang="ts">
@@ -35,11 +22,19 @@ import {
 import { ElButton } from 'element-plus'
 
 const showUpgradeDialog = ref(false)
+const patchUrl = ref<string>()
+const binUrl = ref<string>()
+const updateContent = ref<string>()
 
-const showUpdateDialog = (message: string, binurl: string) => {
+const showUpdateDialog = (
+  patchurl: string,
+  binurl: string,
+  message: string,
+) => {
   showUpgradeDialog.value = true
   updateContent.value = markdownToHtml(message)
   binUrl.value = binurl
+  patchUrl.value = patchurl
 }
 
 const upgradeByUrl = (binUrl: string) => {
@@ -55,6 +50,11 @@ const upgradeByUrl = (binUrl: string) => {
     })
     .then((json) => {
       showTips(json.code, json.msg)
+      if (json.code === 0) {
+        setTimeout(function () {
+          window.location.reload()
+        }, 1000)
+      }
     })
     .catch((error) => {
       console.log('更新失败', error)
@@ -62,9 +62,6 @@ const upgradeByUrl = (binUrl: string) => {
     })
     .finally(() => {
       loading.close()
-      setTimeout(function () {
-        window.location.reload()
-      }, 4000)
     })
 }
 
@@ -75,50 +72,29 @@ const checkVersion = () => {
     })
     .then((json) => {
       if (json.code === 0) {
+        showUpdateDialog(
+          json.data.patchUrl,
+          json.data.binUrl,
+          json.data.releaseNotes,
+        )
+      } else {
         showInfoTips(json.msg)
-      } else if (json.code === 1) {
-        console.log('--------->', showUpgradeDialog.value)
-        showUpdateDialog(json.msg, json.data)
       }
     })
-
-  //   showUpdateDialog(`### ✨ 新特性
-  //
-  // * 程序以服务形式安装并运行，支持跨平台windows、linux、macos平台；
-  // * 新增重启功能，用户可管理后台操作重启；
-  // * 新增在线升级功能，可上传式升级和文件url式升级；
-  // * 新增可在管理后台端查看日志功能；
-  // * frps服务端可生成frpc客户端，密钥信息二进制内嵌在客户端程序中；
-  // * 新增用户配置，可以配置授权用户供frpc端使用
-  // * frpc客户端可运行多客户端
-  // * 新增frpc用户配置导入导出
-  //
-  // ### ⚙️ 问题修复
-  //
-  // * Properly release resources in service.Close() to prevent resource leaks when used as a library.
-  // ---
-  // ### 🚀 github加速
-  //
-  // \`\`\`
-  // [
-  //   "https://ghfast.top/",
-  //   "https://gh-proxy.com/",
-  //   "https://ghproxy.1888866.xyz/"
-  // ]
-  // \`\`\`
-  // `, '')
 }
 
 // 暴露方法供父组件调用
 defineExpose({
   openUpgradeDialog: checkVersion,
 })
-const binUrl = ref<string>()
-const updateContent = ref<string>()
 
 const handleConfirm = () => {
   showUpgradeDialog.value = false
-  upgradeByUrl(binUrl.value as string)
+  if (patchUrl.value !== '') {
+    upgradeByUrl(patchUrl.value as string)
+  } else {
+    upgradeByUrl(binUrl.value as string)
+  }
 }
 
 const handleClose = () => {

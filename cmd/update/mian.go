@@ -2,10 +2,9 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/pkg/utils"
+	"github.com/xxl6097/go-frp-panel/pkg"
+	"github.com/xxl6097/go-service/pkg/github"
 	"strings"
 )
 
@@ -52,26 +51,29 @@ func main() {
 	//	fmt.Println(r)
 	//}
 
-	newProxy := []string{"https://ghfast.top/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
-		"https://gh-proxy.com/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
-		"https://ghproxy.1888866.xyz/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
-		"https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	newUrl := utils.DynamicSelect[string](newProxy, func(i int, s string) string {
-		var dst string
-		for {
-			fmt.Println("通道 ", i, s)
-			dstFilePath, err := utils2.DownloadWithCancel(ctx, s)
-			if err == nil {
-				dst = dstFilePath
-				break
-			}
-		}
-		return dst
-	})
-	cancel()
-	fmt.Println("下载完成", newUrl)
+	data, err := github.Api().DefaultRequest().CheckUpgrade(pkg.BinName, nil).Result()
+	fmt.Println(data, err)
+
+	//newProxy := []string{"https://ghfast.top/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
+	//	"https://gh-proxy.com/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
+	//	"https://ghproxy.1888866.xyz/https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
+	//	"https://github.com/xxl6097/go-frp-panel/releases/download/v0.1.60/acfrps_v0.1.60_linux_amd64",
+	//}
+	//ctx, cancel := context.WithCancel(context.Background())
+	//newUrl := utils.DynamicSelect[string](newProxy, func(i int, s string) string {
+	//	var dst string
+	//	for {
+	//		fmt.Println("通道 ", i, s)
+	//		dstFilePath, err := utils2.DownloadWithCancel(ctx, s)
+	//		if err == nil {
+	//			dst = dstFilePath
+	//			break
+	//		}
+	//	}
+	//	return dst
+	//})
+	//cancel()
+	//fmt.Println("下载完成", newUrl)
 
 	//testFilePath := filepath.Join(os.TempDir(), "go-frp-panel-update-test.txt")
 	//tempFolder := fmt.Sprintf("%d", time.Now().Unix())

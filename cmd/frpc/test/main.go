@@ -5,11 +5,15 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	frpc2 "github.com/xxl6097/go-frp-panel/pkg/frp/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 )
 
+func init() {
+	pkg.BinName = "acfrpc_v0.3.98_linux_amd64"
+}
 func main() {
 	ccc := &v1.ClientCommonConfig{
 		ServerAddr: "192.168.0.3",

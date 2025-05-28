@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	iface2 "github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	utils2 "github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"github.com/xxl6097/go-service/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/utils/util"
@@ -168,6 +170,16 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	//ctx, cancel := context.WithCancel(context.Background())
 	//defer cancel()
+	updir := glog.AppHome()
+	_, _, free, _ := util.GetDiskUsage(updir)
+	if free < utils2.GetSelfSize()*2 {
+		if err := utils2.ClearTmpDir(); err != nil {
+			fmt.Println("/tmp清空失败:", err)
+		} else {
+			fmt.Println("/tmp清空完成")
+		}
+	}
+
 	var newFilePath string
 	switch r.Method {
 	case "PUT", "put":
@@ -182,33 +194,9 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			glog.Warnf("%s", res.Msg)
 			return
 		}
-		newFilePath = string(body)
-		//newFilePath, err = utils.DownLoad()
-		//if err != nil {
-		//	res.Error(fmt.Sprintf("down load error: %v", err))
-		//	glog.Warnf("%s\n", res.Msg)
-		//	return
-		//}
+		binUrl := string(body)
 		glog.Debugf("upgrade by url: %s", newFilePath)
-		urls := strings.Split(newFilePath, ",")
-
-		updir := glog.AppHome()
-		_, _, free, err := util.GetDiskUsage(updir)
-		//glog.Printf("Current Working Directory: %s\n", updir)
-		//glog.Printf("Total space: %d bytes %v\n", total, utils2.ByteCountIEC(total))
-		//glog.Printf("Used space: %d bytes %v\n\n", used, utils2.ByteCountIEC(used))
-		//glog.Printf("Free space: %d bytes %v\n\n", free, utils2.ByteCountIEC(free))
-
-		if free < utils2.GetSelfSize()*2 && urls != nil && len(urls) > 0 {
-			urls = []string{urls[0]}
-			if err := utils2.ClearTmpDir(); err != nil {
-				fmt.Println("/tmp清空失败:", err)
-			} else {
-				fmt.Println("/tmp清空完成")
-			}
-		}
-
-		newUrl := utils.DownloadFileWithCancelByUrls(urls)
+		newUrl := utils.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(binUrl))
 		newFilePath = newUrl
 		break
 	case "POST", "post":
@@ -239,69 +227,17 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	default:
 		res.Error("位置请求方法")
 	}
-	//defer utils.Delete(newFilePath, "更新文件")
 	if newFilePath != "" {
 		glog.Debugf("开始升级 %s", newFilePath)
-		var ch chan error
-		go func(ch chan<- error) {
-			err := this.igs.Upgrade(ctx, newFilePath)
-			glog.Debug("---->升级", err)
-			if err == nil {
-				res.Ok("升级成功～")
-			} else {
-				res.Error(fmt.Sprintf("更新失败～%v", err))
-			}
-			f(w)
-			time.Sleep(time.Second)
-			ch <- err
-			if err != nil {
-				res.Error(fmt.Sprintf("更新失败～%v", err))
-				return
-			}
-		}(ch)
-
-		select {
-		case <-ctx.Done():
-			glog.Error("请求断开", newFilePath)
-			break
-		case err := <-ch:
-			glog.Error("升级成功", err, newFilePath)
-			if err != nil {
-				res.Error(fmt.Sprintf("更新失败～%v", err))
-				return
-			} else {
-				res.Ok("升级成功～")
-			}
+		err := this.igs.Upgrade(ctx, newFilePath)
+		glog.Debug("---->升级", err)
+		if err == nil {
+			res.Ok("升级成功～")
+		} else {
+			res.Error(fmt.Sprintf("更新失败～%v", err))
 		}
 
-		//err := this.igs.Upgrade(ctx, newFilePath)
-		//if err != nil {
-		//	res.Error(fmt.Sprintf("更新失败～%v", err))
-		//	return
-		//}
-		//res.Ok("升级成功～")
 	}
-	//下载和接收的最新文件 名称为上传文件的原始名称
-	//newBufferBytes, err := ukey.GenConfig(this.obj, false)
-	//if err != nil {
-	//	res.Error(fmt.Sprintf("gen config err: %v", err))
-	//	glog.Error(res.Msg)
-	//	return
-	//}
-	//signFilePath, err := utils.SignAndInstall(newBufferBytes, ukey.UnInitializeBuffer(), newFilePath)
-	//glog.Println("签名安装完毕", err, res)
-	//if err != nil {
-	//	res.Error(err.Error())
-	//	glog.Error(res.Msg)
-	//} else {
-	//	defer utils.Delete(signFilePath, "签名文件")
-	//	err = this.igs.Upgrade(signFilePath)
-	//	if err != nil {
-	//		res.Error(fmt.Sprintf("更新失败～%v", err))
-	//		return
-	//	}
-	//	res.Ok("升级成功～")
-	//}
 }
 
 func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
@@ -329,16 +265,23 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 func (this *commapi) ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	args, err := utils2.CheckVersionFromGithub()
+	data, err := github.Api().DefaultRequest().CheckUpgrade(pkg.BinName, nil).Result()
 	if err != nil {
 		res.Err(err)
-		return
-	}
-	if args != nil && len(args) > 0 {
-		res.response(1, args[1], args[0])
 	} else {
-		res.Ok("已经是最新版本～")
+		glog.Debug("version:", data)
+		res.Any(data)
 	}
+	//args, err := utils2.CheckVersionFromGithub()
+	//if err != nil {
+	//	res.Err(err)
+	//	return
+	//}
+	//if args != nil && len(args) > 0 {
+	//	res.response(1, args[1], args[0])
+	//} else {
+	//	res.Ok("已经是最新版本～")
+	//}
 }
 
 // /api/shutdown

@@ -120,7 +120,7 @@ func New(cfg *v1.ServerConfig, install igs.Service) (iface2.IFrps, error) {
 	webServer.RouteRegister(f.userHandlers)
 	webServer.RouteRegister(f.webSocketHandler)
 	webServer.RouteRegister(f.sseHandler)
-	f.CheckClients()
+	//f.CheckClients()
 	return f, nil
 }
 

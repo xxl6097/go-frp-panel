@@ -203,6 +203,20 @@ export function showMessageDialog(
   })
 }
 
+
+export function showMessageDialogWithCancel(
+  title: string,
+  message: string,
+  confirmButtonText: string,
+  cancelButtonText: string,
+) {
+  return ElMessageBox.confirm(markdownToHtml(message), title, {
+    confirmButtonText: confirmButtonText,
+    cancelButtonText: cancelButtonText,
+    dangerouslyUseHTMLString: true,
+  })
+}
+
 export function showWarmDialog(title: string, ok: any, cancel: any) {
   ElMessageBox.confirm(title, 'Warning', {
     confirmButtonText: '确定',
@@ -735,4 +749,13 @@ export function syntaxHighlight(json: string): string {
       return `<span class="${cls}">${match}</span>` // 直接内联类名判断[1,6](@ref)
     },
   )
+}
+
+export function isJSONString(str: any) {
+  try {
+    JSON.parse(str)
+    return true
+  } catch (e) {
+    return false
+  }
 }
