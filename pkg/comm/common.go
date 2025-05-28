@@ -190,7 +190,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(body) == 0 {
-			res.Response(400, "body can't be empty")
+			res.Response(400, "升级URL空的哦～")
 			glog.Warnf("%s", res.Msg)
 			return
 		}
