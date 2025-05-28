@@ -253,7 +253,7 @@ const globalProgress = ref(0)
 const size = ref<ComponentSize>('default')
 const versionDialogVisible = ref(false)
 const version = ref<Version>()
-const title = ref<string>('Frpc')
+const title = ref<string>('frpc')
 const isDark = useDark()
 const darkmodeSwitch = ref(isDark)
 const toggleDark = useToggle(isDark)
@@ -380,9 +380,9 @@ const fetchData = () => {
       if (json) {
         const vv = json.data as Version // 类型断言
         version.value = vv
-        title.value = `Frpc ${vv.appVersion}`
+        title.value = `frpc ${vv.appVersion}`
         //document.title = title.value
-        document.title = `Frpc ${vv.hostName}`
+        document.title = `frpc ${vv.hostName}`
       }
     })
 }

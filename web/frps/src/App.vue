@@ -420,7 +420,7 @@ const form = ref({
 })
 const menuIndex = ref('/')
 
-const title = ref<string>('Frps')
+const title = ref<string>('rps')
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
@@ -734,8 +734,8 @@ const fetchVersionData = () => {
         version.value = vv
         console.log('vv', vv)
         console.log('version', version.value)
-        title.value = `Frps ${vv.appVersion}`
-        document.title = `Frps ${vv.hostName}`
+        title.value = `frps ${vv.appVersion}`
+        document.title = `frps ${vv.hostName}`
       }
     })
 }
