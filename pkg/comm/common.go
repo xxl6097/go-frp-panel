@@ -265,7 +265,7 @@ func (this *commapi) ApiRestart(w http.ResponseWriter, r *http.Request) {
 func (this *commapi) ApiCheckVersion(w http.ResponseWriter, r *http.Request) {
 	res, f := Response(r)
 	defer f(w)
-	data, err := github.Api().DefaultRequest().CheckUpgrade(pkg.BinName, nil).Result()
+	data, err := github.Api().CheckUpgrade(pkg.BinName)
 	if err != nil {
 		res.Err(err)
 	} else {

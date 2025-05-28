@@ -52,7 +52,7 @@ func (this *frpc) onWebSocketMessageHandle(data []byte) {
 			}
 			break
 		case ws.CLIENT_VERSION_CHECK:
-			result, e := github.Api().DefaultRequest().CheckUpgrade(pkg.BinName, nil).Result()
+			result, e := github.Api().CheckUpgrade(pkg.BinName)
 			//args, e := utils.CheckVersionFromGithub()
 			if e != nil {
 				glog.Error(e)
