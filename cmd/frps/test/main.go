@@ -4,11 +4,19 @@ import (
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/cmd"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
+	"github.com/xxl6097/go-service/pkg/github"
 	"os"
 	"path/filepath"
 )
 
+func init() {
+	pkg.BinName = "acfrps_v0.3.98_linux_amd64"
+	pkg.GithubUser = "xxl6097"
+	pkg.GithubRepo = "go-frp-panel"
+	github.Api().SetName(pkg.GithubUser, pkg.GithubRepo)
+}
 func main() {
 	cmd.Execute(func() error {
 		temp := os.TempDir()

@@ -58,6 +58,7 @@ jobs:
           chmod +x ./build.sh
           ./build.sh github ${{ github.ref_name }}
       - name: 下载上一个版本
+        continue-on-error: true  # 即使失败也不中断工作流
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
