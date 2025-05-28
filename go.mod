@@ -53,6 +53,7 @@ require (
 	github.com/templexxx/xorsimd v0.4.3 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/xtaci/kcp-go/v5 v5.6.13 // indirect
+	github.com/xxl6097/go-update v0.0.5 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d // indirect

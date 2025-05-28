@@ -390,9 +390,16 @@ func GetNetworkInterfaces() ([]NetworkInterface, error) {
 			// 获取IPv4和IPv6地址
 			if ip.To4() != nil {
 				ipAddresses = append(ipAddresses, ip.String())
-				if (IsPublicIPv4(ip) || IsClassCC(ip)) && !IsClassCC(ip) {
+				isPublic := IsPublicIPv4(ip)
+				isPrivate := IsClassC(ip)
+				isCC := IsClassCC(ip)
+				if isPublic && !isCC {
 					ipv4 = ip.String()
 				}
+				if isPrivate && !isCC {
+					ipv4 = ip.String()
+				}
+				fmt.Println(ipv4)
 			} else if ip.To16() != nil {
 				ipAddresses = append(ipAddresses, "["+ip.String()+"]")
 			}
