@@ -14,13 +14,11 @@ import (
 	"github.com/fatedier/frp/pkg/util/system"
 	"github.com/xxl6097/glog/glog"
 	"github.com/xxl6097/go-frp-panel/internal/com/model"
-	"github.com/xxl6097/go-frp-panel/pkg"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/iface"
 	"github.com/xxl6097/go-frp-panel/pkg/comm/ws"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	"os"
 	"os/signal"
@@ -112,8 +110,6 @@ func New(i igs.Service) (iface.IFrpc, error) {
 		return nil, fmt.Errorf("can't find webServer")
 	}
 	webServer.RouteRegister(this.adminHandlers)
-
-	github.Api().SetName(pkg.GithubUser, pkg.GithubRepo).DefaultRequest()
 
 	go this.runMultipleClients(cfgDir)
 	name := path.Base(cfgFilePath)
