@@ -9,7 +9,7 @@ import (
 )
 
 func ShowUpDirSize() {
-	updir := glog.AppHome("upgrade")
+	updir := glog.AppHome("temp", "upgrade")
 	total, used, free, err := util.GetDiskUsage(updir)
 	glog.Printf("Current Working Directory: %s %v\n", updir, err)
 	glog.Printf("Total space: %d bytes %v\n", total, ByteCountIEC(total))

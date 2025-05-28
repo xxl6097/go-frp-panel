@@ -207,7 +207,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
-		dstFilePath := filepath.Join(glog.AppHome("upgrade"), handler.Filename)
+		dstFilePath := filepath.Join(glog.AppHome("temp", "upgrade"), handler.Filename)
 		//dstFilePath 名称为上传文件的原始名称
 		dst, err := os.Create(dstFilePath)
 		if err != nil {

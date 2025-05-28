@@ -485,7 +485,7 @@ func (this *frpc) update(url string) error {
 
 func (this *frpc) getUpgradeUrl(url string) string {
 	glog.Debugf("upgrade by url: %s", url)
-	updir := glog.AppHome("upgrade")
+	updir := glog.AppHome("temp", "upgrade")
 	_, _, free, _ := util.GetDiskUsage(updir)
 
 	if free < utils.GetSelfSize()*2 {
