@@ -13,7 +13,7 @@ jobs:
     #if: contains(github.event.head_commit.message, 'DEPLOY')  echo echo"github：${{ toJson(github) }}"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: 导出源码
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - name: Build Web
+      - name: 编译Frps Web
         if: steps.changed-frps-files.outputs.any_changed == 'true'
         run: |
           cd ./web/frps
@@ -43,22 +43,42 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - name: Build Web
+      - name: 编译Frpc Web
         if: steps.changed-frpc-files.outputs.any_changed == 'true'
         run: |
           cd ./web/frpc
           npm install
           npm run build
-      - name: Set up Go
+      - name: 设置Golang版本
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - name: Make Go
+      - name: 编译Golang程序
         run: |
           chmod +x ./build.sh
           ./build.sh github ${{ github.ref_name }}
-
-      - name: Run GoReleaser
+      - name: 下载上一个版本
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$PREV_VERSION" \
+            --pattern "ac*" \
+            --dir pre_release_files
+          ls -lh pre_release_files
+      - name: 编译Golang差量包
+        run: |
+          echo "安装deffer工具"
+          go install github.com/xxl6097/go-service/cmd/differ@latest
+          ./build.sh github ${{ github.ref_name }}
+          echo "前版本文件列表："
+          ls -lh ./pre_release_files
+          echo "当前编译产物列表："
+          ls -lh ./release/packages
+          echo "开始编译差量包，${{ github.ref_name }}"
+          differ "./pre_release_files" "./release/packages" ${{ github.ref_name }}
+          echo "差量编译产物列表："
+          ls -lh ./release/packages
+      - name: 发布版本
         uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
