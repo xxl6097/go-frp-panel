@@ -32,7 +32,6 @@ type frps struct {
 	sseApi       iface2.ISSE
 	binDir       string
 	cfgFilePath  string
-	githubProxys []string
 }
 
 func (this *frps) SetCloudApi(api *model.CloudApi) {

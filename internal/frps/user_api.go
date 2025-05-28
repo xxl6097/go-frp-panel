@@ -8,6 +8,7 @@ import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
 	model2 "github.com/xxl6097/go-frp-panel/internal/com/model"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	comm2 "github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -151,7 +152,9 @@ func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	//	nodes = utils.ToTree("", this.frpcGithubDownloadUrls)
 	//}
 	urls := github.Api().GetDownloadUrls(func(version string, assets *model3.Assets) bool {
-		if assets != nil && strings.HasPrefix(assets.Name, "acfrpc") {
+		if assets != nil &&
+			strings.HasPrefix(assets.Name, "acfrpc") &&
+			!strings.Contains(assets.Name, ".patch") {
 			return true
 		}
 		return false
@@ -192,7 +195,9 @@ func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
 	//glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
 	//glog.Infof("frps地址扫描:%v", res.Data)
 	urls := github.Api().GetDownloadUrls(func(version string, assets *model3.Assets) bool {
-		if assets != nil && strings.HasPrefix(assets.Name, "acfrps") {
+		if assets != nil &&
+			strings.HasPrefix(assets.Name, pkg.AppName) &&
+			!strings.Contains(assets.Name, ".patch") {
 			return true
 		}
 		return false
@@ -994,13 +999,9 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var binPath string
-	if this.githubProxys != nil {
-		var urls []string
-		for _, proxy := range this.githubProxys {
-			newUrl := fmt.Sprintf("%s%s", proxy, binUrl)
-			urls = append(urls, newUrl)
-		}
-		binPath = utils2.DownloadFileWithCancelByUrls(urls)
+	proxyUrls := github.Api().GetProxyUrls(binUrl)
+	if proxyUrls != nil {
+		binPath = utils2.DownloadFileWithCancelByUrls(proxyUrls)
 	} else {
 		dstPath, e := utils2.DownloadWithCancel(ctx, binUrl)
 		if e != nil {

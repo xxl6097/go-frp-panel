@@ -2,7 +2,6 @@ package frps
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
@@ -10,6 +9,7 @@ import (
 	model2 "github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/github"
 	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"io"
@@ -192,8 +192,6 @@ func (this *frps) apiCreateFrpcByUrl(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 		}
 	}()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	body, err := this.getBody(r)
 	if err != nil {
 		e = err
@@ -201,16 +199,12 @@ func (this *frps) apiCreateFrpcByUrl(w http.ResponseWriter, r *http.Request) {
 	}
 	glog.Infof("body:%+v", body)
 	if utils2.IsURL(body.BinAddress) {
-		if this.githubProxys != nil {
-			var urls []string
-			for _, proxy := range this.githubProxys {
-				newUrl := fmt.Sprintf("%s%s", proxy, body.BinAddress)
-				urls = append(urls, newUrl)
-			}
-			dstPath := utils2.DownloadFileWithCancelByUrls(urls)
+		proxyUrls := github.Api().GetProxyUrls(body.BinAddress)
+		if proxyUrls != nil {
+			dstPath := utils2.DownloadFileWithCancelByUrls(proxyUrls)
 			body.BinAddress = dstPath
 		} else {
-			dstPath, err1 := utils2.DownloadWithCancel(ctx, body.BinAddress)
+			dstPath, err1 := utils2.DownloadWithCancel(r.Context(), body.BinAddress)
 			if err1 != nil {
 				e = fmt.Errorf("下载文件失败～%v", err1)
 				return
