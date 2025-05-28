@@ -14,7 +14,6 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/gs"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
-	"github.com/xxl6097/go-service/pkg/ukey"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"os"
 	"path/filepath"
@@ -65,12 +64,10 @@ func (s *Service) ShutDown(ss service.Service) {
 }
 
 func (s *Service) OnVersion() string {
-	fmt.Println(string(ukey.GetBuffer()))
+	//fmt.Println(string(ukey.GetBuffer()))
 	//这里需要打印config中buffer原始信息
-	ver := fmt.Sprintf("frps version:%s", version.Full())
-	fmt.Println("GetCrossPlatformDataDir", glog.AppHome())
 	pkg.Version()
-	return ver
+	return fmt.Sprintf("frps version:%s", version.Full())
 }
 
 func (this *Service) OnRun(i igs.Service) error {

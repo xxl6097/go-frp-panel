@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/fatedier/frp/pkg/util/version"
 	"runtime"
 	"strings"
 )
@@ -11,6 +12,7 @@ func init() {
 	Arch = runtime.GOARCH
 	GoVersion = runtime.Version()
 	Compiler = runtime.Compiler
+	FrpVersion = version.Full()
 }
 
 var (
@@ -33,6 +35,7 @@ var (
 	BinName          string // 运行文件名称，包含平台架构
 	GithubUser       string // github用户
 	GithubRepo       string // github项目名称
+	FrpVersion       string // FrpVersion
 )
 
 // Version 版本信息
@@ -57,6 +60,7 @@ func Version() string {
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "BinName", BinName))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubUser", GithubUser))
 	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "GithubRepo", GithubRepo))
+	sb.WriteString(fmt.Sprintf("%-16s: %-5s\n", "FrpVersion", FrpVersion))
 	fmt.Println(sb.String())
 	return sb.String()
 }

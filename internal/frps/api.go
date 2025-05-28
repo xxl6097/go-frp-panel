@@ -22,19 +22,17 @@ import (
 )
 
 type frps struct {
-	svr                    *server.Service
-	webServer              *httppkg.Server
-	cfg                    *v1.ServerConfig
-	install                igs.Service
-	upgrade                iface2.IComm
-	cloudApi               *model.CloudApi
-	webSocketApi           iface2.IWebSocket
-	sseApi                 iface2.ISSE
-	binDir                 string
-	cfgFilePath            string
-	frpcGithubDownloadUrls []string
-	frpsGithubDownloadUrls []string
-	githubProxys           []string
+	svr          *server.Service
+	webServer    *httppkg.Server
+	cfg          *v1.ServerConfig
+	install      igs.Service
+	upgrade      iface2.IComm
+	cloudApi     *model.CloudApi
+	webSocketApi iface2.IWebSocket
+	sseApi       iface2.ISSE
+	binDir       string
+	cfgFilePath  string
+	githubProxys []string
 }
 
 func (this *frps) SetCloudApi(api *model.CloudApi) {
@@ -120,7 +118,7 @@ func New(cfg *v1.ServerConfig, install igs.Service) (iface2.IFrps, error) {
 	webServer.RouteRegister(f.userHandlers)
 	webServer.RouteRegister(f.webSocketHandler)
 	webServer.RouteRegister(f.sseHandler)
-	//f.CheckClients()
+	f.CheckVersion()
 	return f, nil
 }
 
