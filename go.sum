@@ -154,6 +154,8 @@ github.com/xxl6097/go-service v0.6.9 h1:yQiyQcI43ZBv3O2rYTbxOs6f65y4NSfBl8shLVRx
 github.com/xxl6097/go-service v0.6.9/go.mod h1:nUvLgFsnt4GxjuNgTAVg95rVCzbJVaQT4wpNR03eHJM=
 github.com/xxl6097/go-service v0.6.10 h1:EQS3Sq3THP7UZJWY4aa4Z/2DnUlGwM6KCvh/78Hn6q8=
 github.com/xxl6097/go-service v0.6.10/go.mod h1:nUvLgFsnt4GxjuNgTAVg95rVCzbJVaQT4wpNR03eHJM=
+github.com/xxl6097/go-service v0.6.12 h1:tpJMMStGxipZJdXAuWSAmtyRZPCST8RT3xehJMrhHKM=
+github.com/xxl6097/go-service v0.6.12/go.mod h1:nUvLgFsnt4GxjuNgTAVg95rVCzbJVaQT4wpNR03eHJM=
 github.com/xxl6097/go-update v0.0.6 h1:z7ipTgVjlXVVNRgMjrrgZfXfDZdb2LUJjsvMh4qwEu8=
 github.com/xxl6097/go-update v0.0.6/go.mod h1:9UQ2j2O/xLQA7laXvxfnOruPUkq9zaLRG/AbwV3TFAM=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
