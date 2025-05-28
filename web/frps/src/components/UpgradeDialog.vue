@@ -7,8 +7,8 @@
         >差量升级
       </el-button>
       <el-button type="primary" @click="handleConfirm"
-        >{{ patchUrl === '' ? '立即升级' : '全量升级' }}}</el-button
-      >
+        >{{ patchUrl === '' ? '立即升级' : '全量升级' }}}
+      </el-button>
     </template>
   </el-dialog>
 </template>
@@ -30,13 +30,15 @@ const updateContent = ref<string>()
 
 const showUpdateDialog = (
   patchurl: string,
-  binurl: string,
+  fullurl: string,
   message: string,
 ) => {
   showUpgradeDialog.value = true
   updateContent.value = markdownToHtml(message)
-  binUrl.value = binurl
+  binUrl.value = fullurl
   patchUrl.value = patchurl
+  console.log('fullurl', binUrl)
+  console.log('patchUrl', patchurl)
 }
 
 const upgradeByUrl = (binUrl: string) => {
@@ -73,10 +75,11 @@ const checkVersion = () => {
       return res.json()
     })
     .then((json) => {
+      console.log('checkVersion', json)
       if (json.code === 0) {
         showUpdateDialog(
           json.data.patchUrl,
-          json.data.binUrl,
+          json.data.fullUrl,
           json.data.releaseNotes,
         )
       } else {

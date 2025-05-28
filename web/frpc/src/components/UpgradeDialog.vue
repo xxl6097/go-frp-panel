@@ -47,6 +47,8 @@ const showUpdateDialog = (
   updateContent.value = markdownToHtml(message)
   binUrl.value = binurl
   patchUrl.value = patchurl
+  console.log('binUrl', binUrl)
+  console.log('patchUrl', patchurl)
 }
 
 const upgradeByUrl = (binurl: string) => {
@@ -88,7 +90,7 @@ const checkVersion = () => {
       if (json.code === 0) {
         showUpdateDialog(
           json.data.patchUrl,
-          json.data.binUrl,
+          json.data.fullUrl,
           json.data.releaseNotes,
         )
       } else {
