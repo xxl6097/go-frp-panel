@@ -1,7 +1,7 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
-options=("linux:amd64" "linux:arm64" "windows:amd64")
+options=("linux:amd64" "linux:arm64" "windows:amd64" "darwin:arm64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 
@@ -295,8 +295,8 @@ function testModule() {
   # 分割用户名和仓库名
   username=$(echo "$clean_url" | cut -d'/' -f2)
   reponame=$(echo "$clean_url" | cut -d'/' -f3)
-  echo "用户名: $username"
-  echo "仓库名: $reponame"
+#  echo "用户名: $username"
+#  echo "仓库名: $reponame"
 }
 
 function buildLdflags() {
@@ -323,14 +323,7 @@ function buildLdflags() {
   #GIT_BRANCH=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
   # shellcheck disable=SC2089
 
-  repo_url=${module}
-  # 统一处理协议前缀和.git后缀
-  clean_url=$(echo "$repo_url" | sed 's/^git@github.com://;s/^https:\/\///;s/\.git$//')
-  # 分割用户名和仓库名
-  username=$(echo "$clean_url" | cut -d'/' -f2)
-  reponame=$(echo "$clean_url" | cut -d'/' -f3)
-  echo "用户名: $username"
-  echo "仓库名: $reponame"
+
 
   version::get_version_vars
   add_ldflag "DisplayName" "${DisplayName}_${version}"
@@ -347,6 +340,7 @@ function buildLdflags() {
   add_ldflag "GitReleaseCommit" "${GIT_RELEASE_COMMIT}"
   add_ldflag "GithubUser" "${username}"
   add_ldflag "GithubRepo" "${reponame}"
+
   echo "${ldflags[*]-}"
 }
 
@@ -630,6 +624,7 @@ function bootstrap() {
   if [ $# -ge 2 ] && [ -n "$2" ]; then
     version=$2
   fi
+  testModule
   writeVersionGoFile
   case $1 in
   github) (githubActions) ;;
@@ -641,4 +636,3 @@ function bootstrap() {
 
 
 bootstrap $1 $2
-#testModule

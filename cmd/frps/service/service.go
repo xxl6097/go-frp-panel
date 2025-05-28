@@ -45,8 +45,7 @@ func Bootstrap() {
 	if svr.webServer != nil {
 		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
 	}
-	glog.Warnf("OnFinish %+v", svr.webServer)
-	glog.Println("服务程序启动成功", os.Getegid())
+	glog.Warnf("OnFinish %+v %+v", svr.webServer, os.Getegid())
 }
 
 func (s *Service) OnConfig() *service.Config {
