@@ -3,7 +3,6 @@ package frpc
 import (
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
-	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/ukey"
 )
@@ -30,7 +29,7 @@ func load() error {
 	cfgData = &CfgModel{
 		Frpc: cfg,
 	}
-	pkg.Version()
+	//pkg.Version()
 	return nil
 }
 

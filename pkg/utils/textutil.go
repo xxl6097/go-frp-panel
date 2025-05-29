@@ -133,7 +133,7 @@ func TomlTextToObject(tomlBytes []byte, obj interface{}) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(string(jstr))
+	//fmt.Println(string(jstr))
 	err = json.Unmarshal(jstr, &obj)
 	return err
 }

@@ -77,7 +77,6 @@ func WriteFrpcMainConfigWithDir(dir string, data any) error {
 		return fmt.Errorf("make dir err: %v", err)
 	}
 	cfgPath := filepath.Join(cfgDir, GetFrpcMainTomlFileName())
-	fmt.Println(cfgPath)
 	return WriteFrpToml(cfgPath, data)
 }
 
