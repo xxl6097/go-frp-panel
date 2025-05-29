@@ -63,7 +63,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release download "$PREV_VERSION" \
-            --pattern "ac*" \
+            --pattern "acfrp*" \
             --dir pre_release_files
           ls -lh pre_release_files
       - name: 编译Golang差量包
