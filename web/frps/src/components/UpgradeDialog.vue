@@ -7,7 +7,7 @@
         >差量升级
       </el-button>
       <el-button type="primary" @click="handleConfirm"
-        >{{ patchUrl === '' ? '立即升级' : '全量升级' }}
+        >{{ patchUrl === '' ? '升级' : '全量升级' }}
       </el-button>
     </template>
   </el-dialog>
