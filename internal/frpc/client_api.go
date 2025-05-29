@@ -489,7 +489,7 @@ func (this *frpc) getUpgradeUrl(url string) string {
 	_, _, free, _ := util.GetDiskUsage(updir)
 
 	if free < utils.GetSelfSize()*2 {
-		if err := utils.ClearTmpDir(); err != nil {
+		if err := utils2.ClearTemp(); err != nil {
 			fmt.Println("/tmp清空失败:", err)
 		} else {
 			fmt.Println("/tmp清空完成")

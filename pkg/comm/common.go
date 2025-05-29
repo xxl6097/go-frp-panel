@@ -173,7 +173,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 	updir := glog.AppHome()
 	_, _, free, _ := util.GetDiskUsage(updir)
 	if free < utils2.GetSelfSize()*2 {
-		if err := utils2.ClearTmpDir(); err != nil {
+		if err := utils.ClearTemp(); err != nil {
 			fmt.Println("/tmp清空失败:", err)
 		} else {
 			fmt.Println("/tmp清空完成")
@@ -299,7 +299,7 @@ func (this *commapi) ApiClear(w http.ResponseWriter, r *http.Request) {
 	clientsDir := filepath.Join(binDir, "clients")
 	err = utils.DeleteAllDirector(clientsDir)
 	if this.igs != nil {
-		err = this.igs.ClearCache()
+		err = this.igs.ClearTemp()
 	}
 	if err != nil {
 		res.Err(err)
