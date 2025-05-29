@@ -1,9 +1,10 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
 #options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
-options=("linux:amd64" "linux:arm64" "windows:amd64")
+options=("linux:amd64" "linux:arm64" "windows:amd64" "darwin:arm64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
-versionDir="$module/pkg"
+#versionDir="$module/pkg"
+versionDir="github.com/xxl6097/go-service/pkg"
 
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
@@ -629,7 +630,7 @@ function bootstrap() {
     version=$2
   fi
   testModule
-  writeVersionGoFile
+#  writeVersionGoFile
   case $1 in
   github) (githubActions) ;;
   version) (writeVersionGoFile) ;;
