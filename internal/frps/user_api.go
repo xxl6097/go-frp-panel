@@ -896,6 +896,22 @@ func (this *frps) apiConfigUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (this *frps) loadDefaultConfig() {
+	fpath := filepath.Join(glog.AppHome("obj"), "cloudApi.dat")
+	obj, err := utils2.LoadWithGob[model.CloudApi](fpath)
+	if err != nil {
+	} else {
+		this.cloudApi = &obj
+		glog.Debug("LoadWithGob:", obj)
+		err = utils.Import(obj)
+		if err == nil {
+			glog.Debug("frpc配置加载成功")
+		} else {
+			glog.Debug("frpc配置加载失败", err)
+		}
+	}
+}
+
 func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
 	defer f(w)

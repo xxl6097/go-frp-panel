@@ -57,7 +57,7 @@ const upgradeByUrl = (binUrl: string) => {
       if (json.code === 0) {
         setTimeout(function () {
           window.location.reload()
-        }, 1000)
+        }, 2000)
       }
     })
     .catch((error) => {
