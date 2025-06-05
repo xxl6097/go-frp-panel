@@ -459,7 +459,7 @@ function buildFrpcAndFrpsAll() {
 }
 
 function githubActions() {
-  echo "===>version:${version}"
+  echo "当前版本号:${version}"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go mod tidy
