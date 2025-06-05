@@ -238,10 +238,10 @@ function quickPushAndTag() {
 
 function quickPushAndTagDeploy() {
   git add .
-  echo "git commit -m "DEPLOY ${version}""
-  git commit -m "DEPLOY ${version}"
-  git tag -a $version -m "DEPLOY ${version}"
-  echo "git tag -a $version -m "DEPLOY ${version}""
+  echo "git commit -m "发布版本 ${version}""
+  git commit -m "发布版本 ${version}"
+  git tag -a $version -m "发布版本 ${version}"
+  echo "git tag -a $version -m "发布版本 ${version}""
   git push origin $version
   echo "新标签：${version}"
   push
