@@ -11,8 +11,8 @@ require (
 	github.com/kardianos/service v1.2.2
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.0
-	github.com/xxl6097/glog v0.1.44
-	github.com/xxl6097/go-service v0.6.32
+	github.com/xxl6097/glog v0.1.46
+	github.com/xxl6097/go-service v0.6.33
 	golang.org/x/net v0.39.0
 	golang.org/x/text v0.24.0
 )
@@ -61,7 +61,7 @@ require (
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
