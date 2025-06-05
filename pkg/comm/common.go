@@ -195,7 +195,7 @@ func (this *commapi) ApiUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		binUrl := string(body)
-		glog.Debugf("upgrade by url: %s", newFilePath)
+		glog.Debugf("upgrade by url: %s", binUrl)
 		newUrl := utils.DownloadFileWithCancelByUrls(github.Api().GetProxyUrls(binUrl))
 		newFilePath = newUrl
 		break
