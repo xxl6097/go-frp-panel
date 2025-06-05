@@ -188,23 +188,6 @@ func (this *frps) apiClientListGet(w http.ResponseWriter, r *http.Request) {
 	res.Data = sessions
 }
 
-func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
-	res, f := comm2.Response(r)
-	defer f(w)
-	//res.Data = utils.ToTree("", this.frpsGithubDownloadUrls)
-	//glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
-	//glog.Infof("frps地址扫描:%v", res.Data)
-	urls := github.Api().GetDownloadUrls(func(version string, assets *model3.Assets) bool {
-		if assets != nil &&
-			strings.HasPrefix(assets.Name, pkg.AppName) &&
-			!strings.Contains(assets.Name, ".patch") {
-			return true
-		}
-		return false
-	})
-	res.Data = utils.ToTree("", urls)
-}
-
 //func (this *frps) parseUser(data map[string]interface{}) {
 //	glog.Println(data)
 //	u := User{
@@ -972,6 +955,28 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 	res.Ok("文件上传成功～")
 }
 
+func (this *frps) apiFrpsGet(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	//res.Data = utils.ToTree("", this.frpsGithubDownloadUrls)
+	//glog.Infof("frpsGithubDownloadUrls:%v", this.frpsGithubDownloadUrls)
+	//glog.Infof("frps地址扫描:%v", res.Data)
+	urls := github.Api().GetDownloadUrls(func(version string, assets *model3.Assets) bool {
+		name := pkg.AppName
+		if assets != nil &&
+			strings.HasPrefix(assets.Name, name) &&
+			!strings.Contains(assets.Name, ".patch") {
+			return true
+		}
+		return false
+	})
+	//glog.Debug("urls:", urls)
+	treeData := utils.ToTree("", urls)
+	res.Data = treeData
+	//for i, datum := range treeData {
+	//	glog.Debug("data:", i, datum)
+	//}
+}
 func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -1061,11 +1066,11 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 				Port:     body.AdminPort,
 				Addr:     body.AdminAddr,
 			},
-			Log: v1.LogConfig{
-				To:      filepath.Join(glog.AppHome("log"), "frps.log"),
-				MaxDays: 3,
-				Level:   "error",
-			},
+			//Log: v1.LogConfig{
+			//	To:      filepath.Join(glog.AppHome("log"), "frps.log"),
+			//	MaxDays: 3,
+			//	Level:   "error",
+			//},
 		},
 	}
 	cfgNewBytes, err2 := ukey.GenConfig(cfg.Bytes(), false)
@@ -1076,7 +1081,8 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//glog.Debugf("配置信息:%+v", cfgNewBytes)
-	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
+	size := len(ukey.GetBuffer())
+	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, size)
 	prevBuffer := make([]byte, 0)
 
 	dstFile := filepath.Join(glog.AppHome("temp", utils2.GetID()), fileName)
@@ -1087,7 +1093,7 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer outFile.Close()
-	_ = utils2.DeleteAllDirector(dstFile)
+	defer utils2.DeleteAllDirector(dstFile)
 
 	for {
 		thisBuffer := make([]byte, 1024)
