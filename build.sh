@@ -452,7 +452,7 @@ function buildFrpcAndFrpsAll() {
   rm -rf ${builddir}
   buildFrpc 2 &
   buildFrps 2 &
-  buildFrpServer 2 &
+  #buildFrpServer 2 &
   wait  # 等待所有后台进程结束
   builddir="./release"
   echo "所有任务完成"
@@ -462,6 +462,7 @@ function githubActions() {
   echo "===>version:${version}"
   go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
   go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  go mod tidy
   buildFrpcAndFrpsAll
   mkdir -p ./release/packages
   cp -f ./release/frpc/* ./release/packages
