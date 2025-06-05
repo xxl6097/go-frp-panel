@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/util/version"
@@ -15,7 +14,6 @@ import (
 	"github.com/xxl6097/go-service/pkg/gs"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
 	utils2 "github.com/xxl6097/go-service/pkg/utils"
-	"os"
 	"path/filepath"
 )
 
@@ -41,10 +39,6 @@ func Bootstrap() {
 	if err != nil {
 		glog.Error("程序启动出错了", err)
 	}
-	if svr.webServer != nil {
-		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", utils.GetLocalIp(), svr.webServer.Port, svr.webServer.User, svr.webServer.Password)
-	}
-	glog.Warnf("OnFinish %+v %+v", svr.webServer, os.Getegid())
 }
 
 func (s *Service) OnConfig() *service.Config {
@@ -53,14 +47,6 @@ func (s *Service) OnConfig() *service.Config {
 		DisplayName: pkg.DisplayName,
 		Description: pkg.Description,
 	}
-}
-
-func (s *Service) OnStop(ss service.Service) {
-	s.ifrps.Close()
-}
-
-func (s *Service) ShutDown(ss service.Service) {
-	s.ifrps.Close()
 }
 
 func (s *Service) OnVersion() string {
@@ -78,19 +64,19 @@ func (this *Service) OnRun(i igs.Service) error {
 		return fmt.Errorf("程序配置文件未初始化")
 	}
 	conf := frps.GetCfgModel().Frps
-	content, err := json.Marshal(conf)
-	if err != nil {
-		glog.Error(err)
-		return err
-	}
-	cfgConfig := &v1.ServerConfig{}
-	err = json.Unmarshal(content, cfgConfig)
-	if err != nil {
-		glog.Error(err)
-		return err
-	}
-
-	svv, err := frps2.NewFrps(cfgConfig, i)
+	//content, err := json.Marshal(conf)
+	//if err != nil {
+	//	glog.Error(err)
+	//	return err
+	//}
+	//cfgConfig := &v1.ServerConfig{}
+	//err = json.Unmarshal(content, cfgConfig)
+	//if err != nil {
+	//	glog.Error(err)
+	//	return err
+	//}
+	//svv, err := frps2.NewFrps(cfgConfig, i)
+	svv, err := frps2.NewFrps(&conf, i)
 	if err != nil {
 		glog.Printf("启动 %s %s 失败:%v\n%v", pkg.AppName, pkg.AppVersion, err, conf)
 		return err
@@ -108,78 +94,6 @@ func (this *Service) GetAny(binDir string) []byte {
 	this.webServer = &a.Frps.WebServer
 	return a.Bytes()
 }
-
-//func (s *Service) OnUpgrade(oldBinPath string, newFileUrlOrLocalPath string) (bool, []string) {
-//	//1、读取老文件特征数据；
-//	//2、下载新文件
-//	//3、替换新文件特征数据
-//	//4、数据写到安装目录地址（oldBinPath）
-//	cfgBufferBytes := ukey.GetCfgBufferFromFile(oldBinPath)
-//	if cfgBufferBytes == nil {
-//		return false, nil
-//	}
-//	glog.Debug("获取配置数据成功", len(cfgBufferBytes))
-//	if _, err := os.Stat(oldBinPath); !os.IsNotExist(err) {
-//		err := os.Remove(oldBinPath)
-//		if err != nil {
-//			glog.Error("删除失败", oldBinPath)
-//			return false, nil
-//		}
-//	}
-//	var newFilePath string
-//	if utils2.FileExists(newFileUrlOrLocalPath) {
-//		newFilePath = newFileUrlOrLocalPath
-//	} else if utils2.IsURL(newFileUrlOrLocalPath) {
-//		glog.Debug("下载文件", newFileUrlOrLocalPath)
-//		temp, err := utils.DownLoad(newFileUrlOrLocalPath)
-//		if err != nil {
-//			glog.Error("下载失败", err)
-//			return false, nil
-//		}
-//		glog.Debug("下载成功.", temp)
-//		newFilePath = temp
-//	}
-//	if newFilePath != "" {
-//		oldBuffer := ukey.GetBuffer()
-//		err := utils.GenerateBin(newFilePath, oldBinPath, oldBuffer, cfgBufferBytes)
-//		if err != nil {
-//			glog.Error("签名错误：", err)
-//			return false, nil
-//		}
-//		return true, nil
-//	}
-//	return false, nil
-//}
-//
-//func (s *Service) OnInstall(binPath string) (bool, []string) {
-//	if frps.IsInit() == nil {
-//		return false, nil
-//	}
-//	cfg := s.menu()
-//	//cfg.Frps.Complete()
-//	newBufferBytes, err := ukey.GenConfig(cfg, false)
-//	if err != nil {
-//		panic(fmt.Errorf("构建签名信息错误: %v", err))
-//	}
-//	//glog.Printf("--->%s\n", string(newBufferBytes))
-//	currentBinPath, err := os.Executable()
-//	if err != nil {
-//		glog.Fatal("os.Executable() error", err)
-//	}
-//	if utils2.FileExists(binPath) {
-//		utils.Delete(binPath, "旧运行文件")
-//	}
-//	//安装程序，需要对程序进行签名，那么需要传入两个参数：
-//	//1、最原始的key；
-//	//2、需写入的data
-//	buffer := ukey.GetBuffer()
-//	glog.Info("buffer大小", len(buffer))
-//	err = utils.GenerateBin(currentBinPath, binPath, buffer, newBufferBytes)
-//	if err != nil {
-//		glog.Fatal("签名错误：", err)
-//	}
-//	return false, nil
-//}
 
 func (this *Service) menu() *frps.CfgModel {
 	cfg := frps.GetCfgModel()

@@ -975,7 +975,7 @@ func (this *frps) apiClientUpload(w http.ResponseWriter, r *http.Request) {
 func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	body, err := utils.GetDataByJson[struct {
+	body, err4 := utils.GetDataByJson[struct {
 		BindPort  int      `json:"bindPort"`
 		AdminAddr string   `json:"adminAddr"`
 		AdminPort int      `json:"adminPort"`
@@ -983,8 +983,8 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		Pass      string   `json:"pass"`
 		Ops       []string `json:"ops"`
 	}](r)
-	if err != nil {
-		glog.Error("解析Json对象失败", err)
+	if err4 != nil {
+		glog.Error("解析Json对象失败", err4)
 		return
 	}
 	if body == nil {
@@ -1035,9 +1035,9 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("binPath: %s %+v\n", binPath, body)
-	tpl, err := os.Open(binPath)
-	if err != nil {
-		msg := fmt.Errorf("打开文件失败：%v", err)
+	tpl, err3 := os.Open(binPath)
+	if err3 != nil {
+		msg := fmt.Errorf("打开文件失败：%v", err3)
 		glog.Error(msg)
 		http.Error(w, msg.Error(), http.StatusGatewayTimeout)
 		return
@@ -1068,22 +1068,22 @@ func (this *frps) apiFrpsGen(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
-	cfgNewBytes, err := ukey.GenConfig(cfg.Bytes(), false)
-	if err != nil {
-		msg := fmt.Errorf("文件签名失败：%v", err)
+	cfgNewBytes, err2 := ukey.GenConfig(cfg.Bytes(), false)
+	if err2 != nil {
+		msg := fmt.Errorf("文件签名失败：%v", err2)
 		glog.Error(msg)
 		http.Error(w, msg.Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
-	glog.Debugf("配置信息:%+v", cfgNewBytes)
+	//glog.Debugf("配置信息:%+v", cfgNewBytes)
 	cfgBuffer := bytes.Repeat([]byte{byte(ukey.B)}, len(ukey.GetBuffer()))
 	prevBuffer := make([]byte, 0)
 
 	dstFile := filepath.Join(glog.AppHome("temp", utils2.GetID()), fileName)
-	outFile, err := os.Create(dstFile)
-	if err != nil {
+	outFile, err1 := os.Create(dstFile)
+	if err1 != nil {
 		_ = utils2.DeleteAllDirector(dstFile)
-		http.Error(w, fmt.Errorf("创建失败：%v", err).Error(), http.StatusHTTPVersionNotSupported)
+		http.Error(w, fmt.Errorf("创建失败：%v", err1).Error(), http.StatusHTTPVersionNotSupported)
 		return
 	}
 	defer outFile.Close()

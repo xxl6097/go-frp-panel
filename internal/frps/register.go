@@ -55,17 +55,15 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/client/gen", this.apiCreateFrpcByUrl).Methods("POST")
 	subRouter.HandleFunc("/api/client/gen", this.apiCreateFrpcByUpload).Methods("PUT")
 	subRouter.HandleFunc("/api/client/toml", this.apiCreateFrpcToml).Methods("POST")
-	//subRouter.HandleFunc("/api/client/gen", this.apiClientGen).Methods("POST")
-	//subRouter.HandleFunc("/api/client/gen", this.apiClientGenPut).Methods("PUT")
-	//subRouter.HandleFunc("/api/client/toml", this.apiClientToml).Methods("POST")
-	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
-	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/import", this.apiClientUserImport).Methods("POST")
 	subRouter.HandleFunc("/api/client/user/export", this.apiClientUserExport).Methods("POST")
 	subRouter.HandleFunc("/api/config/upload", this.apiConfigUpload)
 	subRouter.HandleFunc("/api/config/upgrade", this.apiConfigUpgrade)
 	subRouter.HandleFunc("/api/client/upload", this.apiClientUpload).Methods("POST")
 	subRouter.HandleFunc("/api/github/key", this.apiGithubKeySetting)
+
+	subRouter.HandleFunc("/api/frps/get", this.apiFrpsGet).Methods("GET")
+	subRouter.HandleFunc("/api/frps/gen", this.apiFrpsGen).Methods("POST")
 }
 
 func (this *frps) webSocketHandler(helper *httppkg.RouterRegisterHelper) {

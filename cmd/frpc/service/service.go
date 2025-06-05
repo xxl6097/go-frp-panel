@@ -27,7 +27,7 @@ func (this *Service) OnFinish() {
 		if e == nil {
 			ip = face.Ipv4
 		}
-		glog.Infof("\n登录地址：http://%s:%d\n用户信息：%s/%s", ip, this.wsc.Port, this.wsc.User, this.wsc.Password)
+		fmt.Printf("登录地址：http://%s:%d\n用户信息：%s/%s\n", ip, this.wsc.Port, this.wsc.User, this.wsc.Password)
 	}
 }
 
@@ -97,16 +97,16 @@ func (this *Service) menu() *frpc.CfgModel {
 		Level:   "error",
 	}
 	if cfg.ClientCommonConfig.ServerAddr == "" {
-		cfg.ClientCommonConfig.ServerAddr = utils2.InputString("Frps服务器地址:")
+		cfg.ClientCommonConfig.ServerAddr = utils2.InputString("frps服务器地址:")
 	}
 	if cfg.ClientCommonConfig.ServerPort <= 0 || cfg.ClientCommonConfig.ServerPort > 65535 {
-		cfg.ClientCommonConfig.ServerPort = utils2.InputInt("Frps服务器绑定端口:")
+		cfg.ClientCommonConfig.ServerPort = utils2.InputIntDefault("frps服务器绑定端口(6000):", 6000)
 	}
 	if cfg.WebServer.Addr == "" {
 		cfg.WebServer.Addr = "0.0.0.0"
 	}
 	if cfg.WebServer.Port == 0 {
-		cfg.WebServer.Port = utils2.InputIntDefault("管理后台端口(6400)", 6400)
+		cfg.WebServer.Port = utils2.InputIntDefault("管理后台端口(6400):", 6400)
 	}
 	if cfg.WebServer.User == "" {
 		cfg.WebServer.User = utils2.InputStringEmpty("管理后台用户名(admin):", "admin")
