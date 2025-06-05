@@ -334,8 +334,8 @@ websocketID：${client.value?.secKey}<br>
               handleConfirmUpgrade(data.patchUrl)
             })
             .catch(() => {
-              console.log('全量升级', data.binUrl)
-              handleConfirmUpgrade(data.binUrl)
+              console.log('全量升级', data.fullUrl)
+              handleConfirmUpgrade(data.fullUrl)
             })
         } else {
           showMessageDialog('版本升级', '升级', newVersionText).then(() => {

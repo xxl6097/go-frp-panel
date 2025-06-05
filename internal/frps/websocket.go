@@ -14,7 +14,7 @@ import (
 
 func (this *frps) OnServerWebSocketMessageReceive(messageType int, payload []byte) {
 	if payload != nil {
-		glog.Debugf("ws msg %s", string(payload))
+		glog.Debugf("来自frpc消息：%s", string(payload))
 		var msg iface2.Message[any]
 		err := json.Unmarshal(payload, &msg)
 		if err != nil {
@@ -80,7 +80,7 @@ func (this *frps) apiClientCMD(w http.ResponseWriter, r *http.Request) {
 		res.Err(err)
 		return
 	}
-	glog.Debugf("body:%s", string(body))
+	glog.Debugf("发生给frpc:%s", string(body))
 	if this.webSocketApi == nil {
 		res.Error(fmt.Sprintf("webSocketApi is nil"))
 		return

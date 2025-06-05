@@ -35,7 +35,7 @@ func (this *frps) OnSseNewConnection(client *iface2.SSEClient) {
 				Event:   ws.SSE_CONNECT,
 				Payload: client,
 			}
-			glog.Debugf("---->%+v", client)
+			//glog.Debugf("---->%+v", client)
 			err := this.sseApi.Send(client, eve)
 			if err != nil {
 				glog.Errorf("Send error: %s", err)

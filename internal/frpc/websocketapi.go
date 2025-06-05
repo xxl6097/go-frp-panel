@@ -258,7 +258,7 @@ func (this *frpc) sendMessageToWebSocketServer(obj *iface.Message[any]) error {
 	if obj == nil {
 		return fmt.Errorf("obj is nil")
 	}
-	glog.Debugf("send %+v", *obj)
+	//glog.Debugf("send %+v", *obj)
 	err := ws.GetClientInstance().SendJSON(obj)
 	if err != nil {
 		glog.Error(err)
