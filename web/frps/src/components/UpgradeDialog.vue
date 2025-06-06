@@ -17,8 +17,8 @@
 import { ref, defineExpose } from 'vue'
 import {
   markdownToHtml,
-  showInfoTips,
   showLoading,
+  showSucessTips,
   showTips,
 } from '../utils/utils.ts'
 import { ElButton } from 'element-plus'
@@ -83,7 +83,7 @@ const checkVersion = () => {
           json.data.releaseNotes,
         )
       } else {
-        showInfoTips(json.msg)
+        showSucessTips(json.msg)
       }
     })
 }

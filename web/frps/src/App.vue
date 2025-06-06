@@ -508,18 +508,6 @@ const handleSelect = (key: string) => {
 }
 
 const checkVersion = () => {
-  // fetch('../api/checkversion', { credentials: 'include' })
-  //   .then((res) => {
-  //     return res.json()
-  //   })
-  //   .then((json) => {
-  //     if (json.code === 0) {
-  //       showInfoTips(json.msg)
-  //     } else if (json.code === 1) {
-  //       showUpdateDialog(json.msg, json.data)
-  //     }
-  //   })
-
   showUpgradeDialog()
 }
 

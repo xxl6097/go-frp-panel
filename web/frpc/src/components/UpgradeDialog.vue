@@ -28,8 +28,8 @@
 import { ref, defineExpose } from 'vue'
 import {
   markdownToHtml,
-  showInfoTips,
   showLoading,
+  showSucessTips,
   showTips,
 } from '../utils/utils.ts'
 
@@ -94,10 +94,9 @@ const checkVersion = () => {
           json.data.releaseNotes,
         )
       } else {
-        showInfoTips(json.msg)
+        showSucessTips(json.msg)
       }
     })
-
 }
 
 // 暴露方法供父组件调用
