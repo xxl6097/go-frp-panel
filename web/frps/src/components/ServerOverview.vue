@@ -26,7 +26,9 @@
                 placement="bottom"
                 effect="light"
                 ><span class="single-line">{{
-                  version?.network?.ipv4
+                  version?.network?.ipv4 === ''
+                    ? version?.network?.ipAddresses.toString()
+                    : version?.network?.ipv4
                 }}</span></el-tooltip
               >
             </el-form-item>
