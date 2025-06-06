@@ -35,9 +35,9 @@ const router = createRouter({
       path: '/user/list',
       name: 'ClientList',
       component: ClientList,
-      props: (to: any) => ({
-        profile: JSON.parse(to.query.profileData || '{}'),
-      }),
+      // props: (to: any) => ({
+      //   profile: JSON.parse(to.query.profileData || '{}'),
+      // }),
     },
     {
       path: '/log',

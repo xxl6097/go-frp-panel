@@ -14,7 +14,7 @@
             <div m="4">
               <p m="t-0 b-2">设备名称: {{ props.row.devName }}</p>
               <p m="t-0 b-2">版本号: {{ props.row.appVersion }}</p>
-              <p m="t-0 b-2">允许端口: {{ profile?.ports }}</p>
+              <p m="t-0 b-2">允许端口: {{ frpConfig?.ports }}</p>
               <p m="t-0 b-2">Frp连接ID: {{ props.row.frpId }}</p>
               <p m="t-0 b-2">操作系统: {{ props.row.osType }}</p>
               <p m="t-0 b-2">设备Mac地址: {{ props.row.devMac }}</p>
@@ -61,6 +61,7 @@
 import { ref, computed, onMounted, onUnmounted, onUpdated } from 'vue'
 import ClientDetailDialog from './ClientDetailDialog.vue'
 import { Client, FrpcConfiguration } from '../../utils/type.ts'
+import { useRoute } from 'vue-router'
 
 // 搜索关键字
 const searchKeyword = ref<string>('')
@@ -68,6 +69,8 @@ const searchKeyword = ref<string>('')
 const pageSize = ref<number>(10)
 const currentPage = ref<number>(1)
 const tableData = ref<Client[]>([])
+const frpConfig = ref<FrpcConfiguration>()
+
 const clientForm = ref({
   addr: '',
   port: 0,
@@ -103,7 +106,7 @@ const handlePageChange = (page: number) => {
 const handleGoToDetail = (row: Client) => {
   console.log('handleGoToDetail', row)
   if (clientDetailDialogRef.value) {
-    clientDetailDialogRef.value.openClientDialog(row, props.profile)
+    clientDetailDialogRef.value.openClientDialog(row, frpConfig.value)
   }
 }
 // 响应式布局相关
@@ -130,9 +133,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateDialogWidth)
 })
 
-const fetchListData = () => {
+const fetchListData = (id: string) => {
   const data = {
-    frpId: props.profile.id,
+    frpId: id,
   }
   console.log('fetchListData.query', data)
   fetch('../api/client/list', {
@@ -159,14 +162,44 @@ const fetchListData = () => {
       // showErrorTips('获取服务器信息失败')
     })
 }
-const props = defineProps<{
-  profile: FrpcConfiguration
-}>()
+
+const fetchFrpcData = (id: string) => {
+  console.log('fetchFrpcData', id)
+  fetch(`../api/token/get?id=${id}`, {
+    credentials: 'include',
+    method: 'GET',
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      console.log('fetchFrpcData', json)
+      if (json.code === 0) {
+        const cfg = {
+          user: json.data.user,
+          token: json.data.token,
+          count: json.data.count,
+          comment: json.data.comment,
+          ports: json.data.ports.join(','),
+          domains: json.data.domains.join(','),
+          subdomains: json.data.subdomains.join(','),
+          enable: json.data.enable,
+          id: json.data.id,
+        }
+        frpConfig.value = cfg as FrpcConfiguration
+        console.log('frpConfig', frpConfig.value)
+      }
+    })
+    .catch(() => {
+      // showErrorTips('获取服务器信息失败')
+    })
+}
+
+// const props = defineProps<{
+//   profile: FrpcConfiguration
+// }>()
 onUpdated(() => {})
-onMounted(() => {
-  console.log('profile', props.profile)
-})
-fetchListData()
+const id = useRoute().query.id as string
+fetchFrpcData(id)
+fetchListData(id)
 </script>
 
 <style scoped>

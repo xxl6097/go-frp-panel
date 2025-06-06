@@ -402,7 +402,10 @@ const addLog = (context: string): void => {
   }
 }
 
-const openClientDetailDialog = (row: Client, p: FrpcConfiguration) => {
+const openClientDetailDialog = (
+  row: Client,
+  p: FrpcConfiguration | undefined,
+) => {
   console.log('打开对话框，row:', row, p)
   client.value = row
   profile.value = p

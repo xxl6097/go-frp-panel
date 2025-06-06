@@ -48,6 +48,7 @@ func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/token/delall", this.apiUserDeleteAll).Methods("POST")
 	subRouter.HandleFunc("/api/token/chg", this.apiUserUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/token/all", this.apiUserAll).Methods("GET")
+	subRouter.HandleFunc("/api/token/get", this.apiUserGet).Methods("GET")
 
 	subRouter.HandleFunc("/api/client/list", this.apiClientListGet).Methods("POST")
 

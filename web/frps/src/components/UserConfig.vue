@@ -158,14 +158,7 @@
                 plain
                 size="small"
                 v-if="row.count > 0"
-                @click="
-                  router.push({
-                    path: '/user/list',
-                    query: {
-                      profileData: JSON.stringify(row),
-                    },
-                  })
-                "
+                @click="handleGotoClientList(row)"
                 >查看客户端
               </el-button>
             </el-button-group>
@@ -628,6 +621,25 @@ const filteredTableData = computed<FrpcConfiguration[]>(() => {
       data.comment?.includes(searchKeyword.value),
   )
 })
+
+const handleGotoClientList = (row: FrpcConfiguration) => {
+  //const version = inject<Ref<Version>>('version')
+  //provide('FrpcConfiguration', row)
+  // provide<FrpcConfiguration>('FrpcConfiguration', row)
+  // frpcConfig.value = row
+  // router.push({
+  //   path: '/user/list',
+  //   query: {
+  //     profileData: JSON.stringify(row),
+  //   },
+  // })
+  router.push({
+    path: '/user/list',
+    query: {
+      id: row.id,
+    },
+  })
+}
 
 const handleDeleteUsers = () => {
   // if (selectData.value && selectData.value.length > 0) {

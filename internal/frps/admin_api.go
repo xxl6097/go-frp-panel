@@ -271,3 +271,16 @@ func (this *frps) GetUserAll() ([]model.User, error) {
 	}
 	return users, nil
 }
+
+func (this *frps) GetUser(id string) (*model.User, error) {
+	binpath, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	uPath := filepath.Join(filepath.Dir(binpath), "user", fmt.Sprintf("%s.json", id))
+
+	if !utils2.FileExists(uPath) {
+		return nil, fmt.Errorf("%s not exists", uPath)
+	}
+	return model.Read(uPath)
+}

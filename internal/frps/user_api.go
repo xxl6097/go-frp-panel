@@ -134,6 +134,22 @@ func (this *frps) apiUserAll(w http.ResponseWriter, r *http.Request) {
 	res.Sucess("全部数据获取成功", datas)
 	//glog.Infof("%+v\n", datas)
 }
+func (this *frps) apiUserGet(w http.ResponseWriter, r *http.Request) {
+	res, f := comm2.Response(r)
+	defer f(w)
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		res.Error("is is nil")
+		return
+	}
+	data, err := this.GetUser(id)
+	if err != nil {
+		res.Error(err.Error())
+		glog.Error(err)
+		return
+	}
+	res.Sucess("数据获取成功", data)
+}
 
 func (this *frps) apiClientGet(w http.ResponseWriter, r *http.Request) {
 	res, f := comm2.Response(r)
