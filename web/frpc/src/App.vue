@@ -11,104 +11,33 @@
     <header class="grid-content header-color">
       <div class="header-content">
         <div class="brand" @click="handleDevelopment">
-          <el-tooltip placement="right" effect="light">
-            <template #content>
-              <el-descriptions :column="1" border label-width="110px">
-                <el-descriptions-item
-                  label="frpc版本号："
-                  label-align="left"
-                  align="center"
-                  width="150px"
-                >
-                  <el-tag size="small">{{ version?.frpcVersion }}</el-tag>
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="面板版本号："
-                  label-align="left"
-                  align="center"
-                >
-                  <el-tag size="small">{{ version?.appVersion }}</el-tag>
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="编译时间："
-                  label-align="left"
-                  align="center"
-                  width="200px"
-                >
-                  {{ version?.buildTime }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="操作系统："
-                  label-align="left"
-                  align="center"
-                >
-                  {{ version?.osType }}/{{ version?.arch }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="Mac地址："
-                  label-align="left"
-                  align="center"
-                >
-                  {{ version?.network?.macAddress }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="网口信息："
-                  label-align="left"
-                  align="center"
-                >
-                  {{ version?.network?.name }}/{{
-                    version?.network?.displayName
-                  }}
-                </el-descriptions-item>
-
-                <el-descriptions-item
-                  label="IP地址："
-                  label-align="left"
-                  align="center"
-                >
-                  <el-tooltip
-                    :content="version?.network?.ipAddresses"
-                    placement="bottom"
-                    effect="light"
-                  >
-                    {{ version?.network.ipv4 }}
-                  </el-tooltip>
-                </el-descriptions-item>
-              </el-descriptions>
+          <el-dropdown trigger="click">
+            <a href="#">{{ title }}</a>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
+                <el-dropdown-item @click="dialogFormVisible = true"
+                  >升级服务
+                </el-dropdown-item>
+                <el-dropdown-item @click="checkVersion"
+                  >版本检测
+                </el-dropdown-item>
+                <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
+                <el-dropdown-item @click="handleClearData"
+                  >清空数据
+                </el-dropdown-item>
+                <el-dropdown-item @click="showVersion"
+                  >查看版本
+                </el-dropdown-item>
+                <el-dropdown-item @click="uninstall"
+                  >卸载自身
+                </el-dropdown-item>
+                <el-dropdown-item @click="githubProxyForm.isShow = true"
+                  >设置proxy
+                </el-dropdown-item>
+              </el-dropdown-menu>
             </template>
-            <el-dropdown trigger="click">
-              <a href="#">{{ title }}</a>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
-                  <el-dropdown-item @click="dialogFormVisible = true"
-                    >升级服务
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="checkVersion"
-                    >版本检测
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
-                  <el-dropdown-item @click="handleClearData"
-                    >清空数据
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="showVersion"
-                    >查看版本
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="uninstall"
-                    >卸载自身
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="githubProxyForm.isShow = true"
-                    >设置proxy
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
+          </el-dropdown>
         </div>
         <div class="dark-switch">
           <!--          <div class="dark-reboot">-->
