@@ -177,6 +177,19 @@ func EncodeSecret(obj *model.FrpcBuffer) (string, error) {
 	//glog.Println(string(data))
 	return utils.Encrypt(buffer, nil), nil
 }
+
+func DecodeMetas(mapData map[string]string) *model.User {
+	v, ok := mapData["secret"]
+	if !ok {
+		return nil
+	}
+	buffer := DecodeSecret(v)
+	if buffer == nil {
+		return nil
+	}
+	return &buffer.User
+}
+
 func DecodeSecret(text string) *model.FrpcBuffer {
 	if text == "" {
 		return nil

@@ -73,13 +73,29 @@
       <template #extra></template>
     </el-page-header>
 
-    <el-input
-      type="textarea"
-      autosize
-      style="margin-left: 10px"
-      v-model="textarea"
-      placeholder="frpc configure file, can not be empty..."
-    ></el-input>
+    <div style="margin-left: 10px">
+      <div>
+        <span
+          style="color: green; margin-right: 8px"
+          v-if="meta && meta?.ports !== ''"
+          >允许范围：{{ meta?.ports }}
+        </span>
+        <span
+          style="color: green; margin-right: 8px"
+          v-if="meta && meta?.domains !== ''"
+          >允许域名：{{ meta?.domains }}
+        </span>
+        <span style="color: green" v-if="meta && meta?.domains !== ''"
+          >允许子域名：{{ meta?.subdomains }}</span
+        >
+      </div>
+      <el-input
+        type="textarea"
+        autosize
+        v-model="textarea"
+        placeholder="frpc configure file, can not be empty..."
+      ></el-input>
+    </div>
   </div>
 
   <!--新建客户端-->
@@ -284,6 +300,7 @@ import {
 } from 'element-plus'
 import {
   downloadByPost,
+  FrpcConfiguration,
   getProxyName,
   getTimestamp,
   put,
@@ -312,6 +329,7 @@ const newClientFormVisible = ref(false)
 const loading = ref<boolean>(false)
 const uploading = ref<boolean>(false)
 const textarea = ref('')
+const meta = ref<FrpcConfiguration>()
 const selectValue = ref('')
 const options = ref<Option[]>([])
 const ports = ref<Option[]>([])
@@ -601,6 +619,7 @@ const uploadToml = (options: any) => {
 
 const handleSelectChange = (value: string) => {
   console.log('handleSelectChange---->', value)
+  meta.value = undefined
   if (value === '' || value === undefined) {
     fetchData()
     return
@@ -626,11 +645,29 @@ const fetchConfig = () => {
       return res.json()
     })
     .then((json) => {
-      if (json.code === 0) {
-        textarea.value = json.data
+      console.log('fetchConfig', json)
+      if (json.code === 0 && json.data) {
+        textarea.value = json.data.toml
+        const cfg = {
+          user: json.data.meta.user,
+          token: json.data.meta.token,
+          count: json.data.meta.count,
+          comment: json.data.meta.comment,
+          ports: json.data.meta.ports.join(','),
+          domains: json.data.meta.domains.join(','),
+          subdomains: json.data.meta.subdomains.join(','),
+          enable: json.data.meta.enable,
+          id: json.data.meta.id,
+        }
+        meta.value = cfg as FrpcConfiguration
+        console.log('meta', meta.value)
       } else {
         showErrorTips(json.msg)
+        meta.value = undefined
       }
+    })
+    .catch(() => {
+      meta.value = undefined
     })
     .finally(() => {
       loading.value = false
@@ -705,6 +742,7 @@ const upload = () => {
 }
 
 const fetchData = () => {
+  console.log('fetchData.meta', meta.value)
   fetch('../api/config', { credentials: 'include' })
     .then((res) => {
       return res.text()

@@ -480,3 +480,16 @@ export interface Version {
   hostName: string
   network: NetWork
 }
+
+export interface FrpcConfiguration {
+  user: string
+  token: string
+  comment: string
+  ports: string
+  domains: string
+  subdomains: string
+  enable: boolean
+  editable: boolean
+  count: number
+  id: string
+}

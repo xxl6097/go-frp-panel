@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/internal/com/model"
 	"github.com/xxl6097/go-frp-panel/pkg/comm"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
@@ -263,8 +265,24 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 		res.Err(fmt.Errorf("get executable path err: %v", err))
 		return
 	}
+
+	var u *model.User
+	var cfg v1.ClientConfig
+	err = utils.TomlTextToObject(body, &cfg)
+	if err == nil {
+		cfgData = &CfgModel{
+			Frpc: cfg,
+		}
+		u = frp.DecodeMetas(cfg.Metadatas)
+	}
+
 	//res.Raw = body
-	res.Any(string(body))
+	data := map[string]interface{}{
+		"toml": string(body),
+		"meta": u,
+	}
+	res.Any(data)
+	//res.Any(string(body))
 }
 
 func (this *frpc) upgradeMainTomlContent(content string) error {

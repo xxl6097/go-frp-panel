@@ -26,15 +26,16 @@ func (this *frps) handlers(helper *httppkg.RouterRegisterHelper) {
 }
 
 func decodeMetas(mapData map[string]string) *model.User {
-	v, ok := mapData["secret"]
-	if !ok {
-		return nil
-	}
-	buffer := frp.DecodeSecret(v)
-	if buffer == nil {
-		return nil
-	}
-	return &buffer.User
+	//v, ok := mapData["secret"]
+	//if !ok {
+	//	return nil
+	//}
+	//buffer := frp.DecodeSecret(v)
+	//if buffer == nil {
+	//	return nil
+	//}
+	//return &buffer.User
+	return frp.DecodeMetas(mapData)
 }
 
 func (c *frps) apiHandler(w http.ResponseWriter, r *http.Request) {
