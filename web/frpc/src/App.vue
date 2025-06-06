@@ -81,15 +81,11 @@
                 </el-descriptions-item>
               </el-descriptions>
             </template>
-            <a href="#">{{ title }}</a>
-          </el-tooltip>
-        </div>
-        <div class="dark-switch">
-          <div class="dark-reboot">
-            <el-dropdown placement="bottom" split-button plain @click="restart">
-              重启
+            <el-dropdown trigger="click">
+              <a href="#">{{ title }}</a>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
                   <el-dropdown-item @click="dialogFormVisible = true"
                     >升级服务
                   </el-dropdown-item>
@@ -109,7 +105,34 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </div>
+          </el-tooltip>
+        </div>
+        <div class="dark-switch">
+          <!--          <div class="dark-reboot">-->
+          <!--            <el-dropdown placement="bottom" split-button plain @click="restart">-->
+          <!--              重启-->
+          <!--              <template #dropdown>-->
+          <!--                <el-dropdown-menu>-->
+          <!--                  <el-dropdown-item @click="dialogFormVisible = true"-->
+          <!--                    >升级服务-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="checkVersion"-->
+          <!--                    >版本检测-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="handleClearData"-->
+          <!--                    >清空数据-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="showVersion"-->
+          <!--                    >查看版本-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="uninstall"-->
+          <!--                    >卸载自身-->
+          <!--                  </el-dropdown-item>-->
+          <!--                </el-dropdown-menu>-->
+          <!--              </template>-->
+          <!--            </el-dropdown>-->
+          <!--          </div>-->
           <el-switch
             v-model="darkmodeSwitch"
             active-text="深色"

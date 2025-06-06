@@ -11,37 +11,63 @@
     <header class="grid-content header-color">
       <div class="header-content">
         <div class="brand" @click="handleDevelopment">
-          <a href="#">{{ title }}</a>
+          <el-dropdown trigger="click">
+            <a href="#">{{ title }}</a>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
+                <el-dropdown-item @click="dialogFormVisible = true"
+                  >升级服务
+                </el-dropdown-item>
+                <el-dropdown-item @click="checkVersion"
+                  >版本检测
+                </el-dropdown-item>
+                <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
+                <el-dropdown-item @click="handleClearData"
+                  >清空数据
+                </el-dropdown-item>
+                <el-dropdown-item @click="dialogClientsVisible = true"
+                  >上传客户端
+                </el-dropdown-item>
+                <el-dropdown-item @click="frpsForm.isShow = true"
+                  >创建服务端
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleGithubKeySetting"
+                  >设置github
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
         <div class="dark-switch">
-          <div class="dark-reboot">
-            <el-dropdown placement="bottom" split-button plain @click="restart">
-              重启
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="dialogFormVisible = true"
-                    >升级服务
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="checkVersion"
-                    >版本检测
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
-                  <el-dropdown-item @click="handleClearData"
-                    >清空数据
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="dialogClientsVisible = true"
-                    >上传客户端
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="frpsForm.isShow = true"
-                    >创建服务端
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="handleGithubKeySetting"
-                    >设置github
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
+          <!--          <div class="dark-reboot">-->
+          <!--            <el-dropdown placement="bottom" split-button plain @click="restart">-->
+          <!--              重启-->
+          <!--              <template #dropdown>-->
+          <!--                <el-dropdown-menu>-->
+          <!--                  <el-dropdown-item @click="dialogFormVisible = true"-->
+          <!--                    >升级服务-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="checkVersion"-->
+          <!--                    >版本检测-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="handleClearData"-->
+          <!--                    >清空数据-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="dialogClientsVisible = true"-->
+          <!--                    >上传客户端-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="frpsForm.isShow = true"-->
+          <!--                    >创建服务端-->
+          <!--                  </el-dropdown-item>-->
+          <!--                  <el-dropdown-item @click="handleGithubKeySetting"-->
+          <!--                    >设置github-->
+          <!--                  </el-dropdown-item>-->
+          <!--                </el-dropdown-menu>-->
+          <!--              </template>-->
+          <!--            </el-dropdown>-->
+          <!--          </div>-->
           <el-switch
             v-model="darkmodeSwitch"
             active-text="深色"
@@ -420,7 +446,7 @@ const form = ref({
 })
 const menuIndex = ref('/')
 
-const title = ref<string>('rps')
+const title = ref<string>('frps')
 
 const doClientsUpload = async (options: any) => {
   const { file } = options
