@@ -166,3 +166,27 @@ func (this *frpc) apiProxyPorts(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Any(ports)
 }
+
+func (this *frpc) apiProxyGithubApi(w http.ResponseWriter, r *http.Request) {
+	res, f := comm.Response(r)
+	defer f(w)
+	body, err := utils.GetDataByJson[struct {
+		ProxyUrl string `json:"proxyUrl"`
+	}](r)
+
+	if err != nil {
+		res.Err(fmt.Errorf("解析数据失败: %v", err))
+		return
+	}
+	if body == nil {
+		res.Error("数据nil")
+		return
+	}
+	err = os.Setenv("GITHUB_API_PROXY", body.ProxyUrl)
+	if err != nil {
+		res.Err(err)
+	} else {
+		res.Ok("设置成功～")
+	}
+	glog.Debug("设置GITHUB_API_PROXY", err)
+}

@@ -102,6 +102,9 @@
                   <el-dropdown-item @click="uninstall"
                     >卸载自身
                   </el-dropdown-item>
+                  <el-dropdown-item @click="githubProxyForm.isShow = true"
+                    >设置proxy
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -247,6 +250,21 @@
       </el-descriptions-item>
     </el-descriptions>
   </el-dialog>
+
+  <!-- 填写云github proxy -->
+  <el-dialog
+    v-model="githubProxyForm.isShow"
+    title="设置github api代理"
+    width="500px"
+  >
+    <el-input
+      v-model="githubProxyForm.proxyUrl"
+      placeholder="请输入代理，为空则清除"
+    />
+    <template #footer>
+      <el-button type="primary" @click="handleNewGithubProxy">确定</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -261,10 +279,15 @@ import {
   showSucessTips,
   xhrPromise,
   Version,
+  showInfoTips,
 } from './utils/utils.ts'
 import { ComponentSize } from 'element-plus'
 import UpgradeDialog from './components/UpgradeDialog.vue'
 
+const githubProxyForm = ref({
+  proxyUrl: '',
+  isShow: false,
+})
 const customColors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
@@ -331,6 +354,26 @@ const showlog = () => {
 //     confirmButtonText: 'OK',
 //   })
 // }
+
+const handleNewGithubProxy = () => {
+  const data = {
+    proxyUrl: githubProxyForm.value.proxyUrl,
+  }
+  fetch(`../api/proxy/github/api`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      return response.json()
+    })
+    .then((json) => {
+      console.log('handleNewGithubProxy', json)
+      showInfoTips(json.msg)
+    })
+    .finally(() => {
+      githubProxyForm.value.isShow = false
+    })
+}
 
 const showVersion = () => {
   // versionDialogVisible.value = true
