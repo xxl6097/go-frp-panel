@@ -312,10 +312,10 @@ websocketID：${client.value?.secKey}<br>
       addLog(JSON.stringify(data))
       const type = Object.prototype.toString.call(data)
       if (type === '[object String]') {
-        console.log('[object String]', data)
+        console.log('字符串', data)
         showSucessTips(data)
       } else if (type === '[object Object]') {
-        console.log('[object Object]', data)
+        console.log('对象', data)
         const complexVersionRegex =
           /(\d+(?:\.\d+){1,3})(?:-[a-zA-Z0-9.]+)?(?:\+[a-zA-Z0-9.]+)?/
         const text = data.releaseNotes
@@ -339,8 +339,8 @@ websocketID：${client.value?.secKey}<br>
             })
         } else {
           showMessageDialog('版本升级', '升级', newVersionText).then(() => {
-            console.log('全量升级', data.binUrl)
-            handleConfirmUpgrade(data.binUrl)
+            console.log('2--全量升级', data.fullUrl)
+            handleConfirmUpgrade(data.fullUrl)
           })
         }
       }
