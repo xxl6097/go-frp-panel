@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/xxl6097/glog/glog"
 	_ "github.com/xxl6097/go-frp-panel/assets/buffer"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"net/http"
 )
 
@@ -64,7 +63,7 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 		w.WriteHeader(200)
 		var data []byte
 		if res.Data == nil {
-			res.Data = utils.GetTime()
+			//res.Data = utils.GetTime()
 		}
 		if res.Raw != nil {
 			data = res.Raw

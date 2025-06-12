@@ -1179,7 +1179,14 @@ func (this *frps) apiGithubKeySetting(w http.ResponseWriter, r *http.Request) {
 			glog.Debug("SaveWithGob", fpath)
 			res.Ok("设置成功～")
 		} else {
-			res.Error("github key无效")
+			err = os.RemoveAll(fpath)
+			if err == nil {
+				res.Ok("成功清空github key～")
+				os.Setenv("GITHUB_CLIENT_ID", "")
+				os.Setenv("GITHUB_CLIENT_SECRET", "")
+			} else {
+				res.Err(err)
+			}
 		}
 		break
 	default:

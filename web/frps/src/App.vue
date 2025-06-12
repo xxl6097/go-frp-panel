@@ -259,6 +259,7 @@
       </el-form-item>
     </el-form>
     <template #footer>
+      <el-button type="warning" @click="handleGithubKeySetting">清空</el-button>
       <el-button type="primary" @click="handleGithubKeySetting">确定</el-button>
     </template>
   </el-dialog>
@@ -359,8 +360,9 @@ const handleGithubKeySetting = () => {
             githubApiForm.value.clientId = json.data.clientId
             githubApiForm.value.clientSecret = json.data.clientSecret
           }
+        } else {
+          showTips(json.code, json.msg)
         }
-        showTips(json.code, json.msg)
       })
       .finally(() => {})
   }
