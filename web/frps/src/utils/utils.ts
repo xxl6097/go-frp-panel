@@ -5,6 +5,34 @@ export function deepCopyJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
 
+export function isMobilePhone() {
+  var ua = navigator.userAgent.toLowerCase()
+  return !!ua.match(/iOS|iPhone|Android|windows Phone|BB\d+/i)
+}
+
+export function copyToClipboard(text: string) {
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  let ok = false
+  try {
+    ok = document.execCommand('copy')
+    if (ok) {
+      showSucessTips('复制成功')
+    } else {
+      showErrorTips('复制失败')
+    }
+  } catch (err) {
+    console.error('Unable to copy to clipboard', err)
+    showErrorTips('复制失败' + JSON.stringify(err))
+    ok = false
+  }
+  document.body.removeChild(textArea)
+  return ok
+}
+
 export function markdownToHtml(markdown: string): string {
   const lines: string[] = markdown.split('\n')
   let html: string = ''
@@ -202,7 +230,6 @@ export function showMessageDialog(
     dangerouslyUseHTMLString: true,
   })
 }
-
 
 export function showMessageDialogWithCancel(
   title: string,

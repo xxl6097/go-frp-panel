@@ -127,13 +127,21 @@ func (this *frps) apiCreateFrpcToml(w http.ResponseWriter, r *http.Request) {
 		e = err
 		return
 	}
-	fileName := fmt.Sprintf("%s.%s.frpc.toml", body.ClientConfig.ServerAddr, body.UserConfig.User)
+
 	buffer := utils.ObjectToTomlText(body.ClientConfig)
-	w.Header().Add("Content-Transfer-Encoding", "binary")
-	w.Header().Add("Content-Type", "application/octet-stream")
-	w.Header().Add(`Content-Length`, strconv.Itoa(len(buffer)))
-	w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	_, _ = w.Write(buffer)
+	if r.Method == http.MethodPost {
+		fileName := fmt.Sprintf("%s.%s.frpc.toml", body.ClientConfig.ServerAddr, body.UserConfig.User)
+		w.Header().Add("Content-Transfer-Encoding", "binary")
+		w.Header().Add("Content-Type", "application/octet-stream")
+		w.Header().Add(`Content-Length`, strconv.Itoa(len(buffer)))
+		w.Header().Add(`Content-Disposition`, fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+		_, _ = w.Write(buffer)
+	} else if r.Method == http.MethodPut {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		_, _ = w.Write(buffer)
+	}
 }
 
 func (this *frps) apiCreateFrpcByUpload(w http.ResponseWriter, r *http.Request) {

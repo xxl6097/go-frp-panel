@@ -72,9 +72,7 @@
             </template>
           </el-popconfirm>
 
-          <!--          <el-button type="info" plain @click="genClientDialogVisible = true"-->
-          <!--            >测试-->
-          <!--          </el-button>-->
+          <!--          <el-button type="info" plain @click="drawer = true">测试</el-button>-->
         </el-button-group>
       </div>
     </el-header>
@@ -414,6 +412,7 @@
         </el-button>
 
         <el-button @click="downloadClientTomlFile">配置下载</el-button>
+        <el-button @click="showFrpcToml">显示配置</el-button>
         <el-button
           type="danger"
           @click="downloadClientByGen"
@@ -444,6 +443,27 @@
         <el-button type="primary" @click="handleUploadCloud">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-drawer
+      v-model="drawer"
+      :size="isMobilePhone() ? '100%' : '50%'"
+      :with-header="false"
+      :direction="direction"
+      :show-close="true"
+    >
+      <div style="margin-left: 8px">
+        <el-button type="success" @click="copyText(drawertextarea)"
+          >复制
+        </el-button>
+        <el-input
+          style="margin-top: 8px"
+          v-model="drawertextarea"
+          autosize
+          placeholder="frps configure file, can not be empty..."
+          type="textarea"
+        ></el-input>
+      </div>
+    </el-drawer>
   </el-container>
 </template>
 
@@ -460,8 +480,10 @@ import {
   showLoading,
   showTips,
   DownLoadFile,
+  isMobilePhone,
+  copyToClipboard,
 } from '../utils/utils.ts'
-import { ElButton, FormInstance, FormRules } from 'element-plus'
+import { DrawerProps, ElButton, FormInstance, FormRules } from 'element-plus'
 import router from '../router'
 import {
   FrpcConfiguration,
@@ -474,6 +496,10 @@ const innerGenBtn = ref<InstanceType<typeof ElButton>>()
 // const ops = ref({})
 const options = ref([])
 // const isLoading = ref<boolean>(false)
+
+const drawertextarea = ref('')
+const drawer = ref(false)
+const direction = ref<DrawerProps['direction']>('ltr')
 
 // 搜索关键字
 const searchKeyword = ref<string>('')
@@ -598,6 +624,15 @@ const submitForm = async (
   })
 }
 
+const copyText = (text: string) => {
+  drawer.value = false
+  genClientDialogVisible.value = false
+  return copyToClipboard(text)
+}
+const showDrawer = (text: string) => {
+  drawer.value = true
+  drawertextarea.value = text
+}
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   formEl.resetFields()
@@ -809,6 +844,21 @@ const downloadClientTomlFile = () => {
   })
 }
 
+const showFrpcToml = () => {
+  const data = createClientBodyData()
+  fetch('../api/client/toml', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      return response.text()
+    })
+    .then((text) => {
+      console.log('--->', text)
+      showDrawer(text)
+    })
+}
+
 // const handleGenClientByPut = (options: any) => {
 //   const { file } = options
 //   const body = {
@@ -836,16 +886,16 @@ const downloadClientTomlFile = () => {
 //   formData.append('data', JSON.stringify(data))
 //   //const loading = showLoading('用户导入中...')
 //   // 使用 fetch 发送请求
-//   // fetch('../api/client/gen', {
-//   //   method: 'PUT',
-//   //   body: formData,
-//   // })
-//   //   .then((response) => {
-//   //     return response.json()
-//   //   })
-//   //   .finally(() => {
-//   //     loading.close()
-//   //   })
+//   fetch('../api/client/gen', {
+//     method: 'PUT',
+//     body: formData,
+//   })
+//     .then((response) => {
+//       return response.json()
+//     })
+//     .finally(() => {
+//       loading.close()
+//     })
 //
 //   DownLoadFile('客户端生成中', 'PUT', '../api/client/gen', formData).finally(
 //     () => {},
