@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/avast/retry-go/v4"
 	"github.com/xxl6097/glog/glog"
+	"time"
 )
 
 func main() {
@@ -15,6 +17,14 @@ func main() {
 	//fmt.Println("cc.len", len(cc))
 	//dd, _ := utils.GzipDecompress(cc)
 	//fmt.Println("dd.len", len(dd))
-	fmt.Println("dd", glog.TempDir())
+	//fmt.Println("dd", glog.TempDir())
 
+	err := retry.Do(func() error {
+		fmt.Println("wahahhaha", glog.TempDir())
+		return fmt.Errorf("fawefe")
+	}, retry.Delay(time.Second), retry.Attempts(0))
+
+	if err != nil {
+		glog.Error("启动失败", err)
+	}
 }

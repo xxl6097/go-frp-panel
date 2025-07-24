@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/pkg/config"
@@ -23,6 +24,16 @@ import (
 	"time"
 )
 
+func (this *frpc) retry(cfgPath string) {
+	err := retry.Do(func() error {
+		return this.newClient(cfgPath)
+	}, retry.Delay(time.Second*5), retry.Attempts(0))
+
+	if err != nil {
+		glog.Error("启动失败", err)
+	}
+}
+
 func (this *frpc) runMultipleClients(cfgDir string) {
 	err := filepath.WalkDir(cfgDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -39,6 +50,7 @@ func (this *frpc) runMultipleClients(cfgDir string) {
 		err = this.newClient(path)
 		if err != nil {
 			glog.Errorf("创建客户端【%s】失败:%v", d.Name(), err)
+			go this.retry(path)
 		} else {
 			glog.Infof("创建客户端【%s】成功", d.Name())
 		}
@@ -86,6 +98,7 @@ func (this *frpc) startService(
 		proxyCfg:       proxyCfgs,
 		visitorCfg:     visitorCfgs,
 		configFilePath: cfgFile,
+		err:            nil,
 	}
 	name := path.Base(cfgFile)
 	this.svrs[name] = &fc
@@ -105,9 +118,11 @@ func (this *frpc) startService(
 	//	return e
 	//}, retry.Delay(time.Second*5), retry.Attempts(10))
 
+	fc.err = nil
 	e := svr.Run(context.Background())
 	if e != nil {
-		glog.Errorf("创建frpc客户端失败: %s %v\n", cfgFile, e)
+		glog.Errorf("[%s]创建客户端失败: %v\n", name, e)
+		fc.err = e
 	}
 	//因为Run是阻塞的，能执行到这一行，说明失败了
 	delete(this.svrs, name)
@@ -138,6 +153,9 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	cls := this.svrs[name]
 	if cls == nil {
 		return nil, fmt.Errorf("客户端未创建")
+	}
+	if cls.err != nil {
+		return nil, cls.err
 	}
 	svr := cls.svr
 	if svr == nil {
@@ -209,14 +227,14 @@ func (this *frpc) updateClient(cfgFilePath string) error {
 }
 
 func (this *frpc) upgradeMainConfig() error {
-	if this.cls == nil {
+	if this.mainFrpcClient == nil {
 		return fmt.Errorf("can't find client")
 	}
-	svr := this.cls.svr
+	svr := this.mainFrpcClient.svr
 	if svr == nil {
 		return fmt.Errorf("can't find service")
 	}
-	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(this.cls.configFilePath, true)
+	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(this.mainFrpcClient.configFilePath, true)
 	if err != nil {
 		return fmt.Errorf("reload frpc config error: %v", err)
 	}
@@ -235,7 +253,7 @@ func (this *frpc) getTcpProxyArray(name string) []int {
 	glog.Debug("info frpc", name)
 	var cls *frpClient
 	if name == "" {
-		cls = this.cls
+		cls = this.mainFrpcClient
 	} else {
 		cls = this.svrs[name]
 	}

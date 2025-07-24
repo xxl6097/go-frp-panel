@@ -99,7 +99,7 @@ func (this *frpc) apiProxyPortCheck(w http.ResponseWriter, r *http.Request) {
 	var host string
 	var cls *frpClient
 	if name == "" {
-		cls = this.cls
+		cls = this.mainFrpcClient
 	} else {
 		if v, ok := this.svrs[name]; ok {
 			cls = v

@@ -198,7 +198,7 @@ func (this *frpc) apiClientStatus(w http.ResponseWriter, r *http.Request) {
 	cfgFilePath := filepath.Join(cfgDir, cfgName)
 	buf, err := this.statusClient(cfgFilePath)
 	if err != nil {
-		res.Err(fmt.Errorf("get status client err: %v", err))
+		res.Err(err)
 		return
 	}
 	res.Raw = buf
@@ -287,7 +287,7 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 
 func (this *frpc) upgradeMainTomlContent(content string) error {
 	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
-	err := frp.WriteFrpToml(this.cls.configFilePath, content)
+	err := frp.WriteFrpToml(this.mainFrpcClient.configFilePath, content)
 	if err != nil {
 		return fmt.Errorf("write http body err: %v", err)
 	}

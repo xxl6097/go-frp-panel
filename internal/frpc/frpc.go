@@ -28,6 +28,7 @@ import (
 )
 
 type frpClient struct {
+	err            error
 	svr            *client.Service
 	config         *model.FrpcBuffer
 	configFilePath string
@@ -36,10 +37,10 @@ type frpClient struct {
 	visitorCfg     []v1.VisitorConfigurer
 }
 type frpc struct {
-	install igs.Service
-	upgrade iface.IComm
-	cls     *frpClient
-	svrs    map[string]*frpClient
+	install        igs.Service
+	upgrade        iface.IComm
+	mainFrpcClient *frpClient
+	svrs           map[string]*frpClient
 }
 
 func New(i igs.Service) (iface.IFrpc, error) {
@@ -86,7 +87,8 @@ func New(i igs.Service) (iface.IFrpc, error) {
 		install: i,
 		svrs:    make(map[string]*frpClient),
 		upgrade: comm2.NewCommApi(i),
-		cls: &frpClient{
+		mainFrpcClient: &frpClient{
+			err:            nil,
 			svr:            svr,
 			configFilePath: cfgFilePath,
 			cfg:            cfg,
@@ -95,7 +97,7 @@ func New(i igs.Service) (iface.IFrpc, error) {
 		},
 	}
 
-	decodeConfigAndRunWebSocket(this, this.cls)
+	decodeConfigAndRunWebSocket(this, this.mainFrpcClient)
 
 	shouldGracefulClose := cfg.Transport.Protocol == "kcp" || cfg.Transport.Protocol == "quic"
 	if shouldGracefulClose {
@@ -113,8 +115,25 @@ func New(i igs.Service) (iface.IFrpc, error) {
 
 	go this.runMultipleClients(cfgDir)
 	name := path.Base(cfgFilePath)
-	this.svrs[name] = this.cls
+	this.svrs[name] = this.mainFrpcClient
 	return this, nil
+}
+
+func (this *frpc) Run() error {
+	err := retry.Do(func() error {
+		this.mainFrpcClient.err = nil
+		e := this.mainFrpcClient.svr.Run(context.Background())
+		if e != nil {
+			glog.Errorf("mainfrpc 客户端连接失败[%s]: %v", this.mainFrpcClient.configFilePath, e)
+			this.mainFrpcClient.err = e
+		}
+		return e
+	}, retry.Delay(time.Second*5), retry.Attempts(0))
+
+	if err != nil {
+		glog.Error("启动失败", err)
+	}
+	return err
 }
 
 func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
@@ -146,19 +165,4 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 	svr.GracefulClose(500 * time.Millisecond)
-}
-
-func (this *frpc) Run() error {
-	err := retry.Do(func() error {
-		e := this.cls.svr.Run(context.Background())
-		if e != nil {
-			glog.Errorf("frpc客户端连接失败[%s]: %v", this.cls.configFilePath, e)
-		}
-		return e
-	}, retry.Delay(time.Second*5), retry.Attempts(10))
-
-	if err != nil {
-		glog.Error("启动失败", err)
-	}
-	return err
 }
