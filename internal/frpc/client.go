@@ -163,6 +163,7 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	}
 	ctl, err := utils.GetPointerInstance[client.Control]("ctl", svr)
 	if err != nil {
+		glog.Debug("GetPointerInstance[client.Control] err", err)
 		return nil, err
 	}
 	if ctl == nil {
@@ -170,6 +171,7 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	}
 	pm, err := utils.GetPointerInstance[proxy.Manager]("pm", ctl)
 	if err != nil {
+		glog.Debug("GetPointerInstance[proxy.Manager] err", err)
 		return nil, err
 	}
 	if pm == nil {
