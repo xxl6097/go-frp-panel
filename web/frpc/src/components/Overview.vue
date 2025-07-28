@@ -33,7 +33,7 @@
       <el-col :md="24">
         <div>
           <el-table
-            :data="status"
+            :data="frpcProxyList"
             stripe
             style="width: 100%"
             :default-sort="{ prop: 'type', order: 'ascending' }"
@@ -91,7 +91,7 @@ interface Option {
   label: string
 }
 
-const status = ref<any[]>([])
+const frpcProxyList = ref<any[]>([])
 const select_value = ref('')
 const options = ref<Option[]>([])
 const loading = ref<boolean>(false)
@@ -139,11 +139,12 @@ const fetchStatus = () => {
       //status.value = new Array()
       // status.value = []
       if (json.code === 0 && json.data) {
-        status.value.splice(0, status.value.length)
-        for (let key in json) {
-          for (let ps of json[key]) {
+        frpcProxyList.value.splice(0, frpcProxyList.value.length)
+        const data = json.data
+        for (let key in data) {
+          for (let ps of data[key]) {
             //console.log(ps)
-            status.value.push(ps)
+            frpcProxyList.value.push(ps)
           }
         }
       } else {
@@ -152,7 +153,7 @@ const fetchStatus = () => {
       }
     })
     .catch((err) => {
-      console.error('fetchStatus', err)
+      console.error('fetchStatus err', err)
       ElMessage({
         showClose: true,
         message: 'Get status info from frpc failed!' + err,
@@ -172,11 +173,12 @@ const fetchData = () => {
     .then((json) => {
       console.log('fetchData /api/status', json)
       //status.value = new Array()
-      status.value = []
+      // status.value = []
+      frpcProxyList.value.splice(0, frpcProxyList.value.length)
       for (let key in json) {
         for (let ps of json[key]) {
           //console.log(ps)
-          status.value.push(ps)
+          frpcProxyList.value.push(ps)
         }
       }
     })

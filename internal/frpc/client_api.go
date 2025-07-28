@@ -196,6 +196,7 @@ func (this *frpc) apiClientStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfgFilePath := filepath.Join(cfgDir, cfgName)
+	glog.Println("read status", cfgFilePath)
 	buf, err := this.statusClient(cfgFilePath)
 	if err != nil {
 		res.Err(err)

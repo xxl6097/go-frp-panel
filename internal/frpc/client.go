@@ -3,7 +3,6 @@ package frpc
 import (
 	"cmp"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
@@ -147,7 +146,7 @@ func (this *frpc) deleteClient(cfgFilePath string) error {
 	return nil
 }
 
-func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
+func (this *frpc) statusClient(cfgFilePath string) (map[string][]client.ProxyStatusResp, error) {
 	name := path.Base(cfgFilePath)
 	glog.Debug("status frpc", name)
 	cls := this.svrs[name]
@@ -178,14 +177,13 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 		return nil, fmt.Errorf("没有找到服务代理器")
 	}
 	var (
-		buf []byte
+		//buf []byte
 		res client.StatusResp = make(map[string][]client.ProxyStatusResp)
 	)
 	ps := pm.GetAllProxyStatus()
 	glog.Debug("GetAllProxyStatus", len(ps))
 	for _, status := range ps {
 		res[status.Type] = append(res[status.Type], client.NewProxyStatusResp(status, cls.cfg.ServerAddr))
-		glog.Debugf("GetAllProxyStatus %+v", status)
 	}
 
 	for _, arrs := range res {
@@ -196,12 +194,13 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
-	buf, err = json.Marshal(&res)
-	if err != nil {
-		glog.Errorf("json error: %v", err)
-		return nil, err
-	}
-	return buf, nil
+	//buf, err = json.Marshal(&res)
+	//if err != nil {
+	//	glog.Errorf("json error: %v", err)
+	//	return nil, err
+	//}
+	//return buf, nil
+	return res, nil
 }
 
 func (this *frpc) updateClient(cfgFilePath string) error {
