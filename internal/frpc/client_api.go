@@ -201,7 +201,8 @@ func (this *frpc) apiClientStatus(w http.ResponseWriter, r *http.Request) {
 		res.Err(err)
 		return
 	}
-	res.Raw = buf
+	//res.Raw = buf
+	res.Any(buf)
 }
 
 func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {

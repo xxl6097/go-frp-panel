@@ -22,11 +22,11 @@
       <template #content>
         <div class="flex items-center">
           <el-button type="success" :loading="loading" @click="refresh" plain
-            >刷新</el-button
-          >
-        </div></template
-      >
-      <template #extra> </template>
+            >刷新
+          </el-button>
+        </div>
+      </template>
+      <template #extra></template>
     </el-page-header>
 
     <el-row>
@@ -84,10 +84,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { showWarmDialog } from '../utils/utils.ts'
+
 interface Option {
   value: string
   label: string
 }
+
 const status = ref<any[]>([])
 const select_value = ref('')
 const options = ref<Option[]>([])
@@ -118,6 +121,7 @@ const fetchListData = () => {
       return res.json()
     })
     .then((json) => {
+      console.log('fetchListData api/client/list', json)
       if (json.code === 0) {
         options.value = json.data
       }
@@ -133,12 +137,18 @@ const fetchStatus = () => {
     .then((json) => {
       console.log('fetchStatus', json)
       //status.value = new Array()
-      status.value = []
-      for (let key in json) {
-        for (let ps of json[key]) {
-          //console.log(ps)
-          status.value.push(ps)
+      // status.value = []
+      if (json.code === 0 && json.data) {
+        status.value.splice(0, status.value.length)
+        for (let key in json) {
+          for (let ps of json[key]) {
+            //console.log(ps)
+            status.value.push(ps)
+          }
         }
+      } else {
+        // showTips(json.code, json.msg)
+        showWarmDialog(json.msg, {}, {})
       }
     })
     .catch((err) => {
@@ -160,7 +170,7 @@ const fetchData = () => {
       return res.json()
     })
     .then((json) => {
-      console.log('fetchData', json)
+      console.log('fetchData /api/status', json)
       //status.value = new Array()
       status.value = []
       for (let key in json) {

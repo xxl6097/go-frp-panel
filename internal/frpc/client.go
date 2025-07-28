@@ -125,7 +125,7 @@ func (this *frpc) startService(
 		fc.err = e
 	}
 	//因为Run是阻塞的，能执行到这一行，说明失败了
-	delete(this.svrs, name)
+	//delete(this.svrs, name) // 注释掉，不然获取不到最新的错误信息
 	return e
 }
 
@@ -185,6 +185,7 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 	glog.Debug("GetAllProxyStatus", len(ps))
 	for _, status := range ps {
 		res[status.Type] = append(res[status.Type], client.NewProxyStatusResp(status, cls.cfg.ServerAddr))
+		glog.Debugf("GetAllProxyStatus %+v", status)
 	}
 
 	for _, arrs := range res {
@@ -195,8 +196,11 @@ func (this *frpc) statusClient(cfgFilePath string) ([]byte, error) {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
-	glog.Infof("Http response [/api/status]")
-	buf, _ = json.Marshal(&res)
+	buf, err = json.Marshal(&res)
+	if err != nil {
+		glog.Errorf("json error: %v", err)
+		return nil, err
+	}
 	return buf, nil
 }
 

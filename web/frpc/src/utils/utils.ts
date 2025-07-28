@@ -169,10 +169,14 @@ export function showWarmDialog(title: string, ok: any, cancel: any) {
     type: 'warning',
   })
     .then(() => {
-      ok()
+      if (ok) {
+        ok()
+      }
     })
     .catch(() => {
-      cancel()
+      if (cancel) {
+        cancel()
+      }
     })
 }
 
