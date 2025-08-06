@@ -39,13 +39,22 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button
-            type="primary"
-            :name="scope.row.name"
-            style="margin-bottom: 10px"
-            @click="handleButton(scope.row)"
-            >流量
-          </el-button>
+          <el-dropdown split-button type="primary">
+            <el-button
+              type="primary"
+              :name="scope.row.name"
+              style="margin-bottom: 10px"
+              @click="handleButton(scope.row)"
+              >流量
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="handleWeb(scope.row)"
+                  >浏览
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
@@ -88,5 +97,11 @@ const formatTrafficOut = (row: BaseProxy, _: TableColumnCtx<BaseProxy>) => {
 function handleButton(row: BaseProxy) {
   dialogVisibleName.value = row.name
   dialogVisible.value = true
+}
+
+function handleWeb(row: BaseProxy) {
+  window.open(
+    `${window.location.protocol}//${window.location.hostname}:${row.port}`,
+  )
 }
 </script>
