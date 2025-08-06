@@ -1,4 +1,13 @@
+import { GetPreName } from './utils.ts'
+
+// export interface ProxyConfig {
+//   name: string
+//   size: number
+//   baseProxy: []BaseProxy
+// }
+
 class BaseProxy {
+  baseName: string
   name: string
   type: string
   annotations: Map<string, string>
@@ -21,6 +30,7 @@ class BaseProxy {
 
   constructor(proxyStats: any) {
     this.name = proxyStats.name
+    this.baseName = GetPreName(proxyStats.name)
     this.type = ''
     this.annotations = new Map<string, string>()
     if (proxyStats.conf?.annotations) {
@@ -49,6 +59,18 @@ class BaseProxy {
     this.hostHeaderRewrite = ''
     this.locations = ''
     this.subdomain = ''
+  }
+}
+
+class ProxyConfig {
+  name: string
+  size: number
+  list: BaseProxy[]
+
+  constructor(name: string, proxyStats: BaseProxy[]) {
+    this.list = proxyStats
+    this.size = proxyStats.length
+    this.name = name
   }
 }
 
@@ -155,4 +177,5 @@ export {
   HTTPSProxy,
   STCPProxy,
   SUDPProxy,
+  ProxyConfig,
 }

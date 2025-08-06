@@ -786,3 +786,12 @@ export function isJSONString(str: any) {
     return false
   }
 }
+
+export function GetPreName(str: string): string {
+  if (!str) return str
+  const parts = str.split('.')
+  if (parts.length <= 0) {
+    return ''
+  }
+  return parts[0]
+}

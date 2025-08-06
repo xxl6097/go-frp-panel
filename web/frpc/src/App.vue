@@ -311,8 +311,12 @@ const showVersion = () => {
       return res.json()
     })
     .then((json) => {
-      version.value = json
-      versionDialogVisible.value = true
+      console.log('showVersion', json)
+      if (json.code === 0 && json.data) {
+        version.value = json
+        versionDialogVisible.value = true
+      }
+      showTips(json.code, json.msg)
     })
     .catch(() => {
       showErrorTips('失败')
