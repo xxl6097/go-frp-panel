@@ -39,14 +39,19 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-dropdown split-button type="primary">
-            <el-button
-              type="primary"
-              :name="scope.row.name"
-              style="margin-bottom: 10px"
-              @click="handleButton(scope.row)"
-              >流量
-            </el-button>
+          <el-dropdown
+            split-button
+            type="primary"
+            @click="handleButton(scope.row)"
+          >
+            <!--            <el-button-->
+            <!--              type="primary"-->
+            <!--              :name="scope.row.name"-->
+            <!--              style="margin-bottom: 10px"-->
+            <!--              -->
+            <!--              >流量-->
+            <!--            </el-button>-->
+            流量
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="handleWeb(scope.row)"
