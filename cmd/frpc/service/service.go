@@ -20,6 +20,14 @@ type Service struct {
 	wsc *v1.WebServerConfig
 }
 
+func (this *Service) OnStop() {
+	//TODO implement me
+}
+
+func (this *Service) OnShutdown() {
+	//TODO implement me
+}
+
 func (this *Service) OnFinish() {
 	if this.wsc != nil {
 		face, e := utils.GetDeviceInfo()
