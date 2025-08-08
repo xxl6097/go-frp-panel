@@ -3,7 +3,9 @@ package frpc
 import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/gs"
 	"net/http"
 )
 
@@ -30,11 +32,15 @@ func (this *frpc) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	subRouter.HandleFunc("/api/clear", this.upgrade.ApiClear).Methods("DELETE")
 	// apis
 	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")
-	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
-	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
+	//subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
+	//subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
+	//subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
-	subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
 	subRouter.HandleFunc("/api/uninstall", this.upgrade.ApiUninstall).Methods("GET")
+
+	subRouter.HandleFunc("/api/checkversion", gs.ApiCheckVersion(pkg.BinName)).Methods("GET")
+	subRouter.HandleFunc("/api/upgrade", gs.ApiUpdate(this.install)).Methods("POST")
+	subRouter.HandleFunc("/api/upgrade", gs.ApiUpdate(this.install)).Methods("PUT")
 
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("PUT")
 	subRouter.HandleFunc("/api/client/create", this.apiClientCreate).Methods("POST")

@@ -3,7 +3,9 @@ package frps
 import (
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/xxl6097/glog/glog"
+	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	"github.com/xxl6097/go-service/pkg/gs"
 	"net/http"
 )
 
@@ -25,18 +27,26 @@ func (this *frps) adminHandlers(helper *httppkg.RouterRegisterHelper) {
 	// apis
 	//subRouter.HandleFunc("/api/panelinfo", this.apiPanelinfo).Methods("GET")
 	subRouter.HandleFunc("/api/restart", this.upgrade.ApiRestart).Methods("GET")
-	subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
 	subRouter.HandleFunc("/api/shutdown", this.apiShutdown).Methods("GET")
 	subRouter.HandleFunc("/api/uninstall", this.upgrade.ApiUninstall).Methods("GET")
 	subRouter.HandleFunc("/api/clear", this.upgrade.ApiClear).Methods("DELETE")
 	subRouter.HandleFunc("/api/version", this.upgrade.ApiVersion).Methods("GET")
-	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
+	//subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
+	//subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
 	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
 	subRouter.HandleFunc("/api/server/config/get", this.apiServerConfigGet).Methods("GET")
 	subRouter.HandleFunc("/api/server/config/set", this.apiServerConfigSet).Methods("PUT")
 	subRouter.HandleFunc("/api/proxy/{type}", this.apiProxyByType).Methods("GET")
 	subRouter.HandleFunc("/api/bindinfo", this.apiBindInfo).Methods("GET")
 	subRouter.HandleFunc("/api/env", this.apiEnv).Methods("GET")
+
+	subRouter.HandleFunc("/api/checkversion", this.upgrade.ApiCheckVersion).Methods("GET")
+	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("POST")
+	subRouter.HandleFunc("/api/upgrade", this.upgrade.ApiUpdate).Methods("PUT")
+
+	subRouter.HandleFunc("/api/checkversion", gs.ApiCheckVersion(pkg.BinName)).Methods("GET")
+	subRouter.HandleFunc("/api/upgrade", gs.ApiUpdate(this.install)).Methods("POST")
+	subRouter.HandleFunc("/api/upgrade", gs.ApiUpdate(this.install)).Methods("PUT")
 }
 
 func (this *frps) userHandlers(helper *httppkg.RouterRegisterHelper) {
