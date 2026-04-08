@@ -1,0 +1,67 @@
+import { ProgressColor, ProgressFn, ProgressProps } from "./progress.js";
+import * as vue from "vue";
+
+//#region ../../packages/components/progress/src/progress.vue.d.ts
+declare var __VLS_1: {
+    percentage: number;
+  }, __VLS_3: {
+    percentage: number;
+  };
+type __VLS_Slots = {} & {
+  default?: (props: typeof __VLS_1) => any;
+} & {
+  default?: (props: typeof __VLS_3) => any;
+};
+declare const __VLS_base: vue.DefineComponent<__VLS_WithDefaults<__VLS_TypePropsToOption<ProgressProps>, {
+  type: string;
+  percentage: number;
+  status: string;
+  duration: number;
+  strokeWidth: number;
+  strokeLinecap: string;
+  width: number;
+  showText: boolean;
+  color: string;
+  format: (percentage: number) => string;
+}>, unknown, unknown, {}, {}, vue.ComponentOptionsMixin, vue.ComponentOptionsMixin, {}, string, vue.PublicProps, Readonly<vue.ExtractPropTypes<__VLS_WithDefaults<__VLS_TypePropsToOption<ProgressProps>, {
+  type: string;
+  percentage: number;
+  status: string;
+  duration: number;
+  strokeWidth: number;
+  strokeLinecap: string;
+  width: number;
+  showText: boolean;
+  color: string;
+  format: (percentage: number) => string;
+}>>>, {
+  type: "line" | "circle" | "dashboard";
+  color: string | ProgressColor[] | ProgressFn;
+  strokeLinecap: NonNullable<vue.SVGAttributes["stroke-linecap"]>;
+  strokeWidth: number;
+  width: number;
+  format: ProgressFn;
+  percentage: number;
+  status: "" | "success" | "exception" | "warning";
+  duration: number;
+  showText: boolean;
+}, {}>;
+declare const __VLS_export: __VLS_WithSlots<typeof __VLS_base, __VLS_Slots>;
+declare const _default: typeof __VLS_export;
+type __VLS_TypePropsToOption<T> = { [K in keyof T]-?: {} extends Pick<T, K> ? {
+  type: vue.PropType<Required<T>[K]>;
+} : {
+  type: vue.PropType<T[K]>;
+  required: true;
+} };
+type __VLS_WithDefaults<P, D> = { [K in keyof Pick<P, keyof P>]: K extends keyof D ? __VLS_PrettifyLocal<P[K] & {
+  default: D[K];
+}> : P[K] };
+type __VLS_WithSlots<T, S> = T & {
+  new (): {
+    $slots: S;
+  };
+};
+type __VLS_PrettifyLocal<T> = (T extends any ? { [K in keyof T]: T[K] } : { [K in keyof T as K]: T[K] }) & {};
+//#endregion
+export { _default };

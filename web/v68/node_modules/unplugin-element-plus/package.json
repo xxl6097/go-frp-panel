@@ -1,0 +1,92 @@
+{
+  "name": "unplugin-element-plus",
+  "type": "module",
+  "version": "0.11.2",
+  "description": "Import Element Plus on demand. Support Vite, Webpack, Vue CLI, Rollup and esbuild.",
+  "license": "MIT",
+  "homepage": "https://github.com/element-plus/unplugin-element-plus/tree/main/#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/element-plus/unplugin-element-plus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/element-plus/unplugin-element-plus/issues"
+  },
+  "keywords": [
+    "element-plus",
+    "unplugin",
+    "vite",
+    "webpack",
+    "rollup",
+    "esbuild",
+    "plugin"
+  ],
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./esbuild": "./dist/esbuild.mjs",
+    "./nuxt": "./dist/nuxt.mjs",
+    "./rolldown": "./dist/rolldown.mjs",
+    "./rollup": "./dist/rollup.mjs",
+    "./rspack": "./dist/rspack.mjs",
+    "./vite": "./dist/vite.mjs",
+    "./webpack": "./dist/webpack.mjs",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^4.2.2",
+    "es-module-lexer": "^2.0.0",
+    "escape-string-regexp": "^5.0.0",
+    "rolldown-string": "^0.2.1",
+    "unplugin": "^2.3.11"
+  },
+  "devDependencies": {
+    "@nuxt/schema": "^4.2.2",
+    "@sxzz/eslint-config": "^7.4.3",
+    "@sxzz/prettier-config": "^2.2.6",
+    "@sxzz/test-utils": "^0.5.14",
+    "@types/node": "^25.0.2",
+    "@typescript/native-preview": "7.0.0-dev.20251215.1",
+    "@vitest/ui": "^4.0.15",
+    "bumpp": "^10.3.2",
+    "esbuild": "~0.27.1",
+    "eslint": "^9.39.2",
+    "prettier": "^3.7.4",
+    "tsdown": "^0.18.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.15"
+  },
+  "prettier": "@sxzz/prettier-config",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "pnpm run lint --fix",
+    "build": "tsdown",
+    "build:examples": "pnpm --filter \"./examples/*\" build",
+    "dev": "tsdown --watch",
+    "release": "bumpp",
+    "vite:build": "npm -C examples/vite run build",
+    "vite:dev": "npm -C examples/vite run dev",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest"
+  }
+}

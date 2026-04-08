@@ -1,0 +1,63 @@
+import { Mutable } from "../../../utils/typescript.js";
+import "../../../utils/index.js";
+import { TransferDataItem, TransferFormat, TransferKey, TransferPropsAlias } from "./transfer.js";
+import { TransferPanelProps } from "./transfer-panel.js";
+import "../../../index.js";
+import * as vue from "vue";
+
+//#region ../../packages/components/transfer/src/transfer-panel.vue.d.ts
+declare var __VLS_31: {}, __VLS_33: {};
+type __VLS_Slots = {} & {
+  empty?: (props: typeof __VLS_31) => any;
+} & {
+  default?: (props: typeof __VLS_33) => any;
+};
+declare const __VLS_base: vue.DefineComponent<__VLS_WithDefaults<__VLS_TypePropsToOption<TransferPanelProps>, {
+  data: () => never[];
+  format: () => {};
+  defaultChecked: () => never[];
+  props: () => Mutable<{
+    label: string;
+    key: string;
+    disabled: string;
+  }>;
+}>, {
+  /** @description filter keyword */query: vue.Ref<string>;
+}, unknown, {}, {}, vue.ComponentOptionsMixin, vue.ComponentOptionsMixin, {
+  "checked-change": (value: TransferKey[], movedKeys?: TransferKey[] | undefined) => void;
+}, string, vue.PublicProps, Readonly<vue.ExtractPropTypes<__VLS_WithDefaults<__VLS_TypePropsToOption<TransferPanelProps>, {
+  data: () => never[];
+  format: () => {};
+  defaultChecked: () => never[];
+  props: () => Mutable<{
+    label: string;
+    key: string;
+    disabled: string;
+  }>;
+}>>> & {
+  "onChecked-change"?: ((value: TransferKey[], movedKeys?: TransferKey[] | undefined) => any) | undefined;
+}, {
+  props: TransferPropsAlias;
+  data: TransferDataItem[];
+  format: TransferFormat;
+  defaultChecked: TransferKey[];
+}, {}>;
+declare const __VLS_export: __VLS_WithSlots<typeof __VLS_base, __VLS_Slots>;
+declare const _default: typeof __VLS_export;
+type __VLS_TypePropsToOption<T> = { [K in keyof T]-?: {} extends Pick<T, K> ? {
+  type: vue.PropType<Required<T>[K]>;
+} : {
+  type: vue.PropType<T[K]>;
+  required: true;
+} };
+type __VLS_WithDefaults<P, D> = { [K in keyof Pick<P, keyof P>]: K extends keyof D ? __VLS_PrettifyLocal<P[K] & {
+  default: D[K];
+}> : P[K] };
+type __VLS_WithSlots<T, S> = T & {
+  new (): {
+    $slots: S;
+  };
+};
+type __VLS_PrettifyLocal<T> = (T extends any ? { [K in keyof T]: T[K] } : { [K in keyof T as K]: T[K] }) & {};
+//#endregion
+export { _default };

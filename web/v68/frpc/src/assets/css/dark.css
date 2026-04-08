@@ -1,0 +1,193 @@
+/* Dark mode styles */
+html.dark {
+  --el-bg-color: #212121;
+  --el-bg-color-page: #181818;
+  --el-bg-color-overlay: #303030;
+  --el-fill-color-blank: #212121;
+  --el-border-color: #404040;
+  --el-border-color-light: #353535;
+  --el-border-color-lighter: #2a2a2a;
+  --el-text-color-primary: #e5e7eb;
+  --el-text-color-secondary: #888888;
+  --el-text-color-placeholder: #afafaf;
+  background-color: #212121;
+  color-scheme: dark;
+}
+
+/* Scrollbar */
+html.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #303030;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 3px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+/* Form */
+html.dark .el-form-item__label {
+  color: #e5e7eb;
+}
+
+/* Input */
+html.dark .el-input__wrapper {
+  background: var(--color-bg-input);
+  box-shadow: 0 0 0 1px #404040 inset;
+}
+
+html.dark .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px #505050 inset;
+}
+
+html.dark .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+html.dark .el-input__inner {
+  color: #e5e7eb;
+}
+
+html.dark .el-input__inner::placeholder {
+  color: #afafaf;
+}
+
+html.dark .el-textarea__inner {
+  background: var(--color-bg-input);
+  box-shadow: 0 0 0 1px #404040 inset;
+  color: #e5e7eb;
+}
+
+html.dark .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #505050 inset;
+}
+
+html.dark .el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* Select */
+html.dark .el-select__wrapper {
+  background: var(--color-bg-input);
+  box-shadow: 0 0 0 1px #404040 inset;
+}
+
+html.dark .el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px #505050 inset;
+}
+
+html.dark .el-select__selected-item {
+  color: #e5e7eb;
+}
+
+html.dark .el-select__placeholder {
+  color: #afafaf;
+}
+
+html.dark .el-select-dropdown {
+  background: #303030;
+  border-color: #404040;
+}
+
+html.dark .el-select-dropdown__item {
+  color: #e5e7eb;
+}
+
+html.dark .el-select-dropdown__item:hover {
+  background: #3a3a3a;
+}
+
+html.dark .el-select-dropdown__item.is-selected {
+  color: var(--el-color-primary);
+}
+
+html.dark .el-select-dropdown__item.is-disabled {
+  color: #666666;
+}
+
+/* Tag */
+html.dark .el-tag--info {
+  background: #303030;
+  border-color: #404040;
+  color: #b0b0b0;
+}
+
+/* Button */
+html.dark .el-button--default {
+  background: #303030;
+  border-color: #404040;
+  color: #e5e7eb;
+}
+
+html.dark .el-button--default:hover {
+  background: #3a3a3a;
+  border-color: #505050;
+  color: #e5e7eb;
+}
+
+/* Card */
+html.dark .el-card {
+  background: #212121;
+  border-color: #353535;
+  color: #b0b0b0;
+}
+
+html.dark .el-card__header {
+  border-bottom-color: #353535;
+  color: #e5e7eb;
+}
+
+/* Dialog */
+html.dark .el-dialog {
+  background: #212121;
+}
+
+html.dark .el-dialog__title {
+  color: #e5e7eb;
+}
+
+/* Message */
+html.dark .el-message {
+  background: #303030;
+  border-color: #404040;
+}
+
+html.dark .el-message--success {
+  background: #1e3d2e;
+  border-color: #3d6b4f;
+}
+
+html.dark .el-message--warning {
+  background: #3d3020;
+  border-color: #6b5020;
+}
+
+html.dark .el-message--error {
+  background: #3d2027;
+  border-color: #5c2d2d;
+}
+
+/* Loading */
+html.dark .el-loading-mask {
+  background-color: rgba(33, 33, 33, 0.9);
+}
+
+/* Overlay */
+html.dark .el-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Tooltip */
+html.dark .el-tooltip__popper {
+  background: #303030 !important;
+  border-color: #404040 !important;
+  color: #e5e7eb !important;
+}

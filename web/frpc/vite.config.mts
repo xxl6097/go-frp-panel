@@ -25,7 +25,7 @@ export default defineConfig({
   },
   build: {
     assetsDir: '',
-    outDir: '../../assets/frpc/static', // 默认打包路径
+    outDir: '../../assets/frpc/dist', // 默认打包路径
     emptyOutDir: true,
   },
 })

@@ -1,5 +1,8 @@
 .PHONY: dist build preview lint
 
+install:
+	@npm run install
+
 build:
 	@npm run build
 
