@@ -2,6 +2,7 @@ package frps
 
 import (
 	"embed"
+
 	"github.com/fatedier/frp/assets"
 )
 

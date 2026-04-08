@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/xxl6097/go-frp-panel/cmd"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	frps2 "github.com/xxl6097/go-frp-panel/pkg/frp/frps"
 	"github.com/xxl6097/go-service/pkg/github"
-	"os"
-	"path/filepath"
 )
 
 func init() {

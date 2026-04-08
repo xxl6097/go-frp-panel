@@ -8,6 +8,7 @@ import (
 
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
+	"github.com/fatedier/frp/pkg/policy/security"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	logfrps "github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatedier/frp/pkg/util/system"
@@ -20,6 +21,10 @@ import (
 	"github.com/xxl6097/go-frp-panel/pkg/model"
 	"github.com/xxl6097/go-frp-panel/pkg/utils"
 	"github.com/xxl6097/go-service/pkg/gs/igs"
+)
+
+var (
+	allowUnsafe []string
 )
 
 type frps struct {
@@ -83,9 +88,19 @@ func New(cfg *v1.ServerConfig, install igs.Service) (iface2.IFrps, error) {
 	//	return nil, err
 	//}
 	cfg.Complete()
-	warning, err := validation.ValidateServerConfig(cfg)
+	//warning, err := validation.ValidateServerConfig(cfg)
+	unsafeFeatures := security.NewUnsafeFeatures(allowUnsafe)
+	validator := validation.NewConfigValidator(unsafeFeatures)
+	warning, err := validator.ValidateServerConfig(cfg)
 	if warning != nil {
 		fmt.Printf("WARNING: %v\n", warning)
+	}
+
+	if warning != nil {
+		fmt.Printf("WARNING: %v\n", warning)
+	}
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	system.EnableCompatibilityMode()
