@@ -15,6 +15,7 @@ import (
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
+	"github.com/fatedier/frp/pkg/policy/security"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatedier/frp/pkg/util/system"
@@ -29,13 +30,15 @@ import (
 )
 
 type frpClient struct {
-	err            error
-	svr            *client.Service
-	config         *model.FrpcBuffer
-	configFilePath string
-	cfg            *v1.ClientCommonConfig
-	proxyCfg       []v1.ProxyConfigurer
-	visitorCfg     []v1.VisitorConfigurer
+	err              error
+	svr              *client.Service
+	config           *model.FrpcBuffer
+	configFilePath   string
+	allowUnsafe      []string
+	strictConfigMode bool
+	cfg              *v1.ClientCommonConfig
+	proxyCfg         []v1.ProxyConfigurer
+	visitorCfg       []v1.VisitorConfigurer
 }
 type frpc struct {
 	install        igs.Service
