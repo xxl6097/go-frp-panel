@@ -43,6 +43,8 @@ export default defineConfig({
   },
   build: {
     assetsDir: '',
+    outDir: '../../../assets/frpc/dist', // 默认打包路径
+    emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     terserOptions: {

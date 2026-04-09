@@ -2,10 +2,11 @@ package frpc
 
 import (
 	"embed"
+
 	"github.com/fatedier/frp/assets"
 )
 
-//go:embed static/*
+//go:embed dist/*
 var content embed.FS
 
 func init() {
