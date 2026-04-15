@@ -37,7 +37,7 @@ func (this *frpc) apiClientCreate(w http.ResponseWriter, r *http.Request) {
 	var newFilePath string
 	cfgDir, err := frp.GetFrpcTomlDir()
 	if err != nil {
-		res.Err(fmt.Errorf("check config dir err: %v", err))
+		res.Err(fmt.Errorf("check adminConfig dir err: %v", err))
 		return
 	}
 
@@ -171,7 +171,7 @@ func (this *frpc) apiClientDelete(w http.ResponseWriter, r *http.Request) {
 	cfgFilePath := filepath.Join(cfgDir, cfgName)
 	err = os.Remove(cfgFilePath)
 	if err != nil {
-		res.Err(fmt.Errorf("delete config file err: %v", err))
+		res.Err(fmt.Errorf("delete adminConfig file err: %v", err))
 		return
 	}
 	err = this.deleteClient(cfgFilePath)
@@ -221,7 +221,7 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 	if utils.IsDirectoryExist(cfgDir) {
 		files, err := os.ReadDir(cfgDir)
 		if err != nil {
-			res.Err(fmt.Errorf("read config dir err: %v", err))
+			res.Err(fmt.Errorf("read adminConfig dir err: %v", err))
 			return
 		}
 
@@ -243,7 +243,7 @@ func (this *frpc) apiClientList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frpc) getClientMainConfig() ([]byte, error) {
-	//body, err := utils.ReadToml(this.cls.configFilePath)
+	//body, err := utils.ReadToml(this.cls.cfgFilePath)
 	//if err != nil {
 	//	return nil, fmt.Errorf("write http body err: %v", err)
 	//}
@@ -290,8 +290,8 @@ func (this *frpc) apiClientConfigGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *frpc) upgradeMainTomlContent(content string) error {
-	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
-	err := frp.WriteFrpToml(this.mainFrpcClient.configFilePath, content)
+	//err := utils.WriteToml(this.cls.cfgFilePath, []byte(content))
+	err := frp.WriteFrpToml(this.mainFrpcClient.cfgFilePath, content)
 	if err != nil {
 		return fmt.Errorf("write http body err: %v", err)
 	}
@@ -314,7 +314,7 @@ func (this *frpc) clientNew(name, content string) error {
 	if err != nil {
 		return fmt.Errorf("write http body err: %v", err)
 	}
-	z.Infof("create config file: %s", cfgPath)
+	z.Infof("create adminConfig file: %s", cfgPath)
 	err = this.newClient(cfgPath)
 	if err != nil {
 		return fmt.Errorf("run client err: %v", err)
@@ -330,7 +330,7 @@ func (this *frpc) clientDelete(name string) error {
 	if err != nil {
 		return fmt.Errorf("get executable path err: %v", err)
 	}
-	z.Infof("delete config file: %s", cfgPath)
+	z.Infof("delete adminConfig file: %s", cfgPath)
 	err = this.deleteClient(cfgPath)
 	if err != nil {
 		return fmt.Errorf("run client err: %v", err)
@@ -339,7 +339,7 @@ func (this *frpc) clientDelete(name string) error {
 }
 
 func (this *frpc) upgradeTomlContent(name, content string) error {
-	//err := utils.WriteToml(this.cls.configFilePath, []byte(content))
+	//err := utils.WriteToml(this.cls.cfgFilePath, []byte(content))
 	if filepath.Ext(name) != ".toml" {
 		name = fmt.Sprintf("%s.toml", name)
 	}
@@ -405,7 +405,7 @@ func (this *frpc) apiClientConfigExport(w http.ResponseWriter, r *http.Request) 
 	}
 	var zipFilePath string
 	fileName := fmt.Sprintf("config_%s.zip", utils.GetFileNameByTime())
-	tempDir := zutil.AppHome("config")
+	tempDir := zutil.AppHome("adminConfig")
 	zipFilePath = filepath.Join(tempDir, fileName)
 	err = utils.Zip(cfgDir, zipFilePath)
 	if err != nil {

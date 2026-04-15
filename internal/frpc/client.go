@@ -80,8 +80,8 @@ func (this *frpc) startService(
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
 
 	if cfgFile != "" {
-		log.Infof("start frpc service for config file [%s]", cfgFile)
-		defer log.Infof("frpc service for config file [%s] stopped", cfgFile)
+		log.Infof("start frpc service for adminConfig file [%s]", cfgFile)
+		defer log.Infof("frpc service for adminConfig file [%s] stopped", cfgFile)
 	}
 
 	svr, err := client.NewService(client.ServiceOptions{
@@ -94,12 +94,12 @@ func (this *frpc) startService(
 		return err
 	}
 	fc := frpClient{
-		svr:            svr,
-		cfg:            cfg,
-		proxyCfg:       proxyCfgs,
-		visitorCfg:     visitorCfgs,
-		configFilePath: cfgFile,
-		err:            nil,
+		svr:         svr,
+		cfg:         cfg,
+		proxyCfg:    proxyCfgs,
+		visitorCfg:  visitorCfgs,
+		cfgFilePath: cfgFile,
+		err:         nil,
 	}
 	name := path.Base(cfgFile)
 	this.svrs[name] = &fc
@@ -218,14 +218,14 @@ func (this *frpc) updateClient(cfgFilePath string) error {
 	}
 	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(cfgFilePath, true)
 	if err != nil {
-		return fmt.Errorf("reload frpc config error: %v", err)
+		return fmt.Errorf("reload frpc adminConfig error: %v", err)
 	}
 	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("validate frpc proxy config error: %v", err)
+		return fmt.Errorf("validate frpc proxy adminConfig error: %v", err)
 	}
 
 	if err := svr.UpdateAllConfigurer(proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("update frpc proxy config error: %v", err)
+		return fmt.Errorf("update frpc proxy adminConfig error: %v", err)
 	}
 	cls.cfg = cliCfg
 	cls.proxyCfg = proxyCfgs
@@ -241,16 +241,16 @@ func (this *frpc) upgradeMainConfig() error {
 	if svr == nil {
 		return fmt.Errorf("can't find service")
 	}
-	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(this.mainFrpcClient.configFilePath, true)
+	cliCfg, proxyCfgs, visitorCfgs, _, err := config.LoadClientConfig(this.mainFrpcClient.cfgFilePath, true)
 	if err != nil {
-		return fmt.Errorf("reload frpc config error: %v", err)
+		return fmt.Errorf("reload frpc adminConfig error: %v", err)
 	}
 	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("validate frpc proxy config error: %v", err)
+		return fmt.Errorf("validate frpc proxy adminConfig error: %v", err)
 	}
 
 	if err := svr.UpdateAllConfigurer(proxyCfgs, visitorCfgs); err != nil {
-		return fmt.Errorf("update frpc proxy config error: %v", err)
+		return fmt.Errorf("update frpc proxy adminConfig error: %v", err)
 	}
 	z.Infof("success reload conf")
 	return nil
@@ -267,14 +267,14 @@ func (this *frpc) getTcpProxyArray(name string) []int {
 	if cls == nil {
 		return nil
 	}
-	if cls.config == nil {
+	if cls.adminConfig == nil {
 		return nil
 	}
-	if cls.config.User.Ports == nil {
+	if cls.adminConfig.User.Ports == nil {
 		return nil
 	}
 	//主客户端
-	ports := frp.ParsePorts(cls.config.User.Ports)
+	ports := frp.ParsePorts(cls.adminConfig.User.Ports)
 	for _, c := range cls.proxyCfg {
 		port := frp.GetPort(c)
 		if port > 0 {
@@ -302,6 +302,7 @@ func (this *frpc) newClient(cfgFilePath string) error {
 		z.Errorf("配置文件校验失败: %s %v\n", cfgFilePath, err)
 		return err
 	}
+	//给一个可能阻塞 / 耗时的同步函数添加超时控制，防止函数无限阻塞导致程序卡住。
 	e, _ := utils2.BlockingFunction[error](context.Background(), time.Second*3, func() error {
 		return this.startService(cfg, proxyCfgs, visitorCfgs, cfgFilePath)
 	})

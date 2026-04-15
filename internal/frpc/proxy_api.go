@@ -43,9 +43,9 @@ func (this *frpc) apiProxyTCPAdd(w http.ResponseWriter, r *http.Request) {
 
 	cfgDir := filepath.Dir(binpath)
 	if cfgFileName == "" {
-		cfgFileName = "config.toml"
+		cfgFileName = "adminConfig.toml"
 	} else {
-		cfgDir = filepath.Join(cfgDir, "config")
+		cfgDir = filepath.Join(cfgDir, "adminConfig")
 	}
 	cfgFilePath := filepath.Join(cfgDir, cfgFileName)
 	if !utils2.FileExists(cfgFilePath) {

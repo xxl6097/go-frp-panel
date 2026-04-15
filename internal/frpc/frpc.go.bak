@@ -29,13 +29,13 @@ import (
 )
 
 type frpClient struct {
-	err         error
-	svr         *client.Service
-	adminConfig *model.FrpcBuffer
-	cfgFilePath string
-	cfg         *v1.ClientCommonConfig
-	proxyCfg    []v1.ProxyConfigurer
-	visitorCfg  []v1.VisitorConfigurer
+	err            error
+	svr            *client.Service
+	config         *model.FrpcBuffer
+	configFilePath string
+	cfg            *v1.ClientCommonConfig
+	proxyCfg       []v1.ProxyConfigurer
+	visitorCfg     []v1.VisitorConfigurer
 }
 type frpc struct {
 	install        igs.Service
@@ -57,7 +57,7 @@ func New(i igs.Service) (iface.IFrpc, error) {
 	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, true)
 	if err != nil {
 		z.Debug("加载配置文件失败", cfgFilePath, err)
-		return nil, fmt.Errorf("load adminConfig file %s not exists", cfgFilePath)
+		return nil, fmt.Errorf("load config file %s not exists", cfgFilePath)
 	}
 	if isLegacyFormat {
 		fmt.Printf("WARNING: ini format is deprecated and the support will be removed in the future, " +
@@ -70,7 +70,7 @@ func New(i igs.Service) (iface.IFrpc, error) {
 	}
 	if err != nil {
 		z.Errorf("配置文件校验失败: %v\n", err)
-		return nil, fmt.Errorf("ValidateAllClientConfig adminConfig file %v err", err)
+		return nil, fmt.Errorf("ValidateAllClientConfig config file %v err", err)
 	}
 
 	system.EnableCompatibilityMode()
@@ -89,12 +89,12 @@ func New(i igs.Service) (iface.IFrpc, error) {
 		svrs:    make(map[string]*frpClient),
 		upgrade: comm2.NewCommApi(i),
 		mainFrpcClient: &frpClient{
-			err:         nil,
-			svr:         svr,
-			cfgFilePath: cfgFilePath,
-			cfg:         cfg,
-			proxyCfg:    proxyCfgs,
-			visitorCfg:  visitorCfgs,
+			err:            nil,
+			svr:            svr,
+			configFilePath: cfgFilePath,
+			cfg:            cfg,
+			proxyCfg:       proxyCfgs,
+			visitorCfg:     visitorCfgs,
 		},
 	}
 
@@ -125,7 +125,7 @@ func (this *frpc) Run() error {
 		this.mainFrpcClient.err = nil
 		e := this.mainFrpcClient.svr.Run(context.Background())
 		if e != nil {
-			z.Errorf("mainfrpc 客户端连接失败[%s]: %v", this.mainFrpcClient.cfgFilePath, e)
+			z.Errorf("mainfrpc 客户端连接失败[%s]: %v", this.mainFrpcClient.configFilePath, e)
 			this.mainFrpcClient.err = e
 		}
 		return e
@@ -143,15 +143,15 @@ func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
 		secret := cls.cfg.Metadatas["secret"]
 		z.Debugf("secret %+v", secret)
 		if secret != "" {
-			cls.adminConfig = frp.DecodeSecret(secret)
-			z.Debugf("解析secret %+v", cls.adminConfig)
-			if cls.adminConfig == nil {
-				z.Debug("adminConfig nil 无法启动wensocket ")
+			cls.config = frp.DecodeSecret(secret)
+			z.Debugf("解析secret %+v", cls.config)
+			if cls.config == nil {
+				z.Debug("config nil 无法启动wensocket ")
 				return
 			}
-			id := cls.adminConfig.User.ID
-			addr := fmt.Sprintf("%s:%d", cls.adminConfig.ServerAddr, cls.adminConfig.ServerAdminPort)
-			authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cls.adminConfig.AdminUser, cls.adminConfig.AdminPass)))
+			id := cls.config.User.ID
+			addr := fmt.Sprintf("%s:%d", cls.config.ServerAddr, cls.config.ServerAdminPort)
+			authorization := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cls.config.AdminUser, cls.config.AdminPass)))
 			ws.GetClientInstance().NewClient(id, addr, authorization)
 			ws.GetClientInstance().SetMessageHandler(this.onWebSocketMessageHandle)
 			ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)

@@ -4,15 +4,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	v1 "github.com/fatedier/frp/pkg/config/v1"
-	"github.com/xxl6097/go-frp-panel/pkg/utils"
-	utils2 "github.com/xxl6097/go-service/pkg/utils"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/fatedier/frp/client"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
+	"github.com/xxl6097/go-frp-panel/pkg/utils"
+	utils2 "github.com/xxl6097/go-service/pkg/utils"
 )
+
+type Node struct {
+	Err         error
+	Svr         *client.Service
+	AdminConfig *FrpcBuffer
+	CfgFilePath string
+	Cfg         *v1.ClientCommonConfig
+	ProxyCfg    []v1.ProxyConfigurer
+	VisitorCfg  []v1.VisitorConfigurer
+}
 
 type User struct {
 	ID         string   `json:"id,omitempty"`
