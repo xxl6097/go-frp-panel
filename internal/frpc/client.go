@@ -5,14 +5,17 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"net"
 	"path"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
+	clientmodel "github.com/fatedier/frp/client/http/model"
 	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
@@ -84,11 +87,14 @@ func (this *frpc) startService(
 		defer log.Infof("frpc service for adminConfig file [%s] stopped", cfgFile)
 	}
 
+	aggregator, err := newConfigAggregator(proxyCfgs, visitorCfgs)
+	if err != nil {
+		return err
+	}
 	svr, err := client.NewService(client.ServiceOptions{
-		Common:         cfg,
-		ProxyCfgs:      proxyCfgs,
-		VisitorCfgs:    visitorCfgs,
-		ConfigFilePath: cfgFile,
+		Common:                 cfg,
+		ConfigSourceAggregator: aggregator,
+		ConfigFilePath:         cfgFile,
 	})
 	if err != nil {
 		return err
@@ -148,7 +154,31 @@ func (this *frpc) deleteClient(cfgFilePath string) error {
 	return nil
 }
 
-func (this *frpc) statusClient(cfgFilePath string) (map[string][]client.ProxyStatusResp, error) {
+// buildProxyStatusResp 根据 frp v0.70 的 client/http/controller.go 逻辑构建代理状态响应
+// （v0.70 移除了导出的 client.NewProxyStatusResp 构造函数）。
+func buildProxyStatusResp(status *proxy.WorkingStatus, serverAddr string) clientmodel.ProxyStatusResp {
+	psr := clientmodel.ProxyStatusResp{
+		Name:   status.Name,
+		Type:   status.Type,
+		Status: status.Phase,
+		Err:    status.Err,
+	}
+	baseCfg := status.Cfg.GetBaseConfig()
+	if baseCfg.LocalPort != 0 {
+		psr.LocalAddr = net.JoinHostPort(baseCfg.LocalIP, strconv.Itoa(baseCfg.LocalPort))
+	}
+	psr.Plugin = baseCfg.Plugin.Type
+
+	if status.Err == "" {
+		psr.RemoteAddr = status.RemoteAddr
+		if slices.Contains([]string{"tcp", "udp"}, status.Type) {
+			psr.RemoteAddr = serverAddr + psr.RemoteAddr
+		}
+	}
+	return psr
+}
+
+func (this *frpc) statusClient(cfgFilePath string) (map[string][]clientmodel.ProxyStatusResp, error) {
 	name := path.Base(cfgFilePath)
 	z.Debug("status frpc", name)
 	cls := this.svrs[name]
@@ -180,19 +210,19 @@ func (this *frpc) statusClient(cfgFilePath string) (map[string][]client.ProxySta
 	}
 	var (
 		//buf []byte
-		res client.StatusResp = make(map[string][]client.ProxyStatusResp)
+		res clientmodel.StatusResp = make(map[string][]clientmodel.ProxyStatusResp)
 	)
 	ps := pm.GetAllProxyStatus()
 	z.Debug("GetAllProxyStatus", len(ps))
 	for _, status := range ps {
-		res[status.Type] = append(res[status.Type], client.NewProxyStatusResp(status, cls.cfg.ServerAddr))
+		res[status.Type] = append(res[status.Type], buildProxyStatusResp(status, cls.cfg.ServerAddr))
 	}
 
 	for _, arrs := range res {
 		if len(arrs) <= 1 {
 			continue
 		}
-		slices.SortFunc(arrs, func(a, b client.ProxyStatusResp) int {
+		slices.SortFunc(arrs, func(a, b clientmodel.ProxyStatusResp) int {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
@@ -220,7 +250,7 @@ func (this *frpc) updateClient(cfgFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("reload frpc adminConfig error: %v", err)
 	}
-	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
+	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs, nil); err != nil {
 		return fmt.Errorf("validate frpc proxy adminConfig error: %v", err)
 	}
 
@@ -245,7 +275,7 @@ func (this *frpc) upgradeMainConfig() error {
 	if err != nil {
 		return fmt.Errorf("reload frpc adminConfig error: %v", err)
 	}
-	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs); err != nil {
+	if _, err := validation.ValidateAllClientConfig(cliCfg, proxyCfgs, visitorCfgs, nil); err != nil {
 		return fmt.Errorf("validate frpc proxy adminConfig error: %v", err)
 	}
 
@@ -294,7 +324,7 @@ func (this *frpc) newClient(cfgFilePath string) error {
 			"please use yaml/json/toml format instead!\n")
 	}
 
-	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
+	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs, nil)
 	if warning != nil {
 		fmt.Printf("WARNING: %v\n", warning)
 	}

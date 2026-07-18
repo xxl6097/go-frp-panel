@@ -157,7 +157,7 @@ function initSSE() {
     ElMessageBox.alert('请填写ws地址哦～～', '警告', {
       // if you want to disable its autofocus
       // autofocus: false,
-      confirmButtonText: 'OK',
+      confirmButtonText: '确定',
       callback: (action: Action) => {
         ElMessage({
           type: 'info',
@@ -277,7 +277,7 @@ function fetchData(path: string) {
     .catch((err) => {
       ElMessage({
         showClose: true,
-        message: 'Get status failed!' + err,
+        message: '获取状态失败！' + err,
         type: 'warning',
       })
       showLog(err)

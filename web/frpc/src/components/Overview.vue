@@ -156,7 +156,7 @@ const fetchStatus = () => {
       console.error('fetchStatus err', err)
       ElMessage({
         showClose: true,
-        message: 'Get status info from frpc failed!' + err,
+        message: '从 frpc 获取状态信息失败！' + err,
         type: 'warning',
       })
     })
@@ -186,7 +186,7 @@ const fetchData = () => {
       console.error('fetchData', err)
       ElMessage({
         showClose: true,
-        message: 'Get status info from frpc failed!' + err,
+        message: '从 frpc 获取状态信息失败！' + err,
         type: 'warning',
       })
     })

@@ -83,7 +83,7 @@ func New(cfg *v1.ServerConfig, install igs.Service) (iface2.IFrps, error) {
 	//	return nil, err
 	//}
 	cfg.Complete()
-	warning, err := validation.ValidateServerConfig(cfg)
+	warning, err := validation.NewConfigValidator(nil).ValidateServerConfig(cfg)
 	if warning != nil {
 		fmt.Printf("WARNING: %v\n", warning)
 	}
@@ -154,7 +154,7 @@ func test() {
 	//	return err
 	//}
 	//this.svrCfg.Complete()
-	//warning, err := validation.ValidateServerConfig(this.svrCfg)
+	//warning, err := validation.NewConfigValidator(nil).ValidateServerConfig(this.svrCfg)
 	//if warning != nil {
 	//	fmt.Printf("WARNING: %v\n", warning)
 	//}

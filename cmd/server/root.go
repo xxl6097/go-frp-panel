@@ -72,7 +72,7 @@ var rootCmd = &cobra.Command{
 			svrCfg = &serverCfg
 		}
 
-		warning, err := validation.ValidateServerConfig(svrCfg)
+		warning, err := validation.NewConfigValidator(nil).ValidateServerConfig(svrCfg)
 		if warning != nil {
 			fmt.Printf("WARNING: %v\n", warning)
 		}

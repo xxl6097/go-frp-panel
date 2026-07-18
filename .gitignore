@@ -4,6 +4,11 @@
 dist
 dist-frps
 dist-frpc
+# 前端面板构建产物需要随源码提交，供 Go embed 打包（frp v0.70 的 assets.Register 读取 dist 子目录）
+!assets/frps/dist
+!assets/frps/dist/**
+!assets/frpc/dist
+!assets/frpc/dist/**
 .version
 version.txt
 release/

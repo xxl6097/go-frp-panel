@@ -13,8 +13,9 @@ import (
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
+	"github.com/fatedier/frp/pkg/config/source"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
-	"github.com/fatedier/frp/pkg/featuregate"
+	"github.com/fatedier/frp/pkg/policy/featuregate"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/xxl6097/go-frp-panel/internal/frpc/sub/api"
 )
@@ -63,7 +64,7 @@ func runClient(cfgFilePath string) error {
 		}
 	}
 
-	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
+	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs, nil)
 	if warning != nil {
 		fmt.Printf("WARNING: %v\n", warning)
 	}
@@ -85,11 +86,14 @@ func startService(
 		log.Infof("start frpc service for adminConfig file [%s]", cfgFile)
 		defer log.Infof("frpc service for adminConfig file [%s] stopped", cfgFile)
 	}
+	configSource := source.NewConfigSource()
+	if err := configSource.ReplaceAll(proxyCfgs, visitorCfgs); err != nil {
+		return fmt.Errorf("failed to set config source: %w", err)
+	}
 	svr, err := client.NewService(client.ServiceOptions{
-		Common:         cfg,
-		ProxyCfgs:      proxyCfgs,
-		VisitorCfgs:    visitorCfgs,
-		ConfigFilePath: cfgFile,
+		Common:                 cfg,
+		ConfigSourceAggregator: source.NewAggregator(configSource),
+		ConfigFilePath:         cfgFile,
 	})
 	if err != nil {
 		return err

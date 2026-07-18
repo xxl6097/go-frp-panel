@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+
 	v1 "github.com/fatedier/frp/pkg/config/v1"
+	"github.com/xxl6097/glog/pkg/z"
 	"github.com/xxl6097/go-frp-panel/internal/frpc"
 	"github.com/xxl6097/go-frp-panel/pkg"
 	"github.com/xxl6097/go-frp-panel/pkg/frp"
@@ -50,7 +52,7 @@ func main() {
 		},
 	}
 
-	z.Infof("tcpProxy:%+v", tcpProxy)
+	//z.Infof("tcpProxy:%+v", tcpProxy)
 	var proxies []v1.TypedProxyConfig
 	proxies = append(proxies, tcpProxy)
 

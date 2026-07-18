@@ -15,9 +15,9 @@
 package main
 
 import (
-	_ "github.com/fatedier/frp/assets/frps"
 	_ "github.com/fatedier/frp/pkg/metrics"
 	"github.com/fatedier/frp/pkg/util/system"
+	// 使用项目自定义的 frps 面板资源（pkg/frp/frps 已注册），无需引入 frp 默认面板
 )
 
 func main() {

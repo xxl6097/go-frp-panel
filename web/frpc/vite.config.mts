@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import svgLoader from 'vite-svg-loader'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -11,6 +12,7 @@ export default defineConfig({
   base: '',
   plugins: [
     vue(),
+    svgLoader(),
     AutoImport({
       resolvers: [ElementPlusResolver()],
     }),
@@ -25,7 +27,7 @@ export default defineConfig({
   },
   build: {
     assetsDir: '',
-    outDir: '../../assets/frpc/static', // 默认打包路径
+    outDir: '../../assets/frpc/dist', // 默认打包路径（frp v0.70 的 assets.Register 读取 dist 子目录）
     emptyOutDir: true,
   },
 })

@@ -93,7 +93,7 @@
         type="textarea"
         autosize
         v-model="textarea"
-        placeholder="frpc configure file, can not be empty..."
+        placeholder="frpc 配置文件内容，不能为空……"
       ></el-input>
     </div>
   </div>
@@ -763,18 +763,18 @@ const fetchData = () => {
 }
 const uploadConfig = () => {
   ElMessageBox.confirm(
-    'This operation will upload your frpc configure file content and hot reload it, do you want to continue?',
-    'Notice',
+    '此操作将上传你的 frpc 配置文件内容并热重载，是否继续？',
+    '提示',
     {
-      confirmButtonText: 'Yes',
-      cancelButtonText: 'No',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
       type: 'warning',
     },
   )
     .then(() => {
       if (textarea.value == '') {
         ElMessage({
-          message: 'Configure content can not be empty!',
+          message: '配置内容不能为空！',
           type: 'warning',
         })
         return
@@ -790,13 +790,13 @@ const uploadConfig = () => {
             .then(() => {
               ElMessage({
                 type: 'success',
-                message: 'Success',
+                message: '成功',
               })
             })
             .catch((err) => {
               ElMessage({
                 showClose: true,
-                message: 'Reload frpc configure file error, ' + err,
+                message: '重载 frpc 配置文件出错，' + err,
                 type: 'warning',
               })
             })
@@ -804,7 +804,7 @@ const uploadConfig = () => {
         .catch(() => {
           ElMessage({
             showClose: true,
-            message: 'Put config to frpc and hot reload failed!',
+            message: '配置下发到 frpc 并热重载失败！',
             type: 'warning',
           })
         })
@@ -814,7 +814,7 @@ const uploadConfig = () => {
     })
     .catch(() => {
       ElMessage({
-        message: 'Canceled',
+        message: '已取消',
         type: 'info',
       })
     })

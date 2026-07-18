@@ -14,6 +14,7 @@ import (
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
+	"github.com/fatedier/frp/pkg/config/source"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
@@ -64,7 +65,7 @@ func New(i igs.Service) (iface.IFrpc, error) {
 			"please use yaml/json/toml format instead!\n")
 	}
 
-	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
+	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs, nil)
 	if warning != nil {
 		z.Errorf("加载配置文件告警: %v\n", warning)
 	}
@@ -75,11 +76,14 @@ func New(i igs.Service) (iface.IFrpc, error) {
 
 	system.EnableCompatibilityMode()
 	log.InitLogger(cfg.Log.To, cfg.Log.Level, int(cfg.Log.MaxDays), cfg.Log.DisablePrintColor)
+	aggregator, err := newConfigAggregator(proxyCfgs, visitorCfgs)
+	if err != nil {
+		return nil, err
+	}
 	svr, err := client.NewService(client.ServiceOptions{
-		Common:         cfg,
-		ProxyCfgs:      proxyCfgs,
-		VisitorCfgs:    visitorCfgs,
-		ConfigFilePath: cfgFilePath,
+		Common:                 cfg,
+		ConfigSourceAggregator: aggregator,
+		ConfigFilePath:         cfgFilePath,
 	})
 	if err != nil {
 		return nil, err
@@ -166,4 +170,13 @@ func (this *frpc) handleTermSignal(svr *client.Service) {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 	svr.GracefulClose(500 * time.Millisecond)
+}
+
+// newConfigAggregator 构建 frp v0.70+ 客户端所需的配置聚合器（替代旧版 ServiceOptions 的 ProxyCfgs/VisitorCfgs 字段）。
+func newConfigAggregator(proxyCfgs []v1.ProxyConfigurer, visitorCfgs []v1.VisitorConfigurer) (*source.Aggregator, error) {
+	configSource := source.NewConfigSource()
+	if err := configSource.ReplaceAll(proxyCfgs, visitorCfgs); err != nil {
+		return nil, fmt.Errorf("failed to set config source: %w", err)
+	}
+	return source.NewAggregator(configSource), nil
 }

@@ -54,7 +54,7 @@
             >刷新
           </el-button>
           <el-popconfirm
-            title="Are you sure to upload config?"
+            title="确定要上传配置吗？"
             @confirm="handleUploadCloud"
             @cancel="cloudApiForm.isShow = true"
           >
@@ -63,7 +63,7 @@
             </template>
           </el-popconfirm>
           <el-popconfirm
-            title="Are you sure to upgrade config?"
+            title="确定要更新配置吗？"
             @confirm="handleUpgradeCloud"
             @cancel="cloudApiForm.isShow = true"
           >
@@ -459,7 +459,7 @@
           style="margin-top: 8px"
           v-model="drawertextarea"
           autosize
-          placeholder="frps configure file, can not be empty..."
+          placeholder="frps 配置文件内容，不能为空……"
           type="textarea"
         ></el-input>
       </div>

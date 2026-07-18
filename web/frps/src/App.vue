@@ -1,4 +1,159 @@
 <template>
+  <div id="app">
+    <header class="header">
+      <div class="header-content">
+        <div class="brand-section">
+          <button
+            v-if="isMobile"
+            class="hamburger-btn"
+            @click="toggleSidebar"
+            aria-label="Toggle menu"
+          >
+            <span class="hamburger-icon">&#9776;</span>
+          </button>
+          <div class="logo-wrapper" @click="handleDevelopment">
+            <LogoIcon class="logo-icon" />
+          </div>
+          <span class="divider">/</span>
+          <span class="brand-name">{{ title }}</span>
+          <span class="badge server-badge">Server</span>
+        </div>
+
+        <div class="header-controls">
+          <!-- 设置菜单：保留旧面板的全部管理操作 -->
+          <el-dropdown trigger="click">
+            <button class="icon-btn" aria-label="Settings">
+              <el-icon><Setting /></el-icon>
+            </button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
+                <el-dropdown-item @click="dialogFormVisible = true"
+                  >升级服务</el-dropdown-item
+                >
+                <el-dropdown-item @click="checkVersion"
+                  >版本检测</el-dropdown-item
+                >
+                <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
+                <el-dropdown-item @click="handleClearData"
+                  >清空数据</el-dropdown-item
+                >
+                <el-dropdown-item @click="dialogClientsVisible = true"
+                  >上传客户端</el-dropdown-item
+                >
+                <el-dropdown-item @click="frpsForm.isShow = true"
+                  >创建服务端</el-dropdown-item
+                >
+                <el-dropdown-item @click="handleGithubKeySetting"
+                  >设置github</el-dropdown-item
+                >
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <a
+            class="github-link"
+            href="https://github.com/xxl6097/go-frp-panel"
+            target="_blank"
+            aria-label="GitHub"
+          >
+            <GitHubIcon class="github-icon" />
+          </a>
+          <el-switch
+            v-model="isDark"
+            inline-prompt
+            :active-icon="Moon"
+            :inactive-icon="Sunny"
+            class="theme-switch"
+          />
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Mobile overlay -->
+      <div
+        v-if="isMobile && sidebarOpen"
+        class="sidebar-overlay"
+        @click="closeSidebar"
+      />
+
+      <aside
+        class="sidebar"
+        :class="{ 'mobile-open': isMobile && sidebarOpen }"
+      >
+        <nav class="sidebar-nav">
+          <router-link
+            to="/"
+            class="sidebar-link"
+            :class="{ active: route.path === '/' }"
+            @click="closeSidebar"
+          >
+            概览
+          </router-link>
+          <router-link
+            to="/clients"
+            class="sidebar-link"
+            :class="{ active: route.path.startsWith('/clients') }"
+            @click="closeSidebar"
+          >
+            客户端
+          </router-link>
+          <router-link
+            to="/proxies"
+            class="sidebar-link"
+            :class="{
+              active:
+                route.path.startsWith('/proxies') ||
+                route.path.startsWith('/proxy'),
+            }"
+            @click="closeSidebar"
+          >
+            代理
+          </router-link>
+
+          <div class="sidebar-divider"></div>
+
+          <router-link
+            to="/config"
+            class="sidebar-link"
+            :class="{ active: route.path === '/config' }"
+            @click="closeSidebar"
+          >
+            服务器配置
+          </router-link>
+          <router-link
+            to="/user"
+            class="sidebar-link"
+            :class="{ active: route.path === '/user' }"
+            @click="closeSidebar"
+          >
+            客户端配置
+          </router-link>
+
+          <div class="sidebar-divider"></div>
+
+          <a class="sidebar-link" href="javascript:void(0)" @click="showlog">
+            日志
+          </a>
+          <router-link
+            v-if="isDevelopment"
+            to="/development"
+            class="sidebar-link"
+            :class="{ active: route.path === '/development' }"
+            @click="closeSidebar"
+          >
+            开发中模式
+          </router-link>
+        </nav>
+      </aside>
+
+      <main id="content">
+        <router-view></router-view>
+      </main>
+    </div>
+  </div>
+
   <el-progress
     v-if="globalProgress > 0 && globalProgress < 100"
     :percentage="globalProgress"
@@ -7,134 +162,11 @@
     :color="customColors"
     class="global-progress-bar"
   />
-  <div id="app">
-    <header class="grid-content header-color">
-      <div class="header-content">
-        <div class="brand" @click="handleDevelopment">
-          <el-dropdown trigger="click">
-            <a href="#">{{ title }}</a>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="restart">重启服务</el-dropdown-item>
-                <el-dropdown-item @click="dialogFormVisible = true"
-                  >升级服务
-                </el-dropdown-item>
-                <el-dropdown-item @click="checkVersion"
-                  >版本检测
-                </el-dropdown-item>
-                <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>
-                <el-dropdown-item @click="handleClearData"
-                  >清空数据
-                </el-dropdown-item>
-                <el-dropdown-item @click="dialogClientsVisible = true"
-                  >上传客户端
-                </el-dropdown-item>
-                <el-dropdown-item @click="frpsForm.isShow = true"
-                  >创建服务端
-                </el-dropdown-item>
-                <el-dropdown-item @click="handleGithubKeySetting"
-                  >设置github
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <div class="dark-switch">
-          <!--          <div class="dark-reboot">-->
-          <!--            <el-dropdown placement="bottom" split-button plain @click="restart">-->
-          <!--              重启-->
-          <!--              <template #dropdown>-->
-          <!--                <el-dropdown-menu>-->
-          <!--                  <el-dropdown-item @click="dialogFormVisible = true"-->
-          <!--                    >升级服务-->
-          <!--                  </el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="checkVersion"-->
-          <!--                    >版本检测-->
-          <!--                  </el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="showlog">查看日志</el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="handleClearData"-->
-          <!--                    >清空数据-->
-          <!--                  </el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="dialogClientsVisible = true"-->
-          <!--                    >上传客户端-->
-          <!--                  </el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="frpsForm.isShow = true"-->
-          <!--                    >创建服务端-->
-          <!--                  </el-dropdown-item>-->
-          <!--                  <el-dropdown-item @click="handleGithubKeySetting"-->
-          <!--                    >设置github-->
-          <!--                  </el-dropdown-item>-->
-          <!--                </el-dropdown-menu>-->
-          <!--              </template>-->
-          <!--            </el-dropdown>-->
-          <!--          </div>-->
-          <el-switch
-            v-model="darkmodeSwitch"
-            active-text="深色"
-            inactive-text="浅色"
-            inline-prompt
-            style="
-              --el-switch-on-color: #444452;
-              --el-switch-off-color: #589ef8;
-            "
-            @change="toggleDark"
-          />
-        </div>
-      </div>
-    </header>
-    <section>
-      <el-row>
-        <el-col id="side-nav" :md="4" :xs="24">
-          <el-menu
-            :default-active="menuIndex"
-            mode="vertical"
-            router="false"
-            theme="light"
-            @select="handleSelect"
-          >
-            <el-menu-item index="/">服务器信息</el-menu-item>
-
-            <el-menu-item index="/config">服务器配置</el-menu-item>
-            <el-menu-item index="/user">客户端配置</el-menu-item>
-
-            <el-sub-menu index="/proxies">
-              <template #title>
-                <span>代理列表</span>
-              </template>
-              <el-menu-item index="/proxies/tcp">TCP</el-menu-item>
-              <el-menu-item index="/proxies/udp">UDP</el-menu-item>
-              <el-menu-item index="/proxies/http">HTTP</el-menu-item>
-              <el-menu-item index="/proxies/https">HTTPS</el-menu-item>
-              <el-menu-item index="/proxies/tcpmux">TCPMUX</el-menu-item>
-              <el-menu-item index="/proxies/stcp">STCP</el-menu-item>
-              <el-menu-item index="/proxies/sudp">SUDP</el-menu-item>
-            </el-sub-menu>
-            <el-menu-item index="/log">日志</el-menu-item>
-            <el-menu-item index="/development" v-if="isDevelopment"
-              >开发中模式
-            </el-menu-item>
-            <el-menu-item index="">帮助</el-menu-item>
-          </el-menu>
-        </el-col>
-
-        <el-col :md="20" :xs="24">
-          <div id="content">
-            <router-view></router-view>
-          </div>
-        </el-col>
-      </el-row>
-    </section>
-    <footer></footer>
-  </div>
 
   <UpgradeDialog ref="upgradeRef" />
 
-  <el-dialog
-    v-model="dialogFormVisible"
-    align-center
-    title="程序升级"
-    width="500"
-  >
+  <!-- 程序升级 -->
+  <el-dialog v-model="dialogFormVisible" align-center title="程序升级" width="500">
     <el-input
       v-model="form.binUrl"
       autocomplete="off"
@@ -149,32 +181,27 @@
         >
           <template #trigger>
             <el-button type="primary" :disabled="form.binUrl.length > 0"
-              >上传文件升级
-            </el-button>
+              >上传文件升级</el-button
+            >
           </template>
-          <!-- 添加额外按钮 -->
           <el-button
             style="margin-left: 10px"
             type="danger"
             @click="handleUrlToUpgrade"
+            >文件url升级</el-button
           >
-            文件url升级
-          </el-button>
         </el-upload>
       </div>
     </template>
   </el-dialog>
 
-  <!--  上传客户端-->
+  <!-- 上传客户端 -->
   <el-dialog
     v-model="dialogClientsVisible"
     align-center
     title="客户端上传"
     width="500"
   >
-    <template #title>
-      <!-- 空标题或自定义隐藏内容 -->
-    </template>
     <el-upload
       class="upload-demo"
       :http-request="doClientsUpload"
@@ -205,10 +232,7 @@
         <el-input v-model="frpsForm.bindPort" placeholder="请输入bindport" />
       </el-form-item>
       <el-form-item label="Admin管理端口：">
-        <el-input
-          v-model="frpsForm.adminPort"
-          placeholder="请输入Admin管理端口"
-        />
+        <el-input v-model="frpsForm.adminPort" placeholder="请输入Admin管理端口" />
       </el-form-item>
       <el-form-item label="Admin账户：">
         <el-input v-model="frpsForm.user" placeholder="请输入Admin账户" />
@@ -229,21 +253,14 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button
-        type="primary"
-        @click="fetchFrpsGen()"
-        :loading="frpsForm.isLoading"
-        >生成
-      </el-button>
+      <el-button type="primary" @click="fetchFrpsGen()" :loading="frpsForm.isLoading"
+        >生成</el-button
+      >
     </template>
   </el-dialog>
 
-  <!-- 填写云Api信息设置 -->
-  <el-dialog
-    v-model="githubApiForm.isShow"
-    title="github key设置"
-    width="500px"
-  >
+  <!-- github key 设置 -->
+  <el-dialog v-model="githubApiForm.isShow" title="github key设置" width="500px">
     <el-form label-width="130px">
       <el-form-item label="client id：">
         <el-input
@@ -265,11 +282,15 @@
   </el-dialog>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
+import { ref, watch, provide, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useDark } from '@vueuse/core'
+import { Moon, Sunny, Setting } from '@element-plus/icons-vue'
+import GitHubIcon from './assets/icons/github.svg?component'
+import LogoIcon from './assets/icons/logo.svg?component'
+import { useResponsive } from './composables/useResponsive'
 import UpgradeDialog from './components/UpgradeDialog.vue'
-
-import { onMounted, ref, provide, onUnmounted } from 'vue'
-import { useDark, useToggle } from '@vueuse/core'
 import {
   downloadByPost,
   piecesUpload,
@@ -282,53 +303,91 @@ import {
   xhrPromise,
 } from './utils/utils.ts'
 import { Version } from './utils/type.ts'
-import { ElButton } from 'element-plus'
-//https://element-plus-docs.bklab.cn/zh-CN/component/upload.html#upload-%E4%B8%8A%E4%BC%A0
-const isDark = useDark()
-const darkmodeSwitch = ref(isDark)
-const toggleDark = useToggle(isDark)
-const dialogFormVisible = ref(false)
-const dialogClientsVisible = ref(false)
-const isDevelopment = ref(false)
-// const version = ref({
-//   description: '', //应用描述
-//   frpcVersion: '', //frpc版本号
-//   buildTime: '', //编译时间
-//   appVersion: '', //app版本号
-//   appName: '', //app名称
-//   osType: '', //操作系统
-//   arch: '', //cpuType
-//   gitRevision: '',
-//   goVersion: '',
-// })
 
+const route = useRoute()
+const isDark = useDark()
+const { isMobile } = useResponsive()
+
+const sidebarOpen = ref(false)
+const toggleSidebar = () => {
+  sidebarOpen.value = !sidebarOpen.value
+}
+const closeSidebar = () => {
+  sidebarOpen.value = false
+}
+watch(
+  () => route.path,
+  () => {
+    if (isMobile.value) closeSidebar()
+  },
+)
+
+/* ---------- 面板标题 / 版本 ---------- */
+const title = ref<string>('frps')
+const version = ref<Version>()
+provide('version', version)
+
+/* ---------- 开发者模式（连续点击 logo 5 次） ---------- */
+const isDevelopment = ref(false)
 const clickCount = ref(0)
+let devTimer: number | null = null
+const handleDevelopment = () => {
+  if (clickCount.value === 0) {
+    devTimer = window.setTimeout(() => {
+      clickCount.value = 0
+      devTimer = null
+    }, 1000)
+  }
+  clickCount.value++
+  if (clickCount.value === 5) {
+    showWarmTips('进入开发者模式')
+    isDevelopment.value = true
+    clickCount.value = 0
+    if (devTimer) {
+      clearTimeout(devTimer)
+      devTimer = null
+    }
+  }
+}
+
+/* ---------- 全局上传进度条 ---------- */
+const globalProgress = ref(0)
+const customColors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 40 },
+  { color: '#5cb87a', percentage: 60 },
+  { color: '#1989fa', percentage: 80 },
+  { color: '#6f7ad3', percentage: 100 },
+]
+
+/* ---------- 升级对话框 ---------- */
+const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
+const dialogFormVisible = ref(false)
+const form = ref({ binUrl: '' })
+const checkVersion = () => {
+  upgradeRef.value?.openUpgradeDialog()
+}
+
+/* ---------- 上传客户端 ---------- */
+const dialogClientsVisible = ref(false)
+
+/* ---------- 生成服务端 ---------- */
 const frpsForm = ref({
   bindPort: 6000,
   adminAddr: '0.0.0.0',
   adminPort: 6500,
   user: 'admin',
   pass: '',
-  options: [],
+  options: [] as any[],
   ops: {},
   isShow: false,
   isLoading: false,
 })
 
-const githubApiForm = ref({
-  clientId: '',
-  clientSecret: '',
-  isShow: false,
-})
-const version = ref<Version>()
-provide('version', version)
+/* ---------- github key ---------- */
+const githubApiForm = ref({ clientId: '', clientSecret: '', isShow: false })
 
-// const upgradeRef = ref(null)// 明确指定 ref 的类型
-const upgradeRef = ref<InstanceType<typeof UpgradeDialog> | null>(null)
-
-// 配置上传云端
 const handleGithubKeySetting = () => {
-  console.log('handleGithubKeySetting:', githubApiForm.value)
   if (githubApiForm.value.isShow) {
     fetch('../api/github/key', {
       credentials: 'include',
@@ -337,23 +396,16 @@ const handleGithubKeySetting = () => {
     })
       .then((res) => res.json())
       .then((json) => {
-        console.log('配置备份', json)
         showTips(json.code, json.msg)
-        if (json.code === 0) {
-          githubApiForm.value.isShow = false
-        }
+        if (json.code === 0) githubApiForm.value.isShow = false
       })
       .finally(() => {
         localStorage.setItem('githubKey', JSON.stringify(githubApiForm.value))
       })
   } else {
-    fetch('../api/github/key', {
-      credentials: 'include',
-      method: 'get',
-    })
+    fetch('../api/github/key', { credentials: 'include', method: 'get' })
       .then((res) => res.json())
       .then((json) => {
-        console.log('github key', json)
         if (json.code === 100) {
           githubApiForm.value.isShow = true
           if (json.data) {
@@ -364,68 +416,19 @@ const handleGithubKeySetting = () => {
           showTips(json.code, json.msg)
         }
       })
-      .finally(() => {})
   }
 }
 
-const showUpgradeDialog = () => {
-  if (upgradeRef.value) {
-    upgradeRef.value.openUpgradeDialog()
-  }
-}
-
-let timer: number | null = null
-const handleDevelopment = () => {
-  // 首次点击启动定时器（1秒内有效）
-  if (clickCount.value === 0) {
-    timer = window.setTimeout(() => {
-      clickCount.value = 0
-      timer = null
-    }, 1000)
-  }
-
-  clickCount.value++
-
-  // 触发条件：5次点击
-  if (clickCount.value === 5) {
-    console.log('连续点击了5次！')
-    // 执行目标操作（例如提交表单、跳转页面等）
-    executeTargetAction()
-    // 重置状态
-    clickCount.value = 0
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
-  }
-}
-const executeTargetAction = () => {
-  // 这里编写业务逻辑，例如调用接口或跳转页面
-  showWarmTips('进入开发者模式')
-  isDevelopment.value = true
-}
-// 获取平台数据
 const fetchOptions = () => {
-  fetch('../api/frps/get', {
-    credentials: 'include',
-    method: 'GET',
-  })
-    .then((res) => {
-      return res.json()
-    })
+  fetch('../api/frps/get', { credentials: 'include', method: 'GET' })
+    .then((res) => res.json())
     .then((data) => {
-      console.log('1-frpsForm.options', data)
-      if (data) {
-        frpsForm.value.options = data.data
-      } else {
-        frpsForm.value.options = []
-      }
+      frpsForm.value.options = data && data.data ? data.data : []
     })
 }
-// 创建frps安装程序
+
 const fetchFrpsGen = () => {
   frpsForm.value.isLoading = true
-  console.log('创建frps安装程序', frpsForm.value)
   downloadByPost(
     'frps生成中',
     '../api/frps/gen',
@@ -435,53 +438,32 @@ const fetchFrpsGen = () => {
   })
 }
 
-const customColors = [
-  { color: '#f56c6c', percentage: 20 },
-  { color: '#e6a23c', percentage: 40 },
-  { color: '#5cb87a', percentage: 60 },
-  { color: '#1989fa', percentage: 80 },
-  { color: '#6f7ad3', percentage: 100 },
-]
-const globalProgress = ref(0)
-const form = ref({
-  binUrl: '',
-})
-const menuIndex = ref('/')
-
-const title = ref<string>('frps')
-
 const doClientsUpload = async (options: any) => {
   const { file } = options
   globalProgress.value = 0
-  dialogFormVisible.value = false
   const loading = showLoading('客户端上传中...')
-
   await piecesUpload(
     '../api/client/upload',
     'POST',
     file,
     (progress: any) => {
-      console.log(`上传进度：${progress}`)
       loading.setText(`客户端上传中：${progress}%`)
       globalProgress.value = parseInt(progress)
     },
     () => {
       loading.close()
       dialogClientsVisible.value = false
-      console.log(`上传成功！`)
       showSucessTips('上传成功')
       globalProgress.value = 0
     },
   )
 }
 
-// 文件上传更新
 const handleUploadToUpgrade = (options: any) => {
   const { file } = options
   const formData = new FormData()
   formData.append('file', file)
   const loading = showLoading('程序更新中...')
-
   globalProgress.value = 0
   dialogFormVisible.value = false
   const ok = ref<boolean>(false)
@@ -490,29 +472,20 @@ const handleUploadToUpgrade = (options: any) => {
     method: 'POST',
     data: formData,
     onUploadProgress: (progress: string) => {
-      console.log(`上传进度：${progress}`)
       loading.setText(`程序更新中...${progress}%`)
       globalProgress.value = parseInt(progress)
     },
   })
     .then((data: any) => {
-      console.log('请求成功', data)
-      // 上传成功的回调
       const json = JSON.parse(data.data)
       if (json.code !== 0) {
-        if (json.msg !== '') {
-          showErrorTips(json.msg)
-        }
+        if (json.msg !== '') showErrorTips(json.msg)
       } else {
-        if (json.msg !== '') {
-          showSucessTips(json.msg)
-        }
+        if (json.msg !== '') showSucessTips(json.msg)
       }
     })
     .catch((error) => {
       console.error('请求失败', error)
-      // 上传失败的回调
-      //showErrorTips('上传失败的回调')
       ok.value = false
     })
     .finally(() => {
@@ -520,121 +493,12 @@ const handleUploadToUpgrade = (options: any) => {
         loading.close()
         globalProgress.value = 0
         dialogFormVisible.value = false
-        if (ok.value) {
-          window.location.reload()
-        }
+        if (ok.value) window.location.reload()
       }, 4000)
     })
 }
 
-const handleSelect = (key: string) => {
-  if (key == '') {
-    window.open('https://github.com/xxl6097/go-frp-panel')
-  }
-  console.log('menu.key', key)
-  menuIndex.value = key
-}
-
-const checkVersion = () => {
-  showUpgradeDialog()
-}
-
-const restart = () => {
-  showWarmDialog(
-    `确定重启吗？`,
-    () => {
-      const loading = showLoading('重启中...')
-      fetch('../api/restart', { credentials: 'include' })
-        .then((res) => {
-          return res.json()
-        })
-        .then((json) => {
-          showTips(json.code, json.msg)
-          location.reload()
-        })
-        .catch(() => {
-          showErrorTips('重启失败')
-        })
-        .finally(() => {
-          setTimeout(function () {
-            loading.close()
-            window.location.reload()
-          }, 4000)
-        })
-    },
-    () => {},
-  )
-}
-
-const handleClearData = () => {
-  showWarmDialog(
-    `确定清空应用数据吗？`,
-    () => {
-      fetch('../api/clear', { credentials: 'include', method: 'DELETE' })
-        .then((res) => {
-          return res.json()
-        })
-        .then((json) => {
-          showTips(json.code, json.msg)
-        })
-        .catch(() => {
-          showErrorTips('清空失败')
-        })
-    },
-    () => {},
-  )
-}
-
-const showlog = () => {
-  const host = window.origin
-  window.open(`${host}/log/`)
-}
-// const upgrade = () => {
-//   if (form.value.binUrl.length > 0) {
-//     const loading = showLoading('程序升级中...')
-//     dialogFormVisible.value = false
-//     xhrPromise({
-//       url: '../api/upgrade',
-//       method: 'PUT',
-//       data: form.value.binUrl,
-//       onUploadProgress: (progress: string) => {
-//         console.log(`上传进度：${progress}`)
-//         loading.setText(`程序更新中...${progress}%`)
-//       },
-//     })
-//       .then((data: any) => {
-//         console.log('请求成功', data)
-//         // 上传成功的回调
-//         const json = JSON.parse(data.data)
-//         if (json.code !== 0) {
-//           if (json.msg !== '') {
-//             showErrorTips(json.msg)
-//           }
-//         } else {
-//           if (json.msg !== '') {
-//             showSucessTips(json.msg)
-//           }
-//         }
-//       })
-//       .catch((error) => {
-//         console.error('请求失败', error)
-//         // 上传失败的回调
-//         showErrorTips('上传失败的回调')
-//       })
-//       .finally(() => {
-//         loading.close()
-//         dialogFormVisible.value = false
-//         setTimeout(function () {
-//           window.location.reload()
-//         }, 1000)
-//       })
-//   } else {
-//     showWarmTips('请正确输入url地址')
-//   }
-// }
-
 const upgradeByUrl = (binUrl: string) => {
-  console.log('upgradeByUrl', binUrl)
   const loading = showLoading('程序升级中...')
   dialogFormVisible.value = false
   fetch('../api/upgrade', {
@@ -642,16 +506,9 @@ const upgradeByUrl = (binUrl: string) => {
     method: 'PUT',
     body: binUrl,
   })
-    .then((res) => {
-      return res.json()
-    })
-    .then((json) => {
-      showTips(json.code, json.msg)
-    })
-    .catch((error) => {
-      console.log('更新失败', error)
-      //showWarmTips('更新失败' + JSON.stringify(error))
-    })
+    .then((res) => res.json())
+    .then((json) => showTips(json.code, json.msg))
+    .catch((error) => console.log('更新失败', error))
     .finally(() => {
       setTimeout(function () {
         loading.close()
@@ -668,175 +525,246 @@ const handleUrlToUpgrade = () => {
   }
 }
 
-// const uploadFile = (file: any) => {
-//   const loading = showLoading('客户端上传中...')
-//   return new Promise((resolve, reject) => {
-//     // 创建一个新的 XMLHttpRequest 对象
-//     const xhr = new XMLHttpRequest()
-//     // 打开一个 POST 请求，这里的 URL 可以根据实际情况修改
-//     xhr.open('POST', '../api/client/upload', true)
-//
-//     // 监听上传进度事件
-//     xhr.upload.addEventListener('progress', (event) => {
-//       if (event.lengthComputable) {
-//         const percentComplete = (event.loaded / event.total) * 100
-//         console.log('--->', percentComplete + '%')
-//         uploadPercent.value = percentComplete.toFixed(2)
-//         loading.setText(`客户端上传中 ${uploadPercent.value}%`)
-//       }
-//     })
-//
-//     // 监听请求完成事件
-//     xhr.addEventListener('load', () => {
-//       if (xhr.status >= 200 && xhr.status < 300) {
-//         resolve(xhr.response)
-//       } else {
-//         reject(new Error(`Upload failed with status ${xhr.status}`))
-//       }
-//     })
-//
-//     // 监听请求出错事件
-//     xhr.addEventListener('error', () => {
-//       reject(new Error('Network error occurred during upload'))
-//     })
-//
-//     // 创建一个 FormData 对象
-//     const formData = new FormData()
-//     formData.append('file', file)
-//
-//     // 发送请求
-//     xhr.send(formData)
-//   })
-// }
+const restart = () => {
+  showWarmDialog(
+    `确定重启吗？`,
+    () => {
+      const loading = showLoading('重启中...')
+      fetch('../api/restart', { credentials: 'include' })
+        .then((res) => res.json())
+        .then((json) => {
+          showTips(json.code, json.msg)
+          location.reload()
+        })
+        .catch(() => showErrorTips('重启失败'))
+        .finally(() => {
+          setTimeout(function () {
+            loading.close()
+            window.location.reload()
+          }, 4000)
+        })
+    },
+    () => {},
+  )
+}
 
-// const doClientsUpload1 = (options: any) => {
-//   const { file } = options
-//   const formData = new FormData()
-//   formData.append('file', file)
-//   const loading = showLoading('客户端上传中...')
-//   dialogFormVisible.value = false
-//   // 使用 fetch 发送请求
-//   fetch('../api/client/upload', {
-//     method: 'POST',
-//     body: formData,
-//   })
-//     .then((response) => {
-//       return response.json()
-//     })
-//     .then((data) => {
-//       // 上传成功的回调
-//       showSucessTips(JSON.stringify(data))
-//     })
-//     .catch((error) => {
-//       // 上传失败的回调
-//       console.log('errr', error)
-//       showSucessTips(JSON.stringify(error))
-//     })
-//     .finally(() => {
-//       loading.close()
-//       dialogClientsVisible.value = false
-//     })
-// }
+const handleClearData = () => {
+  showWarmDialog(
+    `确定清空应用数据吗？`,
+    () => {
+      fetch('../api/clear', { credentials: 'include', method: 'DELETE' })
+        .then((res) => res.json())
+        .then((json) => showTips(json.code, json.msg))
+        .catch(() => showErrorTips('清空失败'))
+    },
+    () => {},
+  )
+}
+
+const showlog = () => {
+  window.open(`${window.origin}/log/`)
+}
 
 const fetchVersionData = () => {
   fetch('../api/version', { credentials: 'include', method: 'GET' })
-    .then((res) => {
-      return res.json()
-    })
+    .then((res) => res.json())
     .then((json) => {
       if (json) {
-        //version.value = json
-        const vv = json.data as Version // 类型断言
+        const vv = json.data as Version
         version.value = vv
-        console.log('vv', vv)
-        console.log('version', version.value)
         title.value = `frps ${vv.appVersion}`
         document.title = `frps ${vv.hostName}`
       }
     })
 }
-// 组件卸载时清除定时器（防止内存泄漏）
+
 onUnmounted(() => {
-  if (timer) clearTimeout(timer)
+  if (devTimer) clearTimeout(devTimer)
 })
 onMounted(() => {
-  const mIndex = window.location.hash
-  const result = mIndex.replace(/^#+/, '')
-  console.log('index.menu.index', result)
-  menuIndex.value = result
-
   const jsonString = localStorage.getItem('githubKey')
   if (jsonString) {
     const obj = JSON.parse(jsonString)
-    if (obj) {
-      githubApiForm.value = obj
-    }
+    if (obj) githubApiForm.value = obj
     githubApiForm.value.isShow = false
   }
 })
 fetchVersionData()
 fetchOptions()
-// checkVersion()
 </script>
 
 <style>
+:root {
+  --header-height: 50px;
+  --sidebar-width: 200px;
+  --header-bg: #ffffff;
+  --header-border: #e4e7ed;
+  --sidebar-bg: #ffffff;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --text-muted: #909399;
+  --hover-bg: #efefef;
+  --content-bg: #f9f9f9;
+}
+
+html.dark {
+  --header-bg: #1e1e2e;
+  --header-border: #3a3d5c;
+  --sidebar-bg: #1e1e2e;
+  --text-primary: #e5e7eb;
+  --text-secondary: #b0b0b0;
+  --text-muted: #888888;
+  --hover-bg: #2a2a3e;
+  --content-bg: #181825;
+}
+
 body {
-  margin: 0px;
+  margin: 0;
   font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    Helvetica Neue,
+    ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica, Arial,
     sans-serif;
 }
 
-header {
-  width: 100%;
-  height: 60px;
+*,
+:after,
+:before {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.header-color {
-  background: #58b7ff;
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
-html.dark .header-color {
-  background: #395c74;
+#app {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--content-bg);
+}
+
+/* Header */
+.header {
+  flex-shrink: 0;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  height: var(--header-height);
 }
 
 .header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 20px;
 }
 
-#content {
-  margin-top: 20px;
-  padding-right: 40px;
-}
-
-.brand {
+.brand-section {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
 }
 
-.brand a {
-  color: #fff;
-  background-color: transparent;
-  margin-left: 20px;
-  line-height: 25px;
-  font-size: 25px;
-  padding: 15px 15px;
-  height: 30px;
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.divider {
+  color: var(--header-border);
+  font-size: 22px;
+  font-weight: 200;
+}
+
+.brand-name {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--hover-bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.badge.server-badge {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  color: white;
+  border: none;
+  font-weight: 500;
+}
+
+html.dark .badge.server-badge {
+  background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
   text-decoration: none;
 }
 
-.dark-switch {
-  display: flex;
-  justify-content: flex-end;
-  flex-grow: 1;
-  padding-right: 40px;
+.github-link:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
-.dark-reboot {
-  padding-right: 10px;
+.github-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 设置菜单按钮，复用 github-link 的尺寸风格 */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--header-border);
+  margin: 8px 4px;
 }
 
 .global-progress-bar {
@@ -845,5 +773,252 @@ html.dark .header-color {
   left: 0;
   z-index: 9999;
   width: 100%;
+}
+
+.theme-switch {
+  --el-switch-on-color: #2c2c3a;
+  --el-switch-off-color: #f2f2f2;
+  --el-switch-border-color: var(--header-border);
+}
+
+html.dark .theme-switch {
+  --el-switch-off-color: #333;
+}
+
+.theme-switch .el-switch__core .el-switch__inner .el-icon {
+  color: #909399 !important;
+}
+
+/* Layout */
+.layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--header-border);
+  padding: 16px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-link {
+  display: block;
+  text-decoration: none;
+  font-size: 15px;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.sidebar-link:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.sidebar-link.active {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+  font-weight: 500;
+}
+
+/* Hamburger button (mobile only) */
+.hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.hamburger-btn:hover {
+  background: var(--hover-bg);
+}
+
+.hamburger-icon {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+/* Mobile overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+/* Content */
+#content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+#content > * {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+/* Common page styles */
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary, var(--text-primary));
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted, var(--text-muted));
+  margin: 8px 0 0;
+}
+
+/* Element Plus global overrides */
+.el-button {
+  font-weight: 500;
+}
+
+.el-tag {
+  font-weight: 500;
+}
+
+.el-switch {
+  --el-switch-on-color: #606266;
+  --el-switch-off-color: #dcdfe6;
+}
+
+html.dark .el-switch {
+  --el-switch-on-color: #b0b0b0;
+  --el-switch-off-color: #3a3d5c;
+}
+
+.el-form-item {
+  margin-bottom: 16px;
+}
+
+.el-loading-mask {
+  border-radius: 8px;
+}
+
+/* Select overrides */
+.el-select__wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 1px var(--color-border-light, #e4e7ed) inset !important;
+  transition: all 0.15s ease;
+}
+
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--color-border, #dcdfe6) inset !important;
+}
+
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--color-border, #dcdfe6) inset !important;
+}
+
+.el-select-dropdown {
+  border-radius: 12px !important;
+  border: 1px solid var(--color-border-light, #e4e7ed) !important;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  padding: 4px !important;
+}
+
+.el-select-dropdown__item {
+  border-radius: 6px;
+  margin: 2px 0;
+  transition: background 0.15s ease;
+}
+
+.el-select-dropdown__item.is-selected {
+  color: var(--color-text-primary, var(--text-primary));
+  font-weight: 500;
+}
+
+/* Input overrides */
+.el-input__wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 1px var(--color-border-light, #e4e7ed) inset !important;
+  transition: all 0.15s ease;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--color-border, #dcdfe6) inset !important;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--color-border, #dcdfe6) inset !important;
+}
+
+/* Card overrides */
+.el-card {
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light, #e4e7ed);
+  transition: all 0.2s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 3px;
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .header-content {
+    padding: 0 16px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    background: var(--sidebar-bg);
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid var(--header-border);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  #content {
+    width: 100%;
+    padding: 20px;
+  }
 }
 </style>
