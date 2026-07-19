@@ -124,12 +124,10 @@ github.com/xtaci/kcp-go/v5 v5.6.13 h1:FEjtz9+D4p8t2x4WjciGt/jsIuhlWjjgPCCWjrVR4H
 github.com/xtaci/kcp-go/v5 v5.6.13/go.mod h1:75S1AKYYzNUSXIv30h+jPKJYZUwqpfvLshu63nCNSOM=
 github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 h1:EWU6Pktpas0n8lLQwDsRyZfmkPeRbdgPtW609es+/9E=
 github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37/go.mod h1:HpMP7DB2CyokmAh4lp0EQnnWhmycP/TvwBGzvuie+H0=
-github.com/xxl6097/glog v0.1.91 h1:73Y6jv1+0/ucZskolBV2xH66Ih2+x0PTFle2fnV4b8g=
-github.com/xxl6097/glog v0.1.91/go.mod h1:ACcixOvbQXtVaVjlU7+K2IXTwaJUNbRlJISeWmGFZJU=
 github.com/xxl6097/glog v0.1.95 h1:Y5RdiWECEoySrcDbAyfyfGOzjd/T5NS2hRZEyrrMNkY=
 github.com/xxl6097/glog v0.1.95/go.mod h1:ACcixOvbQXtVaVjlU7+K2IXTwaJUNbRlJISeWmGFZJU=
-github.com/xxl6097/go-service v0.7.31 h1:SfI4HvxA+ni5hvG9BKtomFRWwMSj5EBVZbp/YxZip2Y=
-github.com/xxl6097/go-service v0.7.31/go.mod h1:MyYxr6Bm+0irx5NzZhd0brBhUiB0AlSAF/nfWfFBmZI=
+github.com/xxl6097/go-service v0.7.46 h1:huY9w6NCtc88UY7pY1btsk2ieKkoYQNp1tig6kvIzwk=
+github.com/xxl6097/go-service v0.7.46/go.mod h1:7nTfubG8KL/5LphLkNqJG4dGhOiVovG0BcNvtbnsjp0=
 github.com/xxl6097/go-update v0.0.6 h1:z7ipTgVjlXVVNRgMjrrgZfXfDZdb2LUJjsvMh4qwEu8=
 github.com/xxl6097/go-update v0.0.6/go.mod h1:9UQ2j2O/xLQA7laXvxfnOruPUkq9zaLRG/AbwV3TFAM=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
