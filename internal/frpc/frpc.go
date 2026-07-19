@@ -13,8 +13,8 @@ import (
 	"github.com/avast/retry-go/v4"
 	"github.com/fatedier/frp/client"
 	"github.com/fatedier/frp/pkg/config"
-	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/config/source"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
 	httppkg "github.com/fatedier/frp/pkg/util/http"
 	"github.com/fatedier/frp/pkg/util/log"
@@ -129,7 +129,7 @@ func (this *frpc) Run() error {
 		this.mainFrpcClient.err = nil
 		e := this.mainFrpcClient.svr.Run(context.Background())
 		if e != nil {
-			z.Errorf("mainfrpc 客户端连接失败[%s]: %v", this.mainFrpcClient.cfgFilePath, e)
+			z.Warnf("mainfrpc 客户端连接失败[%s]: %v", this.mainFrpcClient.cfgFilePath, e)
 			this.mainFrpcClient.err = e
 		}
 		return e
