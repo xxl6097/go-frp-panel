@@ -60,7 +60,7 @@
   </div>
 
   <!--弹窗显示文件目录-->
-  <el-dialog v-model="showFileDirDialog" width="700">
+  <el-dialog v-model="showFileDirDialog" :width="mobileDialogWidth">
     <template #default>
       <div
         style="
@@ -91,8 +91,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { Action, ElMessageBox, ElScrollbar } from 'element-plus'
+import { useResponsive } from '../composables/useResponsive'
+const { isMobile } = useResponsive()
+const mobileDialogWidth = computed(() => (isMobile.value ? '95%' : '700px'))
 
 const logs = ref<string[]>([])
 // const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()

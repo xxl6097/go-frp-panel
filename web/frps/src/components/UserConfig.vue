@@ -134,9 +134,20 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="comment" label="备注" />
-        <el-table-column prop="user" label="名称" />
-        <el-table-column prop="count" label="数量" width="100">
+        <el-table-column prop="user" label="名称" min-width="100" />
+        <el-table-column
+          v-if="!mobileLayout"
+          prop="comment"
+          label="备注"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="!mobileLayout"
+          prop="count"
+          label="数量"
+          width="80"
+        >
           <template #default="{ row }">
             <el-text
               size="large"
@@ -145,56 +156,68 @@
               type="danger"
               >{{ row.count }}
             </el-text>
+            <span v-else>—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="enable" label="状态">
+        <el-table-column prop="enable" label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.enable ? 'success' : 'danger'">
-              {{ row.enable ? '启动' : '禁用' }}
+            <el-tag :type="row.enable ? 'success' : 'danger'" size="small">
+              {{ row.enable ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="400">
+        <el-table-column
+          label="操作"
+          :width="mobileLayout ? 90 : 260"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button-group class="ml-4">
-              <el-button
-                plain
-                :type="row.enable ? 'danger' : 'success'"
-                @click="showDialog('ToggleStatus', row)"
-                size="small"
-              >
-                {{ row.enable ? '禁用' : '启用' }}
-              </el-button>
+            <div class="row-actions">
+              <!-- 常用操作：编辑、生成客户端 -->
               <el-button
                 type="primary"
-                plain
+                :icon="Edit"
+                circle
+                size="small"
+                title="编辑"
                 @click="showDialog('update', row)"
-                size="small"
-                >编辑
-              </el-button>
+              />
               <el-button
-                type="primary"
-                plain
-                @click="handleDelete(row)"
+                type="success"
+                :icon="Cpu"
+                circle
                 size="small"
-                >删除
-              </el-button>
-              <el-button
-                type="primary"
-                plain
+                title="生成客户端"
                 @click="handleClientDialog(row)"
-                size="small"
-                >生成客户端
-              </el-button>
-              <el-button
-                type="primary"
-                plain
-                size="small"
-                v-if="row.count > 0"
-                @click="handleGotoClientList(row)"
-                >查看客户端
-              </el-button>
-            </el-button-group>
+              />
+              <!-- 更多操作收进下拉 -->
+              <el-dropdown
+                trigger="click"
+                @command="(c: string) => handleRowCommand(c, row)"
+              >
+                <el-button :icon="MoreFilled" circle size="small" title="更多" />
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      command="toggle"
+                      :icon="row.enable ? CircleClose : CircleCheck"
+                    >
+                      {{ row.enable ? '禁用' : '启用' }}
+                    </el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="row.count > 0"
+                      command="clients"
+                      :icon="View"
+                    >
+                      查看客户端 ({{ row.count }})
+                    </el-dropdown-item>
+                    <el-dropdown-item command="delete" :icon="Delete" divided>
+                      <span style="color: var(--el-color-danger)">删除</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -294,7 +317,7 @@
     <el-dialog
       v-model="genClientDialogVisible"
       title="生成客户端"
-      width="500px"
+      :width="dialogWidth"
     >
       <el-form label-width="130px">
         <el-form-item label="Frps服务地址：">
@@ -467,7 +490,7 @@
     <el-dialog
       v-model="cloudApiForm.isShow"
       title="云Api信息设置"
-      width="500px"
+      :width="dialogWidth"
     >
       <el-form label-width="130px">
         <el-form-item label="接口地址：">
@@ -537,6 +560,12 @@ import {
   DeleteFilled,
   ArrowDown,
   CopyDocument,
+  Edit,
+  Cpu,
+  MoreFilled,
+  View,
+  CircleCheck,
+  CircleClose,
 } from '@element-plus/icons-vue'
 import router from '../router'
 import {
@@ -1252,6 +1281,21 @@ const handleClientDialog = (row: FrpcConfiguration) => {
   console.log(row)
 }
 
+// 「更多」下拉命令分发
+const handleRowCommand = (command: string, row: FrpcConfiguration) => {
+  switch (command) {
+    case 'toggle':
+      showDialog('ToggleStatus', row)
+      break
+    case 'clients':
+      handleGotoClientList(row)
+      break
+    case 'delete':
+      handleDelete(row)
+      break
+  }
+}
+
 const showDialog = (type: string, row: FrpcConfiguration) => {
   clearVariables()
   //newUserForm.value = deepCopyJSON(row)
@@ -1560,6 +1604,13 @@ fetchServerData()
 .pagination {
   margin-top: 20px;
   justify-content: center;
+}
+
+/* 操作列按钮组 */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* 展开面板详情 */

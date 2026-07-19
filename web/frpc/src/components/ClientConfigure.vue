@@ -20,7 +20,7 @@
         </el-select>
       </template>
       <template #content>
-        <div style="display: flex">
+        <div class="config-toolbar">
           <el-button type="primary" @click="upload" :loading="uploading" plain
             >更新
           </el-button>
@@ -99,7 +99,7 @@
   </div>
 
   <!--新建客户端-->
-  <el-dialog v-model="newClientFormVisible" width="700">
+  <el-dialog v-model="newClientFormVisible" :width="dialogWidth">
     <template #header><span>创建客户端</span></template>
     <template #default>
       <el-form ref="ruleFormRef" :model="newClientForm" :rules="rules">
@@ -136,7 +136,12 @@
   </el-dialog>
 
   <!--  新建代理-->
-  <el-drawer v-model="drawer" :with-header="true" direction="rtl" size="35%">
+  <el-drawer
+    v-model="drawer"
+    :with-header="true"
+    direction="rtl"
+    :size="drawerSize"
+  >
     <template #header>
       <h1>新建代理</h1>
     </template>
@@ -290,7 +295,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import {
   ElButton,
   ElMessage,
@@ -298,6 +303,7 @@ import {
   FormInstance,
   FormRules,
 } from 'element-plus'
+import { useResponsive } from '../composables/useResponsive'
 import {
   downloadByPost,
   FrpcConfiguration,
@@ -309,6 +315,11 @@ import {
   showLoading,
   showSucessTips,
 } from '../utils/utils.ts'
+
+// 响应式：手机端弹窗/抽屉占满宽度，避免溢出或过窄
+const { isMobile } = useResponsive()
+const dialogWidth = computed(() => (isMobile.value ? '92%' : '700px'))
+const drawerSize = computed(() => (isMobile.value ? '100%' : '35%'))
 
 interface Option {
   value: string
@@ -843,5 +854,44 @@ fetchListData()
   color: #67c23a; /* Element Plus 成功色 */
   font-size: 16px;
   margin-right: 8px; /* 调整图标与输入框右侧间距 */
+}
+
+/* 工具栏：按钮多，允许换行 */
+.config-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.config-toolbar .ml-4 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+  .autoWidth1 {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* el-page-header 标题/内容在窄屏纵向排列 */
+  :deep(.el-page-header__header) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .config-toolbar {
+    width: 100%;
+  }
+
+  .config-toolbar .el-button {
+    margin-left: 0 !important;
+  }
 }
 </style>
