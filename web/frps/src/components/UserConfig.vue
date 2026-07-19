@@ -1,14 +1,39 @@
 <template>
   <el-container>
-    <!-- 搜索栏 -->
-    <el-header>
-      <div class="header-row">
+    <!-- 工具栏 -->
+    <el-header class="toolbar">
+      <div class="toolbar-left">
         <el-input
           v-model="searchKeyword"
           clearable
           placeholder="搜索用户名、凭证或备注"
-          style="width: 300px; margin-right: 10px"
-        />
+          class="search-input"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+        <el-button
+          type="primary"
+          :icon="Plus"
+          @click="showDialog('add', createNewUser())"
+          >新增用户</el-button
+        >
+        <el-popconfirm
+          v-if="selectData.length !== 0"
+          :title="`确定删除选中的 ${selectData.length} 个用户吗？`"
+          @confirm="handleDeleteUsers"
+        >
+          <template #reference>
+            <el-button type="danger" :icon="Delete"
+              >删除选中 ({{ selectData.length }})</el-button
+            >
+          </template>
+        </el-popconfirm>
+      </div>
+
+      <div class="toolbar-right">
+        <el-button :icon="Refresh" circle title="刷新" @click="handleRefresh" />
 
         <el-upload
           :http-request="handleImportUsers"
@@ -20,82 +45,92 @@
           </template>
         </el-upload>
 
-        <el-button-group class="ml-4">
-          <el-button type="warning" plain @click="handleImportUsersClick"
-            >导入用户
+        <el-dropdown trigger="click">
+          <el-button>
+            数据管理<el-icon class="el-icon--right"><ArrowDown /></el-icon>
           </el-button>
-          <el-button type="warning" plain @click="handleExportUsers()"
-            >导出用户
-          </el-button>
-          <el-popconfirm
-            title="确定清空客户端配置吗？"
-            @confirm="handleDeleteAll"
-          >
-            <template #reference>
-              <el-button type="danger" plain>清空用户</el-button>
-            </template>
-          </el-popconfirm>
-          <el-button
-            type="primary"
-            plain
-            @click="showDialog('add', createNewUser())"
-            >新增用户
-          </el-button>
-          <el-popconfirm
-            title="确定删除吗？"
-            v-if="selectData.length !== 0"
-            @confirm="handleDeleteUsers"
-          >
-            <template #reference>
-              <el-button type="danger" plain>删除用户</el-button>
-            </template>
-          </el-popconfirm>
-          <el-button type="success" plain @click="handleRefresh"
-            >刷新
-          </el-button>
-          <el-popconfirm
-            title="确定要上传配置吗？"
-            @confirm="handleUploadCloud"
-            @cancel="cloudApiForm.isShow = true"
-          >
-            <template #reference>
-              <el-button type="info" plain>上传云端</el-button>
-            </template>
-          </el-popconfirm>
-          <el-popconfirm
-            title="确定要更新配置吗？"
-            @confirm="handleUpgradeCloud"
-            @cancel="cloudApiForm.isShow = true"
-          >
-            <template #reference>
-              <el-button type="info" plain>同步云端</el-button>
-            </template>
-          </el-popconfirm>
-
-          <!--          <el-button type="info" plain @click="drawer = true">测试</el-button>-->
-        </el-button-group>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :icon="Upload" @click="handleImportUsersClick"
+                >导入用户</el-dropdown-item
+              >
+              <el-dropdown-item :icon="Download" @click="handleExportUsers()"
+                >导出用户{{
+                  selectData.length ? ` (${selectData.length})` : ''
+                }}</el-dropdown-item
+              >
+              <el-dropdown-item
+                divided
+                :icon="UploadFilled"
+                @click="confirmUploadCloud"
+                >上传云端</el-dropdown-item
+              >
+              <el-dropdown-item :icon="RefreshRight" @click="confirmUpgradeCloud"
+                >同步云端</el-dropdown-item
+              >
+              <el-dropdown-item
+                divided
+                :icon="DeleteFilled"
+                @click="confirmDeleteAll"
+                style="color: var(--el-color-danger)"
+                >清空用户</el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </el-header>
 
     <!-- 表格 -->
     <el-main>
       <el-table
+        v-loading="tableLoading"
         :data="paginatedTableData"
         style="width: 100%"
         @selection-change="handleSelectionChange"
         class="custom-border-table"
         :border="true"
+        empty-text="暂无客户端用户，点击「新增用户」开始创建"
         :cell-style="{ padding: mobileLayout ? '4px' : '8px' }"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column type="expand">
           <template #default="props">
-            <div m="4">
-              <p m="t-0 b-2">Frp连接ID: {{ props.row.id }}</p>
-              <p m="t-0 b-2">Frp连接凭证: {{ props.row.token }}</p>
-              <p m="t-0 b-2">允许端口: {{ props.row.ports }}</p>
-              <p m="t-0 b-2">允许域名: {{ props.row.domains }}</p>
-              <p m="t-0 b-2">允许子域名: {{ props.row.subdomains }}</p>
+            <div class="expand-detail">
+              <div class="expand-item">
+                <span class="expand-label">Frp连接ID</span>
+                <span class="expand-value">{{ props.row.id }}</span>
+                <el-button
+                  link
+                  type="primary"
+                  :icon="CopyDocument"
+                  @click="copyToClipboard(props.row.id)"
+                />
+              </div>
+              <div class="expand-item">
+                <span class="expand-label">Frp连接凭证</span>
+                <span class="expand-value">{{ props.row.token }}</span>
+                <el-button
+                  link
+                  type="primary"
+                  :icon="CopyDocument"
+                  @click="copyToClipboard(props.row.token)"
+                />
+              </div>
+              <div class="expand-item">
+                <span class="expand-label">允许端口</span>
+                <span class="expand-value">{{ props.row.ports || '—' }}</span>
+              </div>
+              <div class="expand-item">
+                <span class="expand-label">允许域名</span>
+                <span class="expand-value">{{ props.row.domains || '—' }}</span>
+              </div>
+              <div class="expand-item">
+                <span class="expand-label">允许子域名</span>
+                <span class="expand-value">{{
+                  props.row.subdomains || '—'
+                }}</span>
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -166,19 +201,25 @@
 
       <!-- 分页 -->
       <el-pagination
-        style="margin-top: 20px"
+        class="pagination"
         background
-        layout="prev, pager, next"
+        :layout="
+          mobileLayout
+            ? 'prev, pager, next'
+            : 'total, sizes, prev, pager, next, jumper'
+        "
         :total="filteredTableData.length"
         :page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
         :current-page="currentPage"
         :pager-count="mobileLayout ? 3 : 7"
         @current-change="handlePageChange"
+        @size-change="handleSizeChange"
       />
     </el-main>
 
-    <!-- 新增用户弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增用户" width="500px">
+    <!-- 新增/编辑用户弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" :width="dialogWidth">
       <el-form
         ref="userRuleFormRef"
         :rules="userRules"
@@ -468,7 +509,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, reactive, onUpdated } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
 import {
   post,
   get,
@@ -484,6 +525,19 @@ import {
   copyToClipboard,
 } from '../utils/utils.ts'
 import { DrawerProps, ElButton, FormInstance, FormRules } from 'element-plus'
+import {
+  Search,
+  Plus,
+  Delete,
+  Refresh,
+  RefreshRight,
+  Upload,
+  Download,
+  UploadFilled,
+  DeleteFilled,
+  ArrowDown,
+  CopyDocument,
+} from '@element-plus/icons-vue'
 import router from '../router'
 import {
   FrpcConfiguration,
@@ -503,9 +557,21 @@ const direction = ref<DrawerProps['direction']>('ltr')
 
 // 搜索关键字
 const searchKeyword = ref<string>('')
+// 表格加载状态
+const tableLoading = ref<boolean>(false)
 // 分页相关
 const pageSize = ref<number>(10)
 const currentPage = ref<number>(1)
+
+// 搜索时自动回到第一页，避免停留在空白页
+watch(searchKeyword, () => {
+  currentPage.value = 1
+})
+
+// 弹窗标题随操作类型变化（新增/编辑）
+const dialogTitle = computed(() =>
+  dialogType.value === 'update' ? '编辑用户' : '新增用户',
+)
 //const filteredTableData = ref<User[]>([])
 
 // 表格数据{user:'admin'}
@@ -1025,9 +1091,44 @@ const handlePageChange = (page: number) => {
   currentPage.value = page
 }
 
+// 每页条数切换
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
 const handleRefresh = () => {
   fetchListData()
   fetchOptions()
+}
+
+// 云端操作的确认弹窗
+const confirmUploadCloud = () => {
+  showWarmDialog(
+    '确定要上传配置到云端吗？',
+    () => handleUploadCloud(),
+    () => {
+      cloudApiForm.value.isShow = true
+    },
+  )
+}
+
+const confirmUpgradeCloud = () => {
+  showWarmDialog(
+    '确定要从云端同步配置吗？',
+    () => handleUpgradeCloud(),
+    () => {
+      cloudApiForm.value.isShow = true
+    },
+  )
+}
+
+const confirmDeleteAll = () => {
+  showWarmDialog(
+    '确定清空所有客户端配置吗？此操作不可恢复！',
+    () => handleDeleteAll(),
+    () => {},
+  )
 }
 
 // 配置同步云端
@@ -1362,25 +1463,30 @@ const fetchServerData = () => {
 
 // 获取数据
 const fetchListData = () => {
-  get('数据请求', '../api/token/all', null).then((data: any) => {
-    if (data) {
-      console.log('fetchListData', data)
-      const obj = JSON.parse(JSON.stringify(data))
-      tableData.value = obj.map((item: any) => ({
-        user: item.user,
-        token: item.token,
-        count: item.count,
-        comment: item.comment,
-        ports: item.ports.join(','),
-        domains: item.domains.join(','),
-        subdomains: item.subdomains.join(','),
-        enable: item.enable,
-        id: item.id,
-      }))
-    } else {
-      tableData.value = []
-    }
-  })
+  tableLoading.value = true
+  get('数据请求', '../api/token/all', null)
+    .then((data: any) => {
+      if (data) {
+        console.log('fetchListData', data)
+        const obj = JSON.parse(JSON.stringify(data))
+        tableData.value = obj.map((item: any) => ({
+          user: item.user,
+          token: item.token,
+          count: item.count,
+          comment: item.comment,
+          ports: item.ports.join(','),
+          domains: item.domains.join(','),
+          subdomains: item.subdomains.join(','),
+          enable: item.enable,
+          id: item.id,
+        }))
+      } else {
+        tableData.value = []
+      }
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
 }
 // 获取平台数据
 const fetchOptions = () => {
@@ -1394,9 +1500,6 @@ const fetchOptions = () => {
   })
 }
 
-onUpdated(() => {
-  fetchOptions()
-})
 onMounted(() => {
   const jsonString = localStorage.getItem('cloudApi')
   if (jsonString) {
@@ -1414,6 +1517,77 @@ fetchServerData()
 </script>
 
 <style scoped>
+/* 工具栏布局 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  width: 280px;
+}
+
+/* 移动端工具栏自适应 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* 分页 */
+.pagination {
+  margin-top: 20px;
+  justify-content: center;
+}
+
+/* 展开面板详情 */
+.expand-detail {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expand-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-label {
+  font-weight: 500;
+  min-width: 100px;
+  color: var(--el-text-color-secondary);
+}
+
+.expand-value {
+  flex: 1;
+  color: var(--el-text-color-primary);
+  word-break: break-all;
+}
+
 .custom-border-table {
   border: 1px solid var(--el-border-color);
   transform: translateZ(0);
