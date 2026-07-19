@@ -60,7 +60,7 @@ func main() {
 		ClientCommonConfig: *ccc,
 		Proxies:            proxies,
 	}
-	z.Infof("1ClientConfig: %+v", cfg)
+	z.Infof("ClientConfig: %+v", cfg)
 	frpc.SetCfgModel(&frpc.CfgModel{Frpc: *cfg})
 
 	err := frp.WriteFrpcMainConfigWithOut(cfg)
