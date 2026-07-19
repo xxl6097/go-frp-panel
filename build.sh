@@ -8,6 +8,7 @@ version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 #versionDir="github.com/xxl6097/go-service/pkg"
 
+
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
     mkdir "./pkg"
