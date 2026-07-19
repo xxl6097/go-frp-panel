@@ -36,7 +36,7 @@ func (g *GeneralResponse) StatusCode(code int) *GeneralResponse {
 	return g.response(code, "", nil)
 }
 func (g *GeneralResponse) Err(err error) *GeneralResponse {
-	z.Error(err)
+	z.Warn(err)
 	return g.Response(-1, err.Error())
 }
 func (g *GeneralResponse) Error(msg string) *GeneralResponse {
@@ -57,7 +57,7 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 	return res, func(w http.ResponseWriter) {
 		defer func() {
 			if res.Code != 0 {
-				z.Errorf("Http response [%s]: res: %+v", r.URL.Path, res)
+				z.Warnf("Http response [%s]: res: %+v", r.URL.Path, res)
 			}
 		}()
 
@@ -73,7 +73,7 @@ func Response(r *http.Request) (*GeneralResponse, func(w http.ResponseWriter)) {
 			//z.Infof("Http response [%s %s]: res: %v", r.Method, r.URL.Path, res)
 			bb, err := json.Marshal(res)
 			if err != nil {
-				z.Errorf("marshal result error: %v", err)
+				z.Warnf("marshal result error: %v", err)
 				w.WriteHeader(400)
 				return
 			}

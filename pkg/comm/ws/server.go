@@ -99,7 +99,7 @@ func (this *FrpWebSocket) onMessageRecv(ws *websocket.Conn, r *http.Request) {
 		messageType, message, err := ws.ReadMessage()
 		if err != nil {
 			pointAddress := fmt.Sprintf("%p", ws)
-			z.Errorf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
+			z.Warnf("websocket断开:%v,address:%v,messageType:%v,err:%v", ws.RemoteAddr().String(), pointAddress, messageType, err)
 			break
 		} else {
 			//z.Printf("Received:%+v %+v\n", ws.RemoteAddr().String(), messageType)
