@@ -108,6 +108,15 @@ function buildgo() {
   elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
     flags=GOMIPS=${extra};
   fi;
+
+  # 固定架构指令基线，避免工具链跳版（如 go.mod 抬到 1.25）时使用更高微架构指令，
+  # 导致旧 CPU 上运行报 illegal instruction (SIGILL)。
+  if [ "${arch}" = "arm64" ]; then
+    flags="${flags} GOARM64=v8.0";
+  elif [ "${arch}" = "amd64" ]; then
+    flags="${flags} GOAMD64=v1";
+  fi;
+
   #echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==> ${dstFilePath}"
   printf "build：GOOS=%-7s GOARCH=%-8s ==> %s\n" ${os} ${arch} ${dstFilePath}
 
