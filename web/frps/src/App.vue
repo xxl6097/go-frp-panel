@@ -166,7 +166,7 @@
   <UpgradeDialog ref="upgradeRef" />
 
   <!-- 程序升级 -->
-  <el-dialog v-model="dialogFormVisible" align-center title="程序升级" width="500">
+  <el-dialog v-model="dialogFormVisible" align-center title="程序升级" :width="mobileDialogWidth">
     <el-input
       v-model="form.binUrl"
       autocomplete="off"
@@ -200,7 +200,7 @@
     v-model="dialogClientsVisible"
     align-center
     title="客户端上传"
-    width="500"
+    :width="mobileDialogWidth"
   >
     <el-upload
       class="upload-demo"
@@ -226,7 +226,7 @@
   </el-dialog>
 
   <!-- 生成服务端 -->
-  <el-dialog v-model="frpsForm.isShow" title="生成Frps服务端" width="500px">
+  <el-dialog v-model="frpsForm.isShow" title="生成Frps服务端" :width="mobileDialogWidth">
     <el-form label-width="130px">
       <el-form-item label="Frps绑定端口：">
         <el-input v-model="frpsForm.bindPort" placeholder="请输入bindport" />
@@ -260,7 +260,7 @@
   </el-dialog>
 
   <!-- github key 设置 -->
-  <el-dialog v-model="githubApiForm.isShow" title="github key设置" width="500px">
+  <el-dialog v-model="githubApiForm.isShow" title="github key设置" :width="mobileDialogWidth">
     <el-form label-width="130px">
       <el-form-item label="client id：">
         <el-input
@@ -283,7 +283,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, provide, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, provide, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDark } from '@vueuse/core'
 import { Moon, Sunny, Setting } from '@element-plus/icons-vue'
@@ -307,6 +307,8 @@ import { Version } from './utils/type.ts'
 const route = useRoute()
 const isDark = useDark()
 const { isMobile } = useResponsive()
+
+const mobileDialogWidth = computed(() => (isMobile.value ? '92%' : '500px'))
 
 const sidebarOpen = ref(false)
 const toggleSidebar = () => {

@@ -3,7 +3,7 @@
     :modal="true"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    width="80%"
+    :width="mainDialogWidth"
     v-model="showClientDialog"
     :title="title"
     @closed="onClosed"
@@ -29,7 +29,7 @@
           </el-select>
         </template>
         <template #content>
-          <div style="display: flex">
+          <div class="detail-toolbar">
             <el-button-group class="ml-4">
               <el-button type="warning" plain @click="handleRefrsh"
                 >刷新
@@ -110,16 +110,16 @@
           </span>
         </div>
 
-        <el-row style="margin-top: 10px">
-          <el-col :span="10">
+        <el-row style="margin-top: 10px" :gutter="isMobile ? 0 : 12">
+          <el-col :span="editorSpan">
             <el-input
               v-model="selectValue.content"
               :autosize="{ minRows: 2, maxRows: 23.5 }"
-              placeholder="frpc configure file, can not be empty..."
+              placeholder="frpc 配置文件内容，不能为空……"
               type="textarea"
             ></el-input>
           </el-col>
-          <el-col :span="14">
+          <el-col :span="logSpan" :style="isMobile ? 'margin-top:10px' : ''">
             <el-card title="日志面板" class="log-container">
               <div>
                 <div ref="logContainer" class="log-container">
@@ -141,7 +141,7 @@
   </el-dialog>
 
   <!--新建客户端-->
-  <el-dialog v-model="newClientForm.showClientDialog" width="700">
+  <el-dialog v-model="newClientForm.showClientDialog" :width="innerDialogWidth">
     <template #header><span>创建客户端</span></template>
     <template #default>
       <el-form :model="newClientForm">
@@ -174,10 +174,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineExpose } from 'vue'
+import { ref, defineExpose, computed } from 'vue'
 import { ElButton } from 'element-plus'
 import { Client, FrpcConfiguration } from '../../utils/type.ts'
 import { EventAwareSSEClient } from '../../utils/sseclient.ts'
+import { useResponsive } from '../../composables/useResponsive'
 import {
   showLoading,
   showMessageDialog,
@@ -187,6 +188,13 @@ import {
   showWarmTips,
   syntaxHighlight,
 } from '../../utils/utils.ts'
+
+// 响应式：手机端弹窗占满、分栏堆叠
+const { isMobile } = useResponsive()
+const mainDialogWidth = computed(() => (isMobile.value ? '96%' : '80%'))
+const innerDialogWidth = computed(() => (isMobile.value ? '94%' : '700px'))
+const editorSpan = computed(() => (isMobile.value ? 24 : 10))
+const logSpan = computed(() => (isMobile.value ? 24 : 14))
 
 export interface Option {
   label: string
@@ -504,6 +512,29 @@ const fetchApi = (action: string, data: any) => {
 .upgrade-popup-content {
   padding-left: 20px;
   padding-right: 20px;
+}
+
+/* 工具栏：10 个按钮，允许换行避免溢出 */
+.detail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+}
+.detail-toolbar .ml-4 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .upgrade-popup-content {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  :deep(.el-page-header__header) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
 }
 
 .upgrade-popup-footer button {

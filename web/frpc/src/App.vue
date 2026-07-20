@@ -123,7 +123,7 @@
   <UpgradeDialog ref="upgradeRef" />
 
   <!-- 客户端程序升级 -->
-  <el-dialog v-model="dialogFormVisible" align-center width="500">
+  <el-dialog v-model="dialogFormVisible" align-center :width="mobileDialogWidth">
     <template #header><span>程序升级</span></template>
     <el-input
       v-model="form.binUrl"
@@ -147,7 +147,7 @@
   </el-dialog>
 
   <!-- 版本信息 -->
-  <el-dialog v-model="versionDialogVisible" width="30%">
+  <el-dialog v-model="versionDialogVisible" :width="mobileVersionWidth">
     <template #header><span>版本信息</span></template>
     <el-descriptions :column="1" :size="size" border>
       <el-descriptions-item width="100">
@@ -181,7 +181,7 @@
   <el-dialog
     v-model="githubProxyForm.isShow"
     title="设置github api代理"
-    width="500px"
+    :width="mobileDialogWidth"
   >
     <el-input
       v-model="githubProxyForm.proxyUrl"
@@ -194,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDark, useToggle } from '@vueuse/core'
 import { Moon, Sunny, Setting } from '@element-plus/icons-vue'
@@ -217,6 +217,10 @@ import UpgradeDialog from './components/UpgradeDialog.vue'
 
 const route = useRoute()
 const { isMobile } = useResponsive()
+
+const mobileDialogWidth = computed(() => (isMobile.value ? '92%' : '500px'))
+const mobileVersionWidth = computed(() => (isMobile.value ? '92%' : '30%'))
+
 const sidebarOpen = ref(false)
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value

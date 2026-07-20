@@ -1,11 +1,13 @@
 #!/bin/bash
 module=$(grep "module" go.mod | cut -d ' ' -f 2)
-options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
+options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:mips64" "linux:mips64le" "darwin:amd64" "darwin:arm64" "freebsd:amd64")
+#options=("windows:amd64" "windows:arm64" "linux:amd64" "linux:arm64" "linux:arm:7" "linux:arm:5" "linux:mips64" "linux:mips64le" "linux:mips:softfloat" "linux:mipsle:softfloat" "linux:riscv64" "linux:loong64" "darwin:amd64" "darwin:arm64" "freebsd:amd64" "android:arm64")
 #options=("linux:arm64")
 #options=("linux:amd64" "linux:arm64" "windows:amd64" "darwin:arm64")
 version=$(git tag -l "v[0-99]*.[0-99]*.[0-99]*" --sort=-creatordate | head -n 1)
 versionDir="$module/pkg"
 #versionDir="github.com/xxl6097/go-service/pkg"
+
 
 function writeVersionGoFile() {
   if [ ! -d "./pkg" ]; then
@@ -108,6 +110,15 @@ function buildgo() {
   elif [ "${os}" = "linux" ] && ([ "${arch}" = "mips" ] || [ "${arch}" = "mipsle" ]) && [ "${extra}" != "" ] ; then
     flags=GOMIPS=${extra};
   fi;
+
+  # 固定架构指令基线，避免工具链跳版（如 go.mod 抬到 1.25）时使用更高微架构指令，
+  # 导致旧 CPU 上运行报 illegal instruction (SIGILL)。
+  if [ "${arch}" = "arm64" ]; then
+    flags="${flags} GOARM64=v8.0";
+  elif [ "${arch}" = "amd64" ]; then
+    flags="${flags} GOAMD64=v1";
+  fi;
+
   #echo "build：GOOS=${os} GOARCH=${arch} ${flags} ==> ${dstFilePath}"
   printf "build：GOOS=%-7s GOARCH=%-8s ==> %s\n" ${os} ${arch} ${dstFilePath}
 

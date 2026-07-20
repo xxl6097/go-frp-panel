@@ -61,7 +61,8 @@ jobs:
       - name: 设置Golang版本
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          #go-version: '1.23'
+          go-version-file: 'go.mod'  # 跟随 go.mod 的 go 指令，避免版本不一致导致 GOTOOLCHAIN 自动下载
       - name: 编译Golang程序
         run: |
           chmod +x ./build.sh

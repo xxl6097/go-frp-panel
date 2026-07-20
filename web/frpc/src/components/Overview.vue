@@ -38,42 +38,82 @@
             style="width: 100%"
             :default-sort="{ prop: 'type', order: 'ascending' }"
           >
+            <!-- 手机端：展开查看完整详情 -->
+            <el-table-column v-if="isMobile" type="expand">
+              <template #default="{ row }">
+                <div class="proxy-expand">
+                  <div><span class="lbl">类型</span>{{ row.type }}</div>
+                  <div>
+                    <span class="lbl">本地地址</span>{{ row.local_addr || '—' }}
+                  </div>
+                  <div>
+                    <span class="lbl">插件</span>{{ row.plugin || '—' }}
+                  </div>
+                  <div>
+                    <span class="lbl">远程地址</span>{{ row.remote_addr || '—' }}
+                  </div>
+                  <div><span class="lbl">信息</span>{{ row.err || '—' }}</div>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column
               prop="name"
               label="名称"
+              min-width="120"
               sortable
+              show-overflow-tooltip
             ></el-table-column>
             <el-table-column
+              v-if="!isMobile"
               prop="type"
               label="类型"
               width="150"
               sortable
             ></el-table-column>
             <el-table-column
+              v-if="!isMobile"
               prop="local_addr"
               label="本地地址"
               width="200"
               sortable
             ></el-table-column>
             <el-table-column
+              v-if="!isMobile"
               prop="plugin"
               label="插件"
               width="200"
               sortable
             ></el-table-column>
             <el-table-column
+              v-if="!isMobile"
               prop="remote_addr"
               label="远程地址"
+              min-width="140"
               sortable
+              show-overflow-tooltip
             ></el-table-column>
-            <el-table-column prop="status" label="状态" width="150" sortable>
+            <el-table-column
+              prop="status"
+              label="状态"
+              :width="isMobile ? 90 : 150"
+              sortable
+            >
               <template #default="{ row }">
-                <el-tag :type="row.status === 'running' ? 'success' : 'danger'">
+                <el-tag
+                  :type="row.status === 'running' ? 'success' : 'danger'"
+                  size="small"
+                >
                   {{ row.status === 'running' ? '运行中' : '已停止' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="err" label="信息"></el-table-column>
+            <el-table-column
+              v-if="!isMobile"
+              prop="err"
+              label="信息"
+              min-width="120"
+              show-overflow-tooltip
+            ></el-table-column>
           </el-table>
         </div>
       </el-col>
@@ -85,6 +125,9 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { showWarmDialog } from '../utils/utils.ts'
+import { useResponsive } from '../composables/useResponsive'
+
+const { isMobile } = useResponsive()
 
 interface Option {
   value: string
@@ -198,4 +241,19 @@ fetchData()
 fetchListData()
 </script>
 
-<style></style>
+<style scoped>
+/* 手机端展开详情 */
+.proxy-expand {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.proxy-expand .lbl {
+  display: inline-block;
+  min-width: 72px;
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+}
+</style>

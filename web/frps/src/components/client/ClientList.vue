@@ -23,11 +23,33 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="devName" label="设备名称" />
-        <el-table-column prop="frpId" label="Frp连接ID" />
-        <el-table-column prop="appVersion" label="版本号" />
-        <el-table-column prop="devMac" label="设备Mac" />
-        <el-table-column label="操作">
+        <el-table-column
+          prop="devName"
+          label="设备名称"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="!mobileLayout"
+          prop="frpId"
+          label="Frp连接ID"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="!mobileLayout"
+          prop="appVersion"
+          label="版本号"
+          min-width="100"
+        />
+        <el-table-column
+          v-if="!mobileLayout"
+          prop="devMac"
+          label="设备Mac"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column label="操作" :width="mobileLayout ? 80 : 100" fixed="right">
           <template #default="{ row }">
             <el-button
               size="small"
