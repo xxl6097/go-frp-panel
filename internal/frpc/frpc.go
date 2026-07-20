@@ -161,7 +161,9 @@ func decodeConfigAndRunWebSocket(this *frpc, cls *frpClient) {
 			ws.GetClientInstance().SetOpenHandler(this.onWebSocketOpenHandle)
 		}
 	} else {
-		z.Error("cfg.Metadatas is nil")
+		// 主 frpc 配置可能未设置 metadatas.secret（非面板生成的客户端无需 websocket 管理通道），
+		// 这是正常情况，不应记录为错误。
+		z.Debug("cfg.Metadatas is nil, websocket admin channel disabled")
 	}
 }
 
